@@ -30,7 +30,7 @@ LargestCACounties = ['Los Angeles', 'San Diego', 'Orange', 'Riverside',
 NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
-counties_path = "us-counties.csv"
+counties_path = "../us-counties.csv"
 print('processing counties file',counties_path)
 county_dat = pd.read_csv(counties_path,header=0)
 print('county_dat:',county_dat.shape)
@@ -201,7 +201,8 @@ def get_metadata(mdname, meta):
     return( meta.data[r].values[0])
    
 
-def plot_beta_mu(fit_files=['Alameda_20200513103614.RData']):
+def plot_beta_mu(fit_files=['Alameda_20200513103614.RData'],
+                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     firstDate = datetime.strptime('2020-01-21','%Y-%m-%d')
     lastDate= datetime.strptime('2020-05-31','%Y-%m-%d')
     orderDate= datetime.strptime('2020-03-19','%Y-%m-%d')
@@ -210,60 +211,38 @@ def plot_beta_mu(fit_files=['Alameda_20200513103614.RData']):
     date_lim = [date_list[0],date_list[len(date_list)-1]]
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
     ax[0].set_ylabel('Infection Rate (beta)')
-    ax[0].set_xlim([firstDate,lastDate])
-    print('xlim',ax[0].get_xlim())
-#   ax[0].set_ylim(1.0,1.5)
-    ax[0].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    ax[0].xaxis.set_minor_formatter(mdates.DateFormatter("d"))
-
     ax[1].set_ylabel('Death Rate (mu)')
-    ax[1].set_xlim([firstDate,lastDate])
-    ax[1].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-#   ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-#   ax.xaxis.set_minor_formatter(mdates.DateFormatter("%Y-%m"))
+
+    for a in range(0,len(ax)):
+        ax[a].set_xlim([firstDate,lastDate])
+        ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
 
     for fn in fit_files:
-        print(fn)
-        fit=pyreadr.read_r(fn)
-#       print('keys',fit.keys())
+        pn = fit_path+fn
+        fit=pyreadr.read_r(pn)
         diag = fit['diag']
-#       print(diag.columns)
-#       print(diag)
         meta = fit['meta']
-#       print(meta)
-#       dr = meta['names'].isin(['Date0'])
-#       Date0 = meta.data[dr].values[0]
         Date0 = get_metadata('Date0',meta)
-#       print('----- Date0:',Date0)
-
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
-#       print('----- Date0:',Date0)
 
-#       ntime = int(meta.data[meta['names'].isin(['ntime'])].values[0])
         ntime = int(get_metadata('ntime',meta))
-#       print('----- ntime:',ntime)
         tt = list(range(ntime))
-#       print('tt:',tt)
         beta = np.exp(diag['logbeta'])
-#       print(beta)
         mu = np.exp(diag['logmu'])
-#       print(mu)
 
         pdate = []
         for t in tt:
             pdate.append(Date0 + timedelta(days=t))
 
-#       print('pdate:',pdate)
-
         ax[0].plot(pdate,beta) 
         ax[1].plot(pdate,mu) 
 
-    print('----------------------')
-    print(ax[0].get_xlim())
-    print((orderDate,orderDate),
-          (ax[0].get_ylim()[0], ax[0].get_ylim()[1]))
-    ax[0].plot((orderDate,orderDate),
-               (ax[0].get_ylim()[0], ax[0].get_ylim()[1]))#,color='r')
+    for a in range(0,len(ax)):
+        ax[a].set_ylim(0,ax[a].get_ylim()[1])
+        ax[a].plot((orderDate,orderDate),
+                   (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black')
+
     plt.show()
 
 
@@ -316,11 +295,11 @@ if __name__ == '__main__':
 #                 death_threshold=1, cases_threshold=10,file='Orange')
     
     plot_beta_mu([
-                  'fits/Alameda_20200514090249.RData',
-                  'fits/Contra_Costa_20200514090253.RData',
-                  'fits/San_Francisco_20200514090303.RData',
-                  'fits/San_Mateo_20200514090307.RData',
-                  'fits/Santa_Clara_20200514090319.RData'
+                  'Alameda_20200514090249.RData',
+                  'Contra_Costa_20200514090253.RData',
+                  'San_Francisco_20200514090303.RData',
+                  'San_Mateo_20200514090307.RData',
+                  'Santa_Clara_20200514090319.RData'
                   ])
 else:
     print('type something')
