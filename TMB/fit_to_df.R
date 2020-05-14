@@ -20,11 +20,11 @@ save.fit = function(data,obj,opt,map,file)
     ) 
 
     est = data.frame(stringsAsFactors = FALSE,
-         names = c("sigma_logP","sigma_logbeta","logmu","loggamma",
+         names = c("sigma_logP","sigma_logbeta","sigma_logmu","loggamma",
                    "sigma_logC","sigma_logD"),
-         obs  = c(obj$par['sigma_logP'],obj$par['sigma_logbeta'],obj$par['logmu'],
+         obs  = c(obj$par['sigma_logP'],obj$par['sigma_logbeta'],obj$par['sigma_logmu'],
                   obj$par['loggamma'],obj$par['sigma_logC'],obj$par['sigma_logD']),
-         est = c(opt$par['sigma_logP'],opt$par['sigma_logbeta'],opt$par['logmu'],
+         est = c(opt$par['sigma_logP'],opt$par['sigma_logbeta'],opt$par['sigma_logmu'],
                   opt$par['loggamma'], opt$par['sigma_logC'],opt$par['sigma_logD'])
     )
 

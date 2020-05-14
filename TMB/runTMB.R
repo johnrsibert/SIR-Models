@@ -1,7 +1,7 @@
 source('plot_state.R')
 source('SIR_read_dat.R')
 source('fit_to_df.R')
-fit_path = '/home/jsibert/Projects/Covid-19/fits/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
 require(TMB)
 
 

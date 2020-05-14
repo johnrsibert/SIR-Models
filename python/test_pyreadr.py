@@ -14,9 +14,10 @@ import pandas
 #print(result.keys())
 #print(result)
 #print('df1:',result['df1'])
-os.chdir('/home/jsibert/Projects/Covid-19/fits')
+os.chdir('/home/jsibert/Projects/SIR-Models/fits')
+
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('Alameda_20200513103614.RData')
+fit=pyreadr.read_r('Alameda.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)

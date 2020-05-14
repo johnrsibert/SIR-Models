@@ -23,7 +23,7 @@ print('processing states file',states_path)
 states = pd.read_csv(states_path,header=0)
 print('states:',states.shape)
 """
-pop_data_path = 'CA-populations.csv'
+pop_data_path = '../CA-populations.csv'
 LargestCACounties = ['Los Angeles', 'San Diego', 'Orange', 'Riverside',
                          'San Bernardino', 'Santa Clara', 'Alameda',
                          'Sacramento', 'Contra Costa']
@@ -201,7 +201,7 @@ def get_metadata(mdname, meta):
     return( meta.data[r].values[0])
    
 
-def plot_beta_mu(fit_files=['Alameda_20200513103614.RData'],
+def plot_beta_mu(fit_files=['Alameda.RData'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     firstDate = datetime.strptime('2020-01-21','%Y-%m-%d')
     lastDate= datetime.strptime('2020-05-31','%Y-%m-%d')
@@ -278,8 +278,8 @@ if __name__ == '__main__':
 ##  print(data)
     """
 #   make_ADMB_dat(county_dat,'San Francisco')
-#   for c in BayAreaCounties:
-#       make_ADMB_dat(county_dat,c)
+    for c in BayAreaCounties:
+        make_ADMB_dat(county_dat,c)
 
 #   exit()
 #   plot_counties(county_dat,Counties=['Los Angeles'],
@@ -294,13 +294,13 @@ if __name__ == '__main__':
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
     
-    plot_beta_mu([
-                  'Alameda_20200514090249.RData',
-                  'Contra_Costa_20200514090253.RData',
-                  'San_Francisco_20200514090303.RData',
-                  'San_Mateo_20200514090307.RData',
-                  'Santa_Clara_20200514090319.RData'
-                  ])
+#   plot_beta_mu([
+#                 'Alameda_20200514090249.RData',
+#                 'Contra_Costa_20200514090253.RData',
+#                 'San_Francisco_20200514090303.RData',
+#                 'San_Mateo_20200514090307.RData',
+#                 'Santa_Clara_20200514090319.RData'
+#                 ])
 else:
     print('type something')
 
