@@ -13,9 +13,9 @@ save.fit = function(data,obj,opt,map,file)
     )
 
     meta = data.frame(stringsAsFactors = FALSE,
-           names = c("county","N0","Date0","ntime","prop_zero_deaths",
+           names = c("county","update_stamp","N0","Date0","ntime","prop_zero_deaths",
                       "fn","convergence"),
-           data = c(data$county,data$N0,data$Date0,data$ntime,
+           data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
                     data$prop_zero_deaths,opt$value,opt$convergence)
     ) 
 

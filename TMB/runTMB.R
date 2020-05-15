@@ -81,7 +81,7 @@ options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
 #opt = nlminb(obj$par,obj$fn,obj$gr,control=obj$control)
  opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-tod = format(Sys.time(), "%Y%m%d%H%M%S")
+#tod = format(Sys.time(), "%Y%m%d%H%M%S")
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -96,10 +96,10 @@ gmmu = exp(mean(obj$report()$logmu))
 print(paste("geometric mean mu:",gmmu))
 
 plot.log.state(data,par,obj,opt,map,np=4)
-dev.file = paste(fit_path,data$county,'_',tod,'.pdf',sep='')
+dev.file = paste(fit_path,data$county,'.pdf',sep='')
 dev.copy2pdf(file=dev.file,width=6.5,height=6)
 
-rd.file = paste(fit_path,data$county,'_',tod,'.RData',sep='')
+rd.file = paste(fit_path,data$county,'.RData',sep='')
 save.fit(data,obj,opt,map,rd.file)
 
 return(list(data=data,par=par,obj=obj,opt=opt))
