@@ -13,6 +13,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib import rc
 import numpy as np
 import os
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
@@ -31,9 +32,8 @@ NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
 counties_path = "../us-counties.csv"
-print('processing counties file',counties_path)
+#print('processing county population file',counties_path)
 county_dat = pd.read_csv(counties_path,header=0)
-print('county_dat:',county_dat.shape)
 
 def make_ADMB_dat(dat,County):
     """ Generate input data for analysis by ADMB or TMB models
@@ -199,18 +199,46 @@ def plot_counties(dat,Counties,
 def get_metadata(mdname, meta):
     r = meta['names'].isin([mdname])
     return( meta.data[r].values[0])
-   
 
-def plot_beta_mu(fit_files=['Alameda.RData'],
+def get_estimate(ename, ests):
+    r = ests['names'].isin([ename])
+    return(float(ests.est[r]))
+   
+#       sigma_logbeta = float(est.est[est['names'].isin(['sigma_logbeta'])])
+def plot_error(ax,x,logy,logsdy,mult=2.0):
+    sdyu = np.array(np.exp(logy + mult*logsdy))
+    sdyl = np.array(np.exp(logy - mult*logsdy))
+    xy = np.array([x,sdyu])
+    xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
+    xp = np.transpose(xy).shape
+#   wnan = np.isnan(xy)
+#   xy[wnan] = 0.0
+    sd_region = plt.Polygon(np.transpose(xy), facecolor='0.9', edgecolor='0.5')
+    ax.add_patch(sd_region)
+
+
+def plot_beta_mu(fit_files=['Alameda'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     firstDate = datetime.strptime('2020-01-21','%Y-%m-%d')
     lastDate= datetime.strptime('2020-05-31','%Y-%m-%d')
     orderDate= datetime.strptime('2020-03-19','%Y-%m-%d')
 
+#   rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+#   ## for Palatino and other serif fonts use:
+#   rc('font',**{'family':'serif','serif':['Palatino']})
+#   rc('text', usetex=False)
+
+#   rc('font', family='Arial')
+
+#   rc('font', **{'sans-serif' : 'Arial',
+#                 'family' : 'sans-serif'})
+
+
     date_list = pd.date_range(start=firstDate,end=lastDate)
     date_lim = [date_list[0],date_list[len(date_list)-1]]
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
     ax[0].set_ylabel('Infection Rate (beta)')
+#   ax[0].set_ylabel(u'382')
     ax[1].set_ylabel('Death Rate (mu)')
 
     for a in range(0,len(ax)):
@@ -219,10 +247,11 @@ def plot_beta_mu(fit_files=['Alameda.RData'],
         ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
 
     for fn in fit_files:
-        pn = fit_path+fn
+        pn = fit_path+fn+'.RData'
         fit=pyreadr.read_r(pn)
         diag = fit['diag']
         meta = fit['meta']
+        est  = fit['est']
         Date0 = get_metadata('Date0',meta)
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
 
@@ -233,16 +262,22 @@ def plot_beta_mu(fit_files=['Alameda.RData'],
 
         pdate = []
         for t in tt:
-            pdate.append(Date0 + timedelta(days=t))
+            pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
-        ax[0].plot(pdate,beta) 
-        ax[1].plot(pdate,mu) 
+        ax[0].plot(pdate,beta,label = fn)
+        sigma_logbeta = get_estimate('sigma_logbeta',est)
+        plot_error(ax[0],pdate,diag['logbeta'],sigma_logbeta)
 
+        ax[1].plot(pdate,mu,label = fn)
+        sigma_logmu = get_estimate('sigma_logmu',est)
+        plot_error(ax[1],pdate,diag['logmu'],sigma_logmu)
+
+    # Adjust length of y axis
     for a in range(0,len(ax)):
         ax[a].set_ylim(0,ax[a].get_ylim()[1])
         ax[a].plot((orderDate,orderDate),
                    (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black')
-
+        ax[a].legend()
     plt.show()
 
 
@@ -278,10 +313,9 @@ if __name__ == '__main__':
 ##  print(data)
     """
 #   make_ADMB_dat(county_dat,'San Francisco')
-    for c in BayAreaCounties:
-        make_ADMB_dat(county_dat,c)
+#   for c in BayAreaCounties:
+#       make_ADMB_dat(county_dat,c)
 
-#   exit()
 #   plot_counties(county_dat,Counties=['Los Angeles'],
 #                 death_threshold=1, cases_threshold=10,file='LA')
 #   plot_counties(county_dat,Counties=LargestCACounties,
@@ -294,13 +328,13 @@ if __name__ == '__main__':
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
     
-#   plot_beta_mu([
-#                 'Alameda_20200514090249.RData',
-#                 'Contra_Costa_20200514090253.RData',
-#                 'San_Francisco_20200514090303.RData',
-#                 'San_Mateo_20200514090307.RData',
-#                 'Santa_Clara_20200514090319.RData'
-#                 ])
+    plot_beta_mu([
+                  'Alameda',
+                  'Contra_Costa',
+                  'San_Francisco',
+                  'San_Mateo',
+                  'Santa_Clara'
+                  ])
 else:
     print('type something')
 
