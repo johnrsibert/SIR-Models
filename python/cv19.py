@@ -16,6 +16,8 @@ import matplotlib.dates as mdates
 from matplotlib import rc
 import numpy as np
 import os
+from io import StringIO
+
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
 """
@@ -204,20 +206,16 @@ def get_estimate(ename, ests):
     r = ests['names'].isin([ename])
     return(float(ests.est[r]))
    
-#       sigma_logbeta = float(est.est[est['names'].isin(['sigma_logbeta'])])
 def plot_error(ax,x,logy,logsdy,mult=2.0):
     sdyu = np.array(np.exp(logy + mult*logsdy))
     sdyl = np.array(np.exp(logy - mult*logsdy))
     xy = np.array([x,sdyu])
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
-#   wnan = np.isnan(xy)
-#   xy[wnan] = 0.0
     sd_region = plt.Polygon(np.transpose(xy), facecolor='0.9', edgecolor='0.5')
     ax.add_patch(sd_region)
 
-
-def plot_beta_mu(fit_files=['Alameda'],
+def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     """
     Draws estimated infection and death rate on calander date
@@ -231,15 +229,19 @@ def plot_beta_mu(fit_files=['Alameda'],
     date_list = pd.date_range(start=firstDate,end=lastDate)
     date_lim = [date_list[0],date_list[len(date_list)-1]]
 #                              sharex=True
-    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
+    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0),sharex=True)
     ax[0].set_ylabel('Infecrion Rate, 'r'$\beta\ (da^{-1})$')
     ax[1].set_ylabel('Mortality Rate, 'r'$\mu\ (da^{-1})$')
+    ax2 = []
 
     for a in range(0,len(ax)):
         ax[a].set_xlim([firstDate,lastDate])
         ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
-#   ax.xaxis.set_minor_locator(MultipleLocator(5))
+        ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+        if (delta_ts):
+            ax2.append(ax[a].twinx())
+#   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
 
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
@@ -262,14 +264,21 @@ def plot_beta_mu(fit_files=['Alameda'],
         ax[0].plot(pdate,beta,label = fn)
         sigma_logbeta = get_estimate('sigma_logbeta',est)
         plot_error(ax[0],pdate,diag['logbeta'],sigma_logbeta)
+        if (delta_ts):
+            delta_obs_cases = diag['obs_cases'].diff()
+            ax2[0].scatter(pdate,delta_obs_cases,alpha=0.5,label=fn)
 
         ax[1].plot(pdate,mu,label = fn)
         sigma_logmu = get_estimate('sigma_logmu',est)
         plot_error(ax[1],pdate,diag['logmu'],sigma_logmu)
+        if (delta_ts):
+            delta_obs_deaths = diag['obs_deaths'].diff()
+            ax2[1].scatter(pdate,delta_obs_deaths,alpha=0.5,label=fn)
 
-    # Adjust length of y axis
     for a in range(0,len(ax)):
+    #   Adjust length of y axis
         ax[a].set_ylim(0,ax[a].get_ylim()[1])
+    #   Newsome's shelter in place order
         ax[a].plot((orderDate,orderDate),
                    (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black')
         ax[a].legend()
@@ -278,35 +287,30 @@ def plot_beta_mu(fit_files=['Alameda'],
 
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
-    tex = fit_path+'fit_table.tex'
     tt_cols = ['county','sigma_logP','sigma_logbeta','sigma_logmu','loggamma']
     tt = pd.DataFrame(columns=tt_cols)#,dtype=float)
-#   tt = np.array(tt_cols)
-#   print('tt: 0',tt,tt.shape)
 
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
         fit=pyreadr.read_r(pn)
-#       diag = fit['diag']
-#       meta = fit['meta']
         est  = fit['est']
-#       print(est['names'])
-#       print(est['est'])
         row = [None]*len(tt_cols)
         row[0] = fn
-#       print('1 row:',row) 
-#       for n in tt_cols:
         for n in range(1,len(tt_cols)):
-#           print('v',v,type(v))
-#           row[n] = float(est['est'][rs]) #v
             row[n] = get_estimate(tt_cols[n],est)
 
-
-#       print('2 row:',row) 
         tt = np.append(tt,np.array([row]),axis=0)
+
     print('tt:',tt.shape,type(tt))
     print(tt)
-#   print(tt.to_latex(index=False)) 
+    tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
+    print('tt:',tt.shape,type(tt))
+    print(tt)
+    tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
+    #  Requires \usepackage{booktabs}
+    tex = fit_path+'fit_table.tex'
+    print(tt.to_latex(buf=tex,float_format='%0.4g',index=False))
+    print('Table written to file',tex)
 
 ###################################################   
 if __name__ == '__main__':
@@ -351,20 +355,23 @@ if __name__ == '__main__':
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
     
-#   plot_beta_mu([
+#   plot_beta_mu(['Alameda','Santa_Clara' ])
+    plot_beta_mu([
+                  'Alameda',
+                  'Contra_Costa',
+                  'San_Francisco',
+                  'San_Mateo',
+                  'Santa_Clara'
+                  ]
+#                 ,delta_ts=True
+                  )
+#   make_fit_table([
 #                 'Alameda',
 #                 'Contra_Costa',
 #                 'San_Francisco',
 #                 'San_Mateo',
 #                 'Santa_Clara'
 #                 ])
-    make_fit_table([
-                  'Alameda',
-                  'Contra_Costa',
-                  'San_Francisco',
-                  'San_Mateo',
-                  'Santa_Clara'
-                  ])
 else:
     print('type something')
 
