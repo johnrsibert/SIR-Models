@@ -89,6 +89,7 @@ Type objective_function <Type>::operator()()
 
   //Type mu = exp(logmu);
     Type gamma = exp(loggamma);
+    ADREPORT(gamma)
   //Type sigma_P = exp(logsigma_logP);
   //Type sigma_C = exp(logsigma_logC);
   //Type sigma_D = exp(logsigma_logD);
