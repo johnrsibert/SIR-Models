@@ -75,7 +75,7 @@ Type objective_function <Type>::operator()()
 
     PARAMETER(sigma_logP);          // SIR process error
     PARAMETER(sigma_logbeta);       // beta random walk sd
-    PARAMETER(sigma_logmu);
+    PARAMETER(sigma_logmu);         // mu randomwalk sd
     PARAMETER(loggamma);            // recovery rate of infection population
     PARAMETER(sigma_logC);          // cases observation error
     PARAMETER(sigma_logD);          // deaths observation error
@@ -142,14 +142,11 @@ Type objective_function <Type>::operator()()
      REPORT(logD)
      REPORT(logbeta)
      REPORT(logmu)
-   //REPORT(loggamma)
-     /* 
-     ADREPORT(sigma_logP);
-     ADREPORT(sigma_logbeta);
-     ADREPORT(logmu);
-     ADREPORT(loggamma);
-     ADREPORT(sigma_logC);
-     ADREPORT(sigma_logD); 
-     */
+
+     REPORT(sigma_logP);
+     REPORT(sigma_logbeta);
+     REPORT(sigma_logmu);
+     REPORT(loggamma);
+
      return isNaN(f,__LINE__);
 }

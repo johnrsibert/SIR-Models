@@ -106,12 +106,13 @@ return(list(data=data,par=par,obj=obj,opt=opt))
 
 } # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
-#do_one_run(County='Contra Costa')->fit
-sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
-                    "Santa_Clara")
-for (c in 1:length(county_list))
-{
-    do_one_run(County=county_list[c])->junk
-}
+do_one_run(County='Alameda')->fit
+
+#sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+#county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
+#                    "Santa_Clara")
+#for (c in 1:length(county_list))
+#{
+#    do_one_run(County=county_list[c])->junk
+#}
 #sink()

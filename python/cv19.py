@@ -219,32 +219,27 @@ def plot_error(ax,x,logy,logsdy,mult=2.0):
 
 def plot_beta_mu(fit_files=['Alameda'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
+    """
+    Draws estimated infection and death rate on calander date
+    with standard deviation envelopes
+    """
     firstDate = datetime.strptime('2020-01-21','%Y-%m-%d')
     lastDate= datetime.strptime('2020-05-31','%Y-%m-%d')
     orderDate= datetime.strptime('2020-03-19','%Y-%m-%d')
 
-#   rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-#   ## for Palatino and other serif fonts use:
-#   rc('font',**{'family':'serif','serif':['Palatino']})
-#   rc('text', usetex=False)
-
-#   rc('font', family='Arial')
-
-#   rc('font', **{'sans-serif' : 'Arial',
-#                 'family' : 'sans-serif'})
-
 
     date_list = pd.date_range(start=firstDate,end=lastDate)
     date_lim = [date_list[0],date_list[len(date_list)-1]]
+#                              sharex=True
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
-    ax[0].set_ylabel('Infection Rate (beta)')
-#   ax[0].set_ylabel(u'382')
-    ax[1].set_ylabel('Death Rate (mu)')
+    ax[0].set_ylabel('Infecrion Rate, 'r'$\beta\ (da^{-1})$')
+    ax[1].set_ylabel('Mortality Rate, 'r'$\mu\ (da^{-1})$')
 
     for a in range(0,len(ax)):
         ax[a].set_xlim([firstDate,lastDate])
         ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
+#   ax.xaxis.set_minor_locator(MultipleLocator(5))
 
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
@@ -281,9 +276,37 @@ def plot_beta_mu(fit_files=['Alameda'],
     plt.show()
 
 
+def make_fit_table(fit_files=['Alameda','Santa_Clara'],
+                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
+    tex = fit_path+'fit_table.tex'
+    tt_cols = ['county','sigma_logP','sigma_logbeta','sigma_logmu','loggamma']
+    tt = pd.DataFrame(columns=tt_cols)#,dtype=float)
+#   tt = np.array(tt_cols)
+#   print('tt: 0',tt,tt.shape)
+
+    for fn in fit_files:
+        pn = fit_path+fn+'.RData'
+        fit=pyreadr.read_r(pn)
+#       diag = fit['diag']
+#       meta = fit['meta']
+        est  = fit['est']
+#       print(est['names'])
+#       print(est['est'])
+        row = [None]*len(tt_cols)
+        row[0] = fn
+#       print('1 row:',row) 
+#       for n in tt_cols:
+        for n in range(1,len(tt_cols)):
+#           print('v',v,type(v))
+#           row[n] = float(est['est'][rs]) #v
+            row[n] = get_estimate(tt_cols[n],est)
 
 
-
+#       print('2 row:',row) 
+        tt = np.append(tt,np.array([row]),axis=0)
+    print('tt:',tt.shape,type(tt))
+    print(tt)
+#   print(tt.to_latex(index=False)) 
 
 ###################################################   
 if __name__ == '__main__':
@@ -328,7 +351,14 @@ if __name__ == '__main__':
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
     
-    plot_beta_mu([
+#   plot_beta_mu([
+#                 'Alameda',
+#                 'Contra_Costa',
+#                 'San_Francisco',
+#                 'San_Mateo',
+#                 'Santa_Clara'
+#                 ])
+    make_fit_table([
                   'Alameda',
                   'Contra_Costa',
                   'San_Francisco',
