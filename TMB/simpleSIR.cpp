@@ -140,7 +140,7 @@ Type objective_function <Type>::operator()()
      REPORT(logD)
      REPORT(logbeta)
      REPORT(logmu)
-   //REPORT(loggamma)
+     REPORT(gamma)
      /* 
      ADREPORT(sigma_logP);
      ADREPORT(sigma_logbeta);

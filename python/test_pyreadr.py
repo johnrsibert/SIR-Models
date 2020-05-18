@@ -22,8 +22,9 @@ print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
 print(diag)
+
 md = fit['meta']
-print('meta',md)
+print('meta:',md)
 #print(md.iloc[0])
 #print(md.data)
 #rs = md['names'].isin(['Date0'])
@@ -31,8 +32,9 @@ print('meta',md)
 #Date0 = md.data[rs]
 #print('Date0:',Date0)
 
-print(fit['est'])
 est = fit['est']
+print('est:',est)
+
 rs = est['names'].isin(['logmu'])
 logmu = est.obs[rs]
 print('logmu',logmu)

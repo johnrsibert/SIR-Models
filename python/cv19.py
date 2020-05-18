@@ -18,6 +18,7 @@ import numpy as np
 import os
 from io import StringIO
 import scipy.stats as stats
+from sigfig import round
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
@@ -218,7 +219,10 @@ def get_metadata(mdname, meta):
 
 def get_estimate(ename, ests):
     r = ests['names'].isin([ename])
-    return(float(ests.est[r]))
+    if (r.any() == True):
+        return(float(ests.est[r]))
+    else:
+        return(None)
    
 def plot_error(ax,x,logy,logsdy,mult=2.0):
     sdyu = np.array(np.exp(logy + mult*logsdy))
@@ -300,70 +304,103 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
 
 def plot_diagnostics(county='Alameda',
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/',
-                 file = None):
+                 save = True):
     fig, ax = plt.subplots(3,2,figsize=(6.5,9.0))
-    pn = fit_path+county.replace(' ','_')+'.RData'
+    county_name = county.replace(' ','_')
+    pn = fit_path+county_name+'.RData'
     fit=pyreadr.read_r(pn)
     diag = fit['diag']
-    print(diag.columns)
-#   print(type(diag['obs_cases']))
-#   print(diag['obs_cases'].values)1G
-#   print(np.max(diag['obs_cases']))
+#   print(diag.columns)
 #   meta = fit['meta']
 #   est  = fit['est']
-#   pred_cases  = np.exp(diag['log_pred_cases'])
-#   pred_deaths = np.exp(diag['log_pred_deaths'])
 
-# ax = fig.add_subplot(111)
+    obsD = diag['log_obs_deaths']
+    preD = diag['log_pred_deaths']
+
     ax5 = fig.add_subplot(325)
-# x = stats.loggamma.rvs(c=2.5, size=500)
-# res = stats.probplot(x, dist=stats.loggamma, sparams=(2.5,), plot=ax)
-    res = stats.probplot(diag['log_obs_cases'].values,plot=ax5)
-    print(res)
+    residuals = diag['log_pred_cases'] - diag['log_obs_cases']
+    res5 = stats.probplot(residuals,plot=ax5)
+#   print('res5:',res5)
+    ax5.set_title('')
+    ax5.set_xlabel('Cases Residuals')
+
+    ax6 = fig.add_subplot(326)
+    residuals = preD[obsD>0.0] - obsD[obsD>0.0]
+    res6 = stats.probplot(residuals,plot=ax6)
+#   print('res6:',res6)
+    ax6.set_title('')
+    ax6.set_xlabel('Deaths Residuals')
 
     ax[1,0].plot([np.min(diag['log_obs_cases']),np.max(diag['log_obs_cases'])],
                  [np.min(diag['log_obs_cases']),np.max(diag['log_obs_cases'])],
                  linewidth=1, color='black')
     ax[1,0].scatter(diag['log_obs_cases'].values,
                     diag['log_pred_cases'].values)
+    ax[1,0].set_xlabel('log Observed Cases')
+    ax[1,0].set_ylabel('log predicted Cases')
 
-    ax[1,1].plot([min(diag['log_obs_deaths']),np.max(diag['log_obs_deaths'])],
-                 [min(diag['log_obs_deaths']),np.max(diag['log_obs_deaths'])],
+#   ax[1,1].plot([np.min(diag['log_obs_deaths'].values),np.max(diag['log_obs_deaths'])],
+#                [np.min(diag['log_obs_deaths'].values),np.max(diag['log_obs_deaths'])],
+#                linewidth=1, color='black')
+#   ax[1,1].scatter(diag['log_obs_deaths'].values,
+#                   diag['log_pred_deaths'].values)
+    ax[1,1].plot([np.min(preD[obsD>0.0]),np.max(obsD[obsD>0.0])],
+                 [np.min(preD[obsD>0.0]),np.max(obsD[obsD>0.0])],
                  linewidth=1, color='black')
-    ax[1,1].scatter(diag['log_obs_deaths'].values,
-                    diag['log_pred_deaths'].values)
+    ax[1,1].scatter(preD[obsD>0.0],obsD[obsD>0.0])
+    ax[1,1].set_xlabel('log Observed Deaths')
+    ax[1,1].set_ylabel('log predicted Deaths')
 
-    plt.show()
+    if save:
+        plt.savefig(fit_path+county_name+'_diagnostics'+'.png',dpi=300)
+        plt.show(False)
+    else:
+        plt.show()
 
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
-    tt_cols = ['county','sigma_logP','sigma_logbeta','sigma_logmu','loggamma']
-    tt = pd.DataFrame(columns=tt_cols)#,dtype=float)
+#   tt_cols = ['county','sigma_logP','sigma_logbeta','sigma_logmu','loggamma']
+    tt_cols = ['county','fn','sigma_logP','sigma_logbeta','sigma_logmu','loggamma','gamma']
+    tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
+    func = pd.DataFrame(columns=['fn'])
+    gamm = pd.DataFrame(columns=['gamma'])
+    sigfigs = 3
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
         fit=pyreadr.read_r(pn)
         est  = fit['est']
+        meta = fit['meta']
         row = [None]*len(tt_cols)
         row[0] = fn
         for n in range(1,len(tt_cols)):
-            row[n] = get_estimate(tt_cols[n],est)
+            v = get_estimate(tt_cols[n],est)
+            if (v):
+                row[n] = round(v,sigfigs) #v
+            else:
+                row[n] = 0.0
+#           row[n] = np.round(get_estimate(tt_cols[n],est),3)
+#           row[n] = round(get_estimate(tt_cols[n],est),decimals=3,notation='sci')
 
         tt = np.append(tt,np.array([row]),axis=0)
+        func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
+        v =  np.exp(get_estimate('loggamma',est))
+        gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
 
-#   print('tt:',tt.shape,type(tt))
-#   print(tt)
-#   tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
-#   print('tt:',tt.shape,type(tt))
-#   print(tt)
     tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
-    #  Requires \usepackage{booktabs}
-    tex = fit_path+'fit_table.tex'
-#                   float_format='%.3f'
-#   print(tt.to_csv(float_format='%.3f',index=False))
-    tt.to_latex(buf=tex,float_format='%.4f',index=False)
-    print('Table written to file',tex)
+    tt['fn'] = func
+#   tt['gamma'] = gamm
+    print(tt)
 
+    tex = fit_path+'fit_table.tex'
+#                       float_format='%.3f'
+    tt.to_latex(buf=tex,index=False)
+#   print('Table written to file',tex)
+    #      '. \usepackage{booktabs} is required.')
+
+###################################################   
+###################################################   
+###################################################   
 ###################################################   
 if __name__ == '__main__':
 #   make_ADMB_dat(county_dat,'San Francisco')
@@ -391,14 +428,10 @@ if __name__ == '__main__':
 #                 ]
 #                 ,delta_ts=True
 #                 )
-#   make_fit_table([
-#                 'Alameda',
-#                 'Contra_Costa',
-#                 'San_Francisco',
-#                 'San_Mateo',
-#                 'Santa_Clara'
-#                 ])
-    plot_diagnostics()
+#   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
+    for c in ['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara']:
+        plot_diagnostics(c)
+#   plot_diagnostics('Alameda')
 else:
     print('type something')
 

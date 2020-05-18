@@ -28,7 +28,7 @@ init = list(
     sigma_logbeta = 0.05,
     sigma_logmu = 0.05,
     mu = 0.5,
-    gamma = 1.0,
+    gamma = eps,
     sigma_logC = log(2.5),
     sigma_logD = log(1.5),
     beta = 0.5
@@ -106,13 +106,13 @@ return(list(data=data,par=par,obj=obj,opt=opt))
 
 } # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
-do_one_run(County='Alameda')->fit
+#do_one_run(County='Contra Costa')->fit
 
-#sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-#county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
-#                    "Santa_Clara")
-#for (c in 1:length(county_list))
-#{
-#    do_one_run(County=county_list[c])->junk
-#}
-#sink()
+sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
+                    "Santa_Clara")
+for (c in 1:length(county_list))
+{
+    do_one_run(County=county_list[c])->junk
+}
+sink()
