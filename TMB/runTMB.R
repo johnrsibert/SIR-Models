@@ -53,9 +53,9 @@ map = list(
            "sigma_logP" = as.factor(1),
            "sigma_logbeta" = as.factor(1),
            "sigma_logmu" = as.factor(1),
-           "loggamma"  = as.factor(1),
-           "sigma_logC" = as.factor(NA),
-           "sigma_logD" = as.factor(NA),
+           "loggamma"  = as.factor(NA),
+           "sigma_logC" = as.factor(1),
+           "sigma_logD" = as.factor(1),
            "sigma_logbeta" = as.factor(1)
 )
 #          "logmu"  = as.factor(1),
@@ -106,13 +106,18 @@ return(list(data=data,par=par,obj=obj,opt=opt))
 
 } # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
-#do_one_run(County='Contra Costa')->fit
+do_one_run(County='Riverside')->fit
 
-sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
 county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
                     "Santa_Clara")
-for (c in 1:length(county_list))
-{
-    do_one_run(County=county_list[c])->junk
-}
-sink()
+big_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+                       "Napa", "Orange", "Riverside", "Sacramento",
+                       "San_Bernardino", "San_Diego", "San_Francisco",
+                       "San_Mateo", "Santa_Clara", "Sonoma")
+
+sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+#for (c in 1:length(big_county_list))
+#{
+#    do_one_run(County=big_county_list[c])->junk
+#}
+#sink()

@@ -38,12 +38,40 @@ BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
 counties_path = "../us-counties.csv"
 #print('processing county population file',counties_path)
 county_dat = pd.read_csv(counties_path,header=0)
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
 
+def Strptime(x):
+   """
+   wrapper for datetime.strptime callable by map(..)
+   """
+   s = str(x)
+   y = datetime.strptime(x,'%Y-%m-%d')
+   return(y)
+
+def check_delta_t(dat,County):
+    State = 'California'
+    state_filter = dat['state'].isin([State])
+    county_filter = dat['county'].isin([County])
+    County_rows = state_filter & county_filter
+    cdat = dat[County_rows]
+
+    Date = cdat['date'].map(Strptime)
+    dDate = Date.diff()
+    n = len(dDate) - 1
+    print('Maximum delta t for',County,State,':',max(dDate[-n:]))
+    return(max(dDate[-n:]).days)
+
+        
 def make_ADMB_dat(dat,County):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
         County: string containing the name of the county in California
     """
+
+    maxdt = check_delta_t(dat,County)
+    if (maxdt > 1):
+        print('WARNING: timstep greater than one for',County,'County')
+
     State = 'California'
     pops = pd.read_csv(pop_data_path,header=0)        # get county population
     cp_row = pops['county'] == County 
@@ -53,29 +81,29 @@ def make_ADMB_dat(dat,County):
     dtime = datetime.fromtimestamp(mtime)
     update_stamp = str(dtime.date())
  
-#   O = open('ad.dat','w')
-    O = open(County.replace(' ','_')+'.dat','w')
-    O.write('# county\n %s\n'%County.replace(' ','_'))
-    O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
-    O.write(' %s\n'%update_stamp)
-    O.write('# population (N0)\n %10d\n'%population)
 
-    print(dat.head())
+#   print(dat.head())
 #   get county cases & deaths    
     state_filter = dat['state'].isin([State])
     county_filter = dat['county'].isin([County])
     County_rows = state_filter & county_filter
 
+    O = open(County.replace(' ','_')+'.dat','w')
+    O.write('# county\n %s\n'%County.replace(' ','_'))
+    O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
+    O.write(' %s\n'%update_stamp)
+    O.write('# population (N0)\n %10d\n'%population)
     r0 = dat['date'][County_rows].index[0]
+
     date0 = dat['date'][r0]
-    print('date0',date0)
+#   print('date0',date0)
     O.write('# date zero\n %s\n'%date0)
-    print(dat[County_rows])
+#   print(dat[County_rows])
     ntime = len(dat[County_rows])-1
-    print('----------------ntime',ntime)
+#   print('----------------ntime',ntime)
     O.write('# ntime\n %4d\n'%ntime)
-    print(dat[County_rows].index)
-    print('date','index','cases','deaths')
+#   print(dat[County_rows].index)
+#   print('date','index','cases','deaths')
     O.write('#%6s %5s\n'%('cases','deaths'))
     for r in dat[County_rows].index:
         O.write('%7d %6d\n'%(dat['cases'][r],dat['deaths'][r]))
@@ -103,19 +131,65 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
 
     return(t0series)
 
+def plot_county_fit(county,
+                  death_threshold=1, cases_threshold=1,
+                  yscale='linear', per_capita=False, delta_ts=False,
+                  text_spacer='  ', file = None):
+    """ 
+    Plot predicted & observed cases and deaths vs time from threshold
+    Counties: list of California counties to plotted
+    """
 
-def plot_counties(dat,Counties,
+    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
+    if (per_capita):
+        ax[0].set_ylabel('Cases'+' per '+str(mult))
+        ax[1].set_ylabel('Deaths'+' per '+str(mult))
+    else:
+        ax[0].set_ylabel('Cases')
+        ax[1].set_ylabel('Deaths')
+
+    ax[0].set_xlabel('Time (days after n>%.0f)'%cases_threshold)
+    ax[1].set_xlabel('Time (days after n>%.0f)'%death_threshold)
+
+    pn = fit_path+county.replace(' ','_')+'.RData'
+    fit=pyreadr.read_r(pn)
+    diag = fit['diag']
+    t = diag.index
+    print(t)
+
+    obsI = np.exp(diag['log_obs_cases'])
+    preI = np.exp(diag['log_pred_cases'])
+    obsD = np.exp(diag['log_obs_deaths'])
+    preD = np.exp(diag['log_pred_deaths'])
+
+    sigma_logC = 0.09
+    sigma_logD = 0.06
+
+    ax[0].set_yscale(yscale)
+    plot_error(ax[0],t,diag['log_pred_cases'],sigma_logC)
+    ax[0].scatter(t,obsI)
+    ax[0].plot(t,preI,linewidth=2,color='red')
+
+    ax[0].set_yscale(yscale)
+    plot_error(ax[1],t,diag['log_pred_deaths'],sigma_logD)
+    ax[1].scatter(t,obsD)
+    ax[1].plot(t,preD,linewidth=2,color='red')
+
+    plt.show()
+
+def plot_county_dat(dat,Counties,
                   death_threshold=1, cases_threshold=1,
                   yscale='log', per_capita=False, delta_ts=False,
                   text_spacer='  ', file = None):
-    """ Plots cases and deaths vs time from threshold by countiy
-        Counties: list of California counties to plotted
+    """ 
+    Plots cases and deaths vs time from threshold by countiy
+    Counties: list of California counties to plotted
     """
 
-    def Strptime(x):
-        s = str(x)
-        y = datetime.strptime(x,'%Y-%m-%d')
-        return(y)
+#   def Strptime(x):
+#       s = str(x)
+#       y = datetime.strptime(x,'%Y-%m-%d')
+#       return(y)
         
     pops = pd.read_csv(pop_data_path,header=0)        # get county population
     mult = 1000
@@ -230,7 +304,8 @@ def plot_error(ax,x,logy,logsdy,mult=2.0):
     xy = np.array([x,sdyu])
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
-    sd_region = plt.Polygon(np.transpose(xy), facecolor='0.9', edgecolor='0.5')
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
+                            facecolor='0.9', edgecolor='0.5')
     ax.add_patch(sd_region)
 
 def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
@@ -248,7 +323,7 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
     date_lim = [date_list[0],date_list[len(date_list)-1]]
 #                              sharex=True
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0),sharex=True)
-    ax[0].set_ylabel('Infecrion Rate, 'r'$\beta\ (da^{-1})$')
+    ax[0].set_ylabel('Infection Rate, 'r'$\beta\ (da^{-1})$')
     ax[1].set_ylabel('Mortality Rate, 'r'$\mu\ (da^{-1})$')
     ax2 = []
 
@@ -284,14 +359,16 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
         plot_error(ax[0],pdate,diag['logbeta'],sigma_logbeta)
         if (delta_ts):
             delta_obs_cases = diag['obs_cases'].diff()
-            ax2[0].scatter(pdate,delta_obs_cases,alpha=0.5,label=fn)
+            ax2[0].bar(pdate,delta_obs_cases,alpha=0.5,label=fn)
+            ax2[0].set_ylabel('Cases')
 
         ax[1].plot(pdate,mu,label = fn)
         sigma_logmu = get_estimate('sigma_logmu',est)
         plot_error(ax[1],pdate,diag['logmu'],sigma_logmu)
         if (delta_ts):
             delta_obs_deaths = diag['obs_deaths'].diff()
-            ax2[1].scatter(pdate,delta_obs_deaths,alpha=0.5,label=fn)
+            ax2[1].bar(pdate,delta_obs_deaths,alpha=0.5,label=fn)
+            ax2[1].set_ylabel('Deaths')
 
     for a in range(0,len(ax)):
     #   Adjust length of y axis
@@ -302,9 +379,20 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,
         ax[a].legend()
     plt.show()
 
+def QQ_plot(ax,x,y,Q=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
+    xQ = pd.Series(x).quantile(Q)
+    yQ = pd.Series(y).quantile(Q)
+    ax.scatter(xQ,yQ)
+#   xl = ax.get_xlim()
+#   yl = ax.get_ylim()
+#   ax.plot([xl[0],xl[1]],[yl[0],yl[1]], linewidth=1, color='black')
+    qmax = np.max([x,y])
+    qmin = np.min([x,y])
+    ax.plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
+
 def plot_diagnostics(county='Alameda',
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/',
-                 save = True):
+                 save = False):
     fig, ax = plt.subplots(3,2,figsize=(6.5,9.0))
     county_name = county.replace(' ','_')
     pn = fit_path+county_name+'.RData'
@@ -331,46 +419,59 @@ def plot_diagnostics(county='Alameda',
     ax6.set_title('')
     ax6.set_xlabel('Deaths Residuals')
 
-    ax[1,0].plot([np.min(diag['log_obs_cases']),np.max(diag['log_obs_cases'])],
-                 [np.min(diag['log_obs_cases']),np.max(diag['log_obs_cases'])],
-                 linewidth=1, color='black')
     ax[1,0].scatter(diag['log_obs_cases'].values,
                     diag['log_pred_cases'].values)
+    xl = ax[1,0].get_xlim()
+    yl = ax[1,0].get_ylim()
+    ax[1,0].plot([xl[0],xl[1]],[yl[0],yl[1]], linewidth=1, color='black')
+#   qmax = np.max(diag['log_obs_cases'], diag['log_pred_cases'])
+#   qmin = np.min(diag['log_obs_cases'].values, diag['log_pred_cases'].values)
+#   ax[1,0].plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
     ax[1,0].set_xlabel('log Observed Cases')
     ax[1,0].set_ylabel('log predicted Cases')
+    ax[1,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$')
+    ax[1,0].set_xlabel(r'$\log\ \rm{I}$')
 
-#   ax[1,1].plot([np.min(diag['log_obs_deaths'].values),np.max(diag['log_obs_deaths'])],
-#                [np.min(diag['log_obs_deaths'].values),np.max(diag['log_obs_deaths'])],
-#                linewidth=1, color='black')
-#   ax[1,1].scatter(diag['log_obs_deaths'].values,
-#                   diag['log_pred_deaths'].values)
-    ax[1,1].plot([np.min(preD[obsD>0.0]),np.max(obsD[obsD>0.0])],
-                 [np.min(preD[obsD>0.0]),np.max(obsD[obsD>0.0])],
-                 linewidth=1, color='black')
     ax[1,1].scatter(preD[obsD>0.0],obsD[obsD>0.0])
-    ax[1,1].set_xlabel('log Observed Deaths')
-    ax[1,1].set_ylabel('log predicted Deaths')
+    ax[1,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$')
+    ax[1,1].set_xlabel(r'$\log\ \rm{D}$')
+
+    qmax = np.max([obsD[obsD>0.0],preD[obsD>0.0]])
+    qmin = np.min([obsD[obsD>0.0],preD[obsD>0.0]])
+    ax[1,1].plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
+
+    QQ_plot(ax[0,0],diag['log_obs_cases'].values,
+                    diag['log_pred_cases'].values)
+    ax[0,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$ quantiles')
+    ax[0,0].set_xlabel(r'$\log\ \rm{I}$ quantiles')
+
+    QQ_plot(ax[0,1], preD[obsD>0.0], obsD[obsD>0.0])
+    ax[0,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$ quantiles')
+    ax[0,1].set_xlabel(r'$\log\ \rm{D}$ quantiles')
 
     if save:
         plt.savefig(fit_path+county_name+'_diagnostics'+'.png',dpi=300)
         plt.show(False)
     else:
-        plt.show()
+        plt.show(True)
 
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
-#   tt_cols = ['county','sigma_logP','sigma_logbeta','sigma_logmu','loggamma']
-    tt_cols = ['county','fn','sigma_logP','sigma_logbeta','sigma_logmu','loggamma','gamma']
+#   tt_cols = ['county','fn','sigma_logP','sigma_logbeta','sigma_logmu','loggamma','gamma']
+    tt_cols = ['county','fn','sigma_logP','sigma_logbeta','sigma_logmu']
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
-    gamm = pd.DataFrame(columns=['gamma'])
+#   gamm = pd.DataFrame(columns=['gamma'])
+    mbeta = pd.DataFrame(columns=['mbeta'])
+    mmu = pd.DataFrame(columns=['mmu'])
     sigfigs = 3
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
         fit=pyreadr.read_r(pn)
         est  = fit['est']
         meta = fit['meta']
+        diag = fit['diag']
         row = [None]*len(tt_cols)
         row[0] = fn
         for n in range(1,len(tt_cols)):
@@ -384,12 +485,18 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 
         tt = np.append(tt,np.array([row]),axis=0)
         func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
-        v =  np.exp(get_estimate('loggamma',est))
-        gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
+#       v =  np.exp(get_estimate('loggamma',est))
+#       gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
+        beta = np.exp(diag['logbeta'])
+        mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
+        mu = np.exp(diag['logmu'])
+        mmu = np.append(mmu,round(float(mu.quantile(q=0.5)),sigfigs))
 
     tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
     tt['fn'] = func
 #   tt['gamma'] = gamm
+    tt['mbeta'] = mbeta
+    tt['mmu'] = mmu
     print(tt)
 
     tex = fit_path+'fit_table.tex'
@@ -398,17 +505,20 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 #   print('Table written to file',tex)
     #      '. \usepackage{booktabs} is required.')
 
-###################################################   
-###################################################   
-###################################################   
-###################################################   
+##############################################################################
+##############################################################################
 if __name__ == '__main__':
+
+    plot_county_fit('Riverside')
+
 #   make_ADMB_dat(county_dat,'San Francisco')
-#   for c in BayAreaCounties:
+
+#   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
 
-#   plot_counties(county_dat,Counties=['Alameda'],
-#                 death_threshold=1, cases_threshold=10,file='LA')
+#   plot_counties(county_dat,Counties=['San Mateo'],
+#                 death_threshold=1, cases_threshold=10,file='San_Mateo',delta_ts=True)
+
 #   plot_counties(county_dat,Counties=LargestCACounties,
 #                 death_threshold=1, cases_threshold=10,
 #                 per_capita=False,yscale='log',file='BigCA')
@@ -418,7 +528,7 @@ if __name__ == '__main__':
 #                 death_threshold=5, cases_threshold=50)
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
-#   plot_beta_mu(['Alameda','Santa_Clara' ])
+    plot_beta_mu(['Riverside']) #,'San_Mateo' ])#,delta_ts=True)
 #   plot_beta_mu([
 #                 'Alameda',
 #                 'Contra_Costa',
@@ -429,9 +539,19 @@ if __name__ == '__main__':
 #                 ,delta_ts=True
 #                 )
 #   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
-    for c in ['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara']:
-        plot_diagnostics(c)
+#   make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+#                      "Napa", "Orange", "Riverside", "Sacramento",
+#                      "San_Bernardino", "San_Diego", "San_Francisco",
+#                      "San_Mateo", "Santa_Clara", "Sonoma"])
+
+#   for c in ['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara']:
+#       plot_diagnostics(c)
 #   plot_diagnostics('Alameda')
+
+
+#   for c in LargestCACounties:
+#       check_delta_t(county_dat,c)
+
 else:
     print('type something')
 
