@@ -26,12 +26,12 @@ print(data)
 init = list(
     sigma_logP = 0.1,
     sigma_logbeta = 0.05,
-    sigma_logmu = 0.05,
-    mu = 0.5,
-    gamma = eps,
-    sigma_logC = log(2.5),
-    sigma_logD = log(1.5),
-    beta = 0.5
+    sigma_logmu = 0.005,
+    mu = 0.1,
+    gamma = 0.1,
+    sigma_logC = 0.5,
+    sigma_logD = 0.5,
+    beta = 0.1
 )
 print("--initial parameter values:")
 print(init)
@@ -53,9 +53,9 @@ map = list(
            "sigma_logP" = as.factor(1),
            "sigma_logbeta" = as.factor(1),
            "sigma_logmu" = as.factor(1),
-           "loggamma"  = as.factor(NA),
-           "sigma_logC" = as.factor(1),
-           "sigma_logD" = as.factor(1),
+           "loggamma"  = as.factor(1),
+           "sigma_logC" = as.factor(NA),
+           "sigma_logD" = as.factor(NA),
            "sigma_logbeta" = as.factor(1)
 )
 #          "logmu"  = as.factor(1),
@@ -102,11 +102,10 @@ dev.copy2pdf(file=dev.file,width=6.5,height=6)
 rd.file = paste(fit_path,data$county,'.RData',sep='')
 save.fit(data,obj,opt,map,rd.file)
 
-return(list(data=data,par=par,obj=obj,opt=opt))
+return(list(data=data,map=map,par=par,obj=obj,opt=opt))
 
 } # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
-do_one_run(County='Riverside')->fit
 
 county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
                     "Santa_Clara")
@@ -115,9 +114,16 @@ big_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-#for (c in 1:length(big_county_list))
+#nrun = 1
+#if (nrun < 2)
+#   do_one_run(County='Riverside')->fit
+
+#else
 #{
-#    do_one_run(County=big_county_list[c])->junk
+    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+    for (c in 1:length(big_county_list))
+    {
+        do_one_run(County=big_county_list[c])->junk
+    }
+    sink()
 #}
-#sink()

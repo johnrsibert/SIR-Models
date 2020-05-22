@@ -19,15 +19,35 @@ save.fit = function(data,obj,opt,map,file)
                     data$prop_zero_deaths,opt$value,opt$convergence)
     ) 
 
-    est = data.frame(stringsAsFactors = FALSE,
-         names = c("sigma_logP","sigma_logbeta","sigma_logmu","loggamma",
-                   "sigma_logC","sigma_logD"),
-         obs  = c(obj$par['sigma_logP'],obj$par['sigma_logbeta'],obj$par['sigma_logmu'],
-                  obj$par['loggamma'],obj$par['sigma_logC'],obj$par['sigma_logD']),
-         est = c(opt$par['sigma_logP'],opt$par['sigma_logbeta'],opt$par['sigma_logmu'],
-                  opt$par['loggamma'], opt$par['sigma_logC'],opt$par['sigma_logD'])
-    )
+#   est = data.frame(stringsAsFactors = FALSE,
+#        names = c("sigma_logP","sigma_logbeta","sigma_logmu","loggamma",
+#                  "sigma_logC","sigma_logD"),
+#        obs  = c(obj$par['sigma_logP'],obj$par['sigma_logbeta'],obj$par['sigma_logmu'],
+#                 obj$par['loggamma'],obj$par['sigma_logC'],obj$par['sigma_logD']),
+#        est = c(opt$par['sigma_logP'],opt$par['sigma_logbeta'],opt$par['sigma_logmu'],
+#                 opt$par['loggamma'], opt$par['sigma_logC'],opt$par['sigma_logD'])
+#   )
+    est_names = names(obj$par)
+    print(est_names)
+    obs = vector(length=length(est_names))
+    est = vector(length=length(est_names))
+ #  print(obj$par)
+    for (k in 1:length(est_names))
+    {
+         n = est_names[k]
+ #       print(paste(k,n))
+         obs[k] = obj$par[n]
+         est[k] = opt$par[n]
+    }
+ #  print(obs)
+ #  print(est)
+ #  print(cbind(est_names,obs,est),quote=FALSE)
+    ests = data.frame(stringsAsFactors = FALSE,
+                     names = est_names,
+                     obs = obs,
+                     est = est)
 
+ #  print(ests)
 
 #   tod = format(Sys.time(), "%Y%m%d%H%M%S")
 #   file = paste(data$county,'_',tod,'.RData',sep='')
@@ -35,5 +55,7 @@ save.fit = function(data,obj,opt,map,file)
 
 #   print(paste('saving fit:',file))
 
-    save(diag,meta,est,file=file)
+    save(diag,meta,ests,file=file)
 }
+
+# tnames=names(fit$obj$par)
