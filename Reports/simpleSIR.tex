@@ -1,0 +1,181 @@
+
+\documentclass[12pt,letterpaper]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[figurewithin=section,tablewithin=section]{caption}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{rotating}
+\usepackage{booktabs}
+%\usepackage[citestyle=authoryear,bibstyle=authoryear,maxbibnames=99]{biblatex}
+%\addbibresource{~/MendeleyBibTex/library.bib}
+
+
+\usepackage[pdftex,bookmarks=false]{hyperref}
+\hypersetup{pdfauthor={John Sibert}
+            pdfsubject={variable infection and mortality rate estimates}
+            pdftitle={Simple SIR Statistical Model}
+            pdfkeywords={COVID-19, SIR Model, random effects, TMB}
+            }%
+
+\newcommand\doublespacing{\baselineskip=1.6\normalbaselineskip}
+\newcommand\singlespacing{\baselineskip=1.0\normalbaselineskip}
+
+\title{Estimating short term trends in infection and mortality rates
+during the Covid 19 Epidemic}
+
+\author{
+John Sibert\thanks{johnrsibert@gmail.com}\\
+Joint Institute of Marine and Atmospheric Research\\
+University of Hawai`i at M\={a}noa\\
+Honolulu, HI  96822 U.S.A.\\[0.125in]
+\date{\today}
+}
+
+\begin{document}
+
+\maketitle
+
+\doublespacing
+
+\section*{Introduction}
+
+SIR models of epidemic spread divide the population into three
+compartments: Susceptible, Infectious and Recovered.
+Unfortunately, there are few data sets that include data from each of
+these three compartments. Furthermore, the data that are available
+probably contain measurement errors of various types. SIR models are
+often expressed as three coupled ordinary differential equations,
+\begin{eqnarray}
+\label{eqn:SIR}
+\frac{dS}{dt} &=& -\beta\frac{IS}{N} - \mu S\\
+\frac{dI}{dt} &=&  \beta\frac{IS}{N} - \mu I -\gamma I\\
+\frac{dR}{dt} &=& \gamma I - \mu R 
+\end{eqnarray}
+where $N$ is the population size, $\beta$ is the instantaneous
+infection rate ($t^{-1}$), $\mu$ is the instantaneous death rate
+($t^{-1}$),  and $\gamma$ is the instantaneous recovery rate ($t^{-1}$).  
+
+The New York Times ``historical'' data
+(https://github.com/nytimes/covid-19-data/) is the
+most easily accessible and source of data. It is updated daily. These
+data comprise daily totals of ``cases'' and ''deaths'' for each county
+in the United States. I assume that the data included as ``cases'' are
+a reasonable estimate of the Infectious complarment ($I$) in a SIR model. 
+There is
+simply no information of either Susceptible or Recovered compartments.
+
+So I make some simplifying assumptions. The entire population is
+susceptible so that $S/N = 1$. Over the short term, the size of the
+Susceptible compartment does not change, $\frac{dS}{dt} = 0$.
+People who recover from a COVID-19 infection return to the Susceptible
+compartment. With these assumptions, and the addition of a ``dead''
+compartment the simplified SIR model becomes
+\begin{eqnarray}
+\label{eqn:sSIR}
+\frac{dI}{dt} &=&  \beta I - \mu I -\gamma I\\
+\frac{dD}{dt} &=& \mu I
+\end{eqnarray}
+and has state variables that might be fitted to observations.
+
+It is widely accepted that there are errors in the data. Methods and
+definitions vary
+between political jurisdictions (or ``geographies'' in the parlance of
+the New York Times). There is also variability in the biosocial
+processes that mediate disease transmission.
+I take a state-space approach to fitting the model to data by
+separating process error due to biosocial factors from observation
+error. 
+
+State-space models separate variability in the biosocial
+processes in the system (transition model)
+from errors in observing features of interest
+in the system (observation model).
+
+The general form of the {\bf transition model} is
+\begin{displaymath}
+\alpha_t=T(\alpha_{t-1}) + \eta_t
+\end{displaymath}
+where $\alpha_t$ is the state at time $t$ and 
+the function $T$ embodies the dynamics mediating the
+development of the state at time $t$ from the state at the previous
+time with random process error, $\eta_t$.
+
+The transition model is constructed from finite difference
+approximations of equation (\ref{eqn:sSIR}) with associated log-normal
+random errors.
+\begin{eqnarray}
+\label{eqn:sSIRfd}
+I_t &=& I_{t-\Delta t}\big(1+\Delta t(\beta_{t-\Delta t} - \mu_{t-\Delta t}
+- \gamma)\big)e^{\eta_t} ;\quad\eta\sim N(0,\sigma_\eta) \\ 
+D_t &=& \big(D_{t-\Delta t} + \Delta t \mu_{t-\Delta t}I_{t-\Delta
+t}\big)e^{\eta_t};\quad\eta\sim N(0,\sigma_\eta)
+\end{eqnarray}
+
+The general form of the state space {\bf observation model} is
+\begin{displaymath}
+x_t = O(\alpha_t) + \varepsilon_t1G
+\end{displaymath}
+where the function $O$ describes the measurement process with
+error $\varepsilon$ in observing the state.
+
+The observed time series for $I$ and $D$ begins at the first recorded
+case. The first recorded death occurs several days or weeks after the
+first recorded case and therefor may have a considerable number of
+recorded zeros. I applied two different error models for cases and
+deaths. The observation model for cases is a simple log-normal error
+\begin{equation}
+\log\varphi_t = \bigg(\log\frac{1}{\sqrt{2\pi\sigma^2_I}} -\Bigl(\frac{\log
+I_t-\log\widehat{I}_t}{\sigma_I}\Bigr)^2\bigg)\\
+\end{equation}
+
+The observation model for deaths is assumed to be ``zero-inflated''
+log normal likelihood given by
+\begin{equation}
+  \log \varepsilon_t = \left\{
+    \begin{array}{r@{\;:\quad}l}
+       D_t > 0 &
+(1-p_0)\cdot\bigg(\log\frac{1}{\sqrt{2\pi\sigma^2_D}}
+          -\Bigl(\frac{\log D_t-\log\widehat{D}_t}{\sigma_D}\Bigr)^2\bigg)\\
+       D_t = 0 & p_0 \cdot\log \frac{1}{\sqrt{2\pi\sigma^2_Y}}\\
+    \end{array}
+  \right.
+\end{equation}
+where $p_0$ is the proportion of observed deaths observations equal to zero.
+
+\begin{table}[b]
+\caption{Complete list of estimated and computed parameters and model
+constraints for the simple SIR model.
+There are ?? estimated parameters. 
+The ?? computed variables are functions of estimated parameters.
+There are ?? constraints and constants.
+There are two random effects for each time step in the model.
+}
+\label{tab:allvars1}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+Parameter & Definition\\
+\hline
+\hline
+       & {\it Estimated parameters:}\\
+$\sigma_I$ & Infectious compartment estimation standard deviation\\
+$\sigma_D$ & Deaths compartment estimation standard deviation\\
+$\sigma_\eta$ & Standard deviation of Infectious and Deaths compartments\\
+$\sigma_\beta$ & Standard deviation of infection rate random walk\\
+$\sigma_\mu$ & Standard deviation of mortality rate random walk\\
+       & {\it Random effects:}\\
+$\beta_t$ & Infection rate\\
+$\mu_t$ & Mortality rate\\
+       & {\it Fixed parameters:}\\
+$\sigma_I$ & Infectious compartment estimation standard deviation\\
+$\sigma_D$ & Deaths compartment estimation standard deviation\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\end{document}
+
