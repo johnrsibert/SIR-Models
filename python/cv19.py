@@ -28,7 +28,8 @@ print('processing states file',states_path)
 states = pd.read_csv(states_path,header=0)
 print('states:',states.shape)
 """
-pop_data_path = '../CA-populations.csv'
+pop_data_path = '../co-est2019-pop.csv'
+#pop_data_path = '../CA-populations.csv'
 LargestCACounties = ['Los Angeles', 'San Diego', 'Orange', 'Riverside',
                          'San Bernardino', 'Santa Clara', 'Alameda',
                          'Sacramento', 'Contra Costa']
@@ -51,6 +52,15 @@ def Strptime(x):
    s = str(x)
    y = datetime.strptime(x,'%Y-%m-%d')
    return(y)
+
+def get_county_pop(County,State='California'):
+    dat = pd.read_csv(pop_data_path,header=0)
+    state_filter = dat['state'].isin([State])
+    county_filter = dat['county'].isin([County])
+    County_rows = state_filter & county_filter
+    population = int(dat[County_rows]['population'])
+    return(population)
+
 
 def check_delta_t(dat,County):
     State = 'California'
@@ -77,9 +87,9 @@ def make_ADMB_dat(dat,County):
         print('WARNING: timstep greater than one for',County,'County')
 
     State = 'California'
-    pops = pd.read_csv(pop_data_path,header=0)        # get county population
-    cp_row = pops['county'] == County 
-    population = int(pops[cp_row]['population'])
+#   pops = pd.read_csv(pop_data_path,header=0)        # get county population
+#   cp_row = pops['county'] == County 
+    population = get_county_pop(County, State)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
@@ -210,7 +220,8 @@ def plot_county_dat(dat,Counties,
     """
 
 #   get county population       
-    pops = pd.read_csv(pop_data_path,header=0)
+#   pops = pd.read_csv(pop_data_path,header=0)
+    pops = get_county_pop(County, state='California')
     mult = 1000
     eps = 1e-5
 
@@ -316,7 +327,7 @@ def plot_county_dat(dat,Counties,
 
 def get_metadata(mdname, meta):
     r = meta['names'].isin([mdname])
-    return( meta.data[r].values[0])
+    return(float(meta.data[r].values[0]))
 
 def get_estimate(ename, ests):
     r = ests['names'].isin([ename])
@@ -325,12 +336,38 @@ def get_estimate(ename, ests):
     else:
         return(None)
 
-def get_objpar(pname, ests):
+#def get_objpar(pname, ests):
+#    r = ests['names'].isin([pname])
+#    if (r.any() == True):
+#        return(float(ests.obs[r]))
+#    else:
+#        return(None)
+
+def get_initpar(pname, ests):
     r = ests['names'].isin([pname])
     if (r.any() == True):
-        return(float(ests.obs[r]))
+        return(float(ests.init[r]))
     else:
         return(None)
+   
+def plot_error(ax,x,logy,logsdy,mult=2.0):
+    sdyu = np.array(np.exp(logy + mult*logsdy))
+    sdyl = np.array(np.exp(logy - mult*logsdy))
+    xy = np.array([x,sdyu])
+    xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
+    xp = np.transpose(xy).shape
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
+                            facecolor='0.9', edgecolor='0.5')
+    ax.add_patch(sd_region)
+   
+def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
+    """
+    Draws estimated infection and death rate on calander date
+    with standard deviation envelopes
+    """
+    firstDate = FirstNYTDate
+    orderDate = CAOrderDate
+    lastDate = EndOfTime
    
 def plot_error(ax,x,logy,logsdy,mult=2.0):
     sdyu = np.array(np.exp(logy + mult*logsdy))
@@ -506,6 +543,9 @@ def plot_diagnostics(county='Alameda',
     else:
         plt.show(True)
 
+def isNaN(num):
+    return num != num
+
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,'sigma_logP'   ,'sigma_logbeta'  ,'sigma_logmu', 'loggamma'      ,'gamma']
@@ -532,11 +572,14 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         row[0] = fn
         for n in range(1,len(tt_cols)):
             v = get_estimate(tt_cols[n],ests)
-            if (v):
+            print(n,tt_cols[n],v,(v==v))
+            if (v and (v==v)):
                 row[n] = round(v,sigfigs) #v
             else:
-                v = get_objpar(tt_cols[n],ests)
+                v = get_initpar(tt_cols[n],ests)
+                print('    ',n,tt_cols[n],v,(v==v))
                 if (v):
+                    print('        ',n,tt_cols[n],v,(v==v))
                     row[n] = round(v,sigfigs) #v
 #               else:
 #                   v = get_metadata(tt_cols[n],meta)
@@ -549,14 +592,24 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         row[2] = int(get_metadata('ntime',meta))
         row[3] = round(float(get_metadata('prop_zero_deaths',meta)),sigfigs)
         tt = np.append(tt,np.array([row]),axis=0)
+        v = get_metadata('fn',meta)
+        print('fn',v,np.isnan(v))
         func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
-        v =  np.exp(get_estimate('loggamma',ests))
-        gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
+#       v =  get_estimate('loggamma',ests)
+#       print('loggamma',v,(v==v))
+#       if (np.isnan(v)):
+#           v = None
+#           gamm = np.append(gamm,v) #,notation='sci'))
+#       else:
+#           v=np.exp(v)
+#           gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
         beta = np.exp(diag['logbeta'])
         mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,round(float(mu.quantile(q=0.5)),sigfigs))
 
+#   print(tt)
+#   tt = np.append(tt,header)
     tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
     tt['fn'] = func
     tt['gamma'] = gamm
@@ -604,10 +657,14 @@ if __name__ == '__main__':
 #   plot_beta_mu(['San Bernardino','San Diego','San_Francisco'] ,delta_ts=True)
 
 #   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
-    make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
-                       "Napa", "Orange", "Riverside", "Sacramento",
-                       "San_Bernardino", "San_Diego", "San_Francisco",
-                       "San_Mateo", "Santa_Clara", "Sonoma"])
+
+    pop = get_county_pop('Alameda','California')
+    print('Alameda popopulation 2019:',pop)
+
+#   make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+#                      "Napa", "Orange", "Riverside", "Sacramento",
+#                      "San_Bernardino", "San_Diego", "San_Francisco",
+#                      "San_Mateo", "Santa_Clara", "Sonoma"])
 
 #  for c in ['San Bernardino','San Diego','San_Francisco']:
 #      plot_diagnostics(c,save=True)
