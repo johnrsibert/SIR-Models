@@ -54,6 +54,11 @@ def Strptime(x):
    return(y)
 
 def get_county_pop(County,State='California'):
+    """
+    Reads US Census populations estimates for 2019
+    Subset of orginal csv file saved in UTF-8 format. 
+    The word 'County' stipped from county names.
+    """
     dat = pd.read_csv(pop_data_path,header=0)
     state_filter = dat['state'].isin([State])
     county_filter = dat['county'].isin([County])
@@ -548,12 +553,12 @@ def isNaN(num):
 
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
-    tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,'sigma_logP'   ,'sigma_logbeta'  ,'sigma_logmu', 'loggamma'      ,'gamma']
-#   header  = ['index','County','$N_0$','$n$','$p_0','$f$',
-#              '$\sigma_\nu$','$\sigma_\beta$','$\sigma_\mu$',
-#              '$\log~\gamma$','$\gamma$'
-#              '$\tilde{\beta}$','$\tilde{\mu}$']
-    header = ['County','$N_0$','$n$','$p_0$','$f$','$\sigma_\eta$','$\sigma_\beta$','$\sigma_\mu$','$\log\gamma$','$\gamma$','$\tilde{\beta}$','$\tilde{\mu}$']
+    tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
+               'sigma_logP'   , 'sigma_logbeta'  ,'sigma_logmu',
+               'sigma_logC','sigma_logD', 'loggamma'      ,'gamma']
+
+
+#   header = ['County','$N_0$','$n$','$p_0$','$f$','$\sigma_\eta$','$\sigma_\beta$','$\sigma_\mu$','$\log\gamma$','$\gamma$','$\tilde{\beta}$','$\tilde{\mu}$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
@@ -561,6 +566,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     gamm = pd.DataFrame(columns=['gamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
+    lgndx = tt_cols.index('loggamma')
     sigfigs = 3
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
@@ -570,30 +576,26 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         diag = fit['diag']
         row = [None]*len(tt_cols)
         row[0] = fn
-        for n in range(1,len(tt_cols)):
-            v = get_estimate(tt_cols[n],ests)
-            print(n,tt_cols[n],v,(v==v))
-            if (v and (v==v)):
-                row[n] = round(v,sigfigs) #v
-            else:
+        for k in range(1,len(tt_cols)):
+            n = tt_cols[k]
+            v = get_estimate(n,ests) 
+        #   print(n,v,isNaN(v))
+            if (isNaN(v)):
                 v = get_initpar(tt_cols[n],ests)
-                print('    ',n,tt_cols[n],v,(v==v))
-                if (v):
-                    print('        ',n,tt_cols[n],v,(v==v))
-                    row[n] = round(v,sigfigs) #v
-#               else:
-#                   v = get_metadata(tt_cols[n],meta)
-#                   row[n] = v
-#           row[n] = np.round(get_estimate(tt_cols[n],est),3)
-#           row[n] = round(get_estimate(tt_cols[n],est),decimals=3,notation='sci')
+                row[k] = round(v,sigfigs)
+            else:
+                row[k] = round(v,sigfigs)
 
-        
+    #   print('after names loop:')
+    #   print(tt)
         row[1] = int(get_metadata('N0',meta))
         row[2] = int(get_metadata('ntime',meta))
         row[3] = round(float(get_metadata('prop_zero_deaths',meta)),sigfigs)
         tt = np.append(tt,np.array([row]),axis=0)
-        v = get_metadata('fn',meta)
-        print('fn',v,np.isnan(v))
+        tmp = np.exp(row[lgndx])
+        print(row[lgndx],tmp)
+   #    gamm = np.append(gamm, round(tmp,sigfigs))
+        gamm = np.append(gamm, np.exp(row[lgndx]))
         func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
 #       v =  get_estimate('loggamma',ests)
 #       print('loggamma',v,(v==v))
@@ -615,6 +617,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     tt['gamma'] = gamm
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
+    print('-----------------------------------------------')
     print(tt)
 
 #   print(tt.shape)
@@ -658,13 +661,13 @@ if __name__ == '__main__':
 
 #   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
 
-    pop = get_county_pop('Alameda','California')
-    print('Alameda popopulation 2019:',pop)
+#   pop = get_county_pop('Alameda','California')
+#   print('Alameda popopulation 2019:',pop)
 
-#   make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
-#                      "Napa", "Orange", "Riverside", "Sacramento",
-#                      "San_Bernardino", "San_Diego", "San_Francisco",
-#                      "San_Mateo", "Santa_Clara", "Sonoma"])
+    make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+                       "Napa", "Orange", "Riverside", "Sacramento",
+                       "San_Bernardino", "San_Diego", "San_Francisco",
+                       "San_Mateo", "Santa_Clara", "Sonoma"])
 
 #  for c in ['San Bernardino','San Diego','San_Francisco']:
 #      plot_diagnostics(c,save=True)

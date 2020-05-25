@@ -27,11 +27,11 @@ init = list(
     sigma_logP = 0.1,
     sigma_logbeta = 0.05,
     sigma_logmu = 0.005,
-    mu = 0.1,
-    gamma = 0.1,
-    sigma_logC = 0.5,
-    sigma_logD = 0.5,
-    beta = 0.1
+    logmu = log(0.1),
+    loggamma = log(0.1),
+    sigma_logC = log(0.5),
+    sigma_logD = log(0.5),
+    logbeta = log(0.1)
 )
 print("--initial parameter values:")
 print(init)
@@ -40,11 +40,11 @@ par = list(
     sigma_logP = init$sigma_logP,
     sigma_logbeta = init$sigma_logbeta,
     sigma_logmu = init$sigma_logmu,
-    logmu    = rep(log(init$mu),data$ntime),
-    loggamma = log(init$gamma),
+    logmu    = rep(init$logmu,data$ntime),
+    loggamma = init$loggamma,
     sigma_logC = init$sigma_logC,
     sigma_logD = init$sigma_logD,
-    logbeta = rep(log(init$beta),data$ntime)
+    logbeta = rep(init$logbeta,data$ntime)
 )
 print(paste("---model parameters: ", length(par)))
 print(par)
@@ -100,9 +100,9 @@ dev.file = paste(fit_path,data$county,'.pdf',sep='')
 dev.copy2pdf(file=dev.file,width=6.5,height=6)
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
-save.fit(data,obj,opt,map,rd.file)
+save.fit(data,obj,opt,map,init,rd.file)
 
-return(list(data=data,map=map,par=par,obj=obj,opt=opt))
+return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 
 } # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
@@ -114,16 +114,14 @@ big_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-#nrun = 1
-#if (nrun < 2)
-#   do_one_run(County='Riverside')->fit
-
-#else
-#{
-    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-    for (c in 1:length(big_county_list))
-    {
-        do_one_run(County=big_county_list[c])->junk
-    }
-    sink()
-#}
+nrun = 2
+if (nrun < 2) {
+    do_one_run(County='Alameda')->fit
+} else {
+   sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+   for (c in 1:length(big_county_list))
+   {
+       do_one_run(County=big_county_list[c])->junk
+   }
+   sink()
+}
