@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr  6 10:03:18 2020
-
 @author: jsibert
-
-Plots corona virus cases and deaths by county
-
 """
 import pyreadr
 import pandas as pd
@@ -22,28 +17,25 @@ from sigfig import round
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
-"""
-states_path = "us-states.csv"
-print('processing states file',states_path)
-states = pd.read_csv(states_path,header=0)
-print('states:',states.shape)
-"""
-pop_data_path = '../co-est2019-pop.csv'
-#pop_data_path = '../CA-populations.csv'
 LargestCACounties = ['Los Angeles', 'San Diego', 'Orange', 'Riverside',
                          'San Bernardino', 'Santa Clara', 'Alameda',
                          'Sacramento', 'Contra Costa']
 NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
+
+
 counties_path = "../us-counties.csv"
-#print('processing county population file',counties_path)
-county_dat = pd.read_csv(counties_path,header=0)
 fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
+pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-05-31','%Y-%m-%d')
+
+county_dat = pd.read_csv(counties_path,header=0)
+county-state = pd.read_csv('../county-state.csv',header=0)
+print(county-state.shape)
 
 def Strptime(x):
    """
@@ -58,7 +50,14 @@ def get_county_pop(County,State='California'):
     Reads US Census populations estimates for 2019
     Subset of orginal csv file saved in UTF-8 format. 
     The word 'County' stipped from county names.
+
+    nyc_pop is the sum of census estimates for New York, Kings, Queens
+    Bronx, and Richmond counties to be compatible with NYTimes data
     """
+    nyc_pop = 26161672
+    if (County == 'New York City'):
+        return(nyc_pop)
+
     dat = pd.read_csv(pop_data_path,header=0)
     state_filter = dat['state'].isin([State])
     county_filter = dat['county'].isin([County])
@@ -81,20 +80,23 @@ def check_delta_t(dat,County):
     return(max(dDate[-n:]).days)
 
         
-def make_ADMB_dat(dat,County):
+def make_ADMB_dat(dat,County,State = 'California'):
+#def make_ADMB_dat(dat,county_state):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
         County: string containing the name of the county in California
     """
 
-    maxdt = check_delta_t(dat,County)
-    if (maxdt > 1):
-        print('WARNING: timstep greater than one for',County,'County')
+#   maxdt = check_delta_t(dat,County)
+#   if (maxdt > 1):
+#       print('WARNING: timstep greater than one for',County,'County')
 
-    State = 'California'
+    
 #   pops = pd.read_csv(pop_data_path,header=0)        # get county population
 #   cp_row = pops['county'] == County 
-    population = get_county_pop(County, State)
+    County = county_state[0]
+    State  = county_state[1]
+    population = get_county_pop(County)#, State)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
@@ -107,8 +109,8 @@ def make_ADMB_dat(dat,County):
     county_filter = dat['county'].isin([County])
     County_rows = state_filter & county_filter
 
-    O = open(County.replace(' ','_')+'.dat','w')
-    O.write('# county\n %s\n'%County.replace(' ','_'))
+    O = open(County.replace(' ','_',5)+'.dat','w')
+    O.write('# county\n %s\n'%County.replace(' ','_,5'))
     O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
     O.write(' %s\n'%update_stamp)
     O.write('# population (N0)\n %10d\n'%population)
@@ -178,7 +180,7 @@ def plot_county_fit(county,
 
     for a in range(0,len(ax)):
         ax[a].set_xlim([firstDate,lastDate])
-        ax[a].xaxis.set_major_formatter(dates.DateFormatter('%b'))
+        ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
         ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
 #       if (delta_ts):
@@ -189,11 +191,11 @@ def plot_county_fit(county,
 #   ax[0].set_xlabel('Time (days after n>%.0f)'%cases_threshold)
 #   ax[1].set_xlabel('Time (days after n>%.0f)'%death_threshold)
 
-    pn = fit_path+county.replace(' ','_')+'.RData'
+    pn = fit_path+county.replace(' ','_',5)+'.RData'
     fit=pyreadr.read_r(pn)
     diag = fit['diag']
     t = diag.index
-    print(t)
+    print('diag.index:',t)
 
     obsI = np.exp(diag['log_obs_cases'])
     preI = np.exp(diag['log_pred_cases'])
@@ -206,6 +208,7 @@ def plot_county_fit(county,
     ax[0].set_yscale(yscale)
     plot_error(ax[0],t,diag['log_pred_cases'],sigma_logC)
     ax[0].scatter(t,obsI)
+    print(obsI)
     ax[0].plot(t,preI,linewidth=2,color='red')
 
     ax[0].set_yscale(yscale)
@@ -275,7 +278,7 @@ def plot_county_dat(dat,Counties,
     #   threshold_filter = dat[Column] > threshold
         County_rows = state_filter & county_filter# & threshold_filter
         cdata = dat[County_rows]
-        county = cc.replace(' ','_')
+        county = cc.replace(' ','_',5)
 
         if (per_capita):
             cp_row = pops['county'] == cc
@@ -332,7 +335,7 @@ def plot_county_dat(dat,Counties,
 
 def get_metadata(mdname, meta):
     r = meta['names'].isin([mdname])
-    return(float(meta.data[r].values[0]))
+    return(meta.data[r].values[0])
 
 def get_estimate(ename, ests):
     r = ests['names'].isin([ename])
@@ -341,12 +344,13 @@ def get_estimate(ename, ests):
     else:
         return(None)
 
-#def get_objpar(pname, ests):
-#    r = ests['names'].isin([pname])
-#    if (r.any() == True):
-#        return(float(ests.obs[r]))
-#    else:
-#        return(None)
+def get_est_or_init(name,ests):
+    v = get_estimate(name,ests) 
+    if (isNaN(v)):
+        v = get_initpar(n,ests)
+        return(v)
+    else:
+        return(v)
 
 def get_initpar(pname, ests):
     r = ests['names'].isin([pname])
@@ -355,24 +359,6 @@ def get_initpar(pname, ests):
     else:
         return(None)
    
-def plot_error(ax,x,logy,logsdy,mult=2.0):
-    sdyu = np.array(np.exp(logy + mult*logsdy))
-    sdyl = np.array(np.exp(logy - mult*logsdy))
-    xy = np.array([x,sdyu])
-    xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
-    xp = np.transpose(xy).shape
-    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
-                            facecolor='0.9', edgecolor='0.5')
-    ax.add_patch(sd_region)
-   
-def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
-    """
-    Draws estimated infection and death rate on calander date
-    with standard deviation envelopes
-    """
-    firstDate = FirstNYTDate
-    orderDate = CAOrderDate
-    lastDate = EndOfTime
    
 def plot_error(ax,x,logy,logsdy,mult=2.0):
     sdyu = np.array(np.exp(logy + mult*logsdy))
@@ -405,13 +391,13 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
         ax[a].set_xlim([firstDate,lastDate])
         ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax[a].xaxis.set_major_locator(mdates.MonthLocator())
-        ax[a].xaxis.set_minor_locator(mdates.Daylocator())
+        ax[a].xaxis.set_minor_locator(mdates.DayLocator())
         if (delta_ts):
             ax2.append(ax[a].twinx())
 #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
 
     for fn in fit_files:
-        pn = fit_path+fn.replace(' ','_')+'.RData'
+        pn = fit_path+fn.replace(' ','_',5)+'.RData'
         fit=pyreadr.read_r(pn)
         diag = fit['diag']
         meta = fit['meta']
@@ -478,7 +464,7 @@ def QQ_plot(ax,x,y,Q=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
 def plot_diagnostics(county='Alameda',
                  save = False):
     fig, ax = plt.subplots(3,2,figsize=(6.5,9.0))
-    county_name = county.replace(' ','_')
+    county_name = county.replace(' ','_',5)
     pn = fit_path+county_name+'.RData'
     fit=pyreadr.read_r(pn)
     diag = fit['diag']
@@ -557,9 +543,6 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                'sigma_logP'   , 'sigma_logbeta'  ,'sigma_logmu',
                'sigma_logC','sigma_logD', 'loggamma'      ,'gamma']
 
-
-#   header = ['County','$N_0$','$n$','$p_0$','$f$','$\sigma_\eta$','$\sigma_\beta$','$\sigma_\mu$','$\log\gamma$','$\gamma$','$\tilde{\beta}$','$\tilde{\mu}$']
-
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
@@ -578,33 +561,18 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         row[0] = fn
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
-            v = get_estimate(n,ests) 
-        #   print(n,v,isNaN(v))
-            if (isNaN(v)):
-                v = get_initpar(tt_cols[n],ests)
-                row[k] = round(v,sigfigs)
-            else:
-                row[k] = round(v,sigfigs)
-
-    #   print('after names loop:')
-    #   print(tt)
+            v = get_est_or_init(n,ests)
+            row[k] = round(v,sigfigs)
         row[1] = int(get_metadata('N0',meta))
         row[2] = int(get_metadata('ntime',meta))
         row[3] = round(float(get_metadata('prop_zero_deaths',meta)),sigfigs)
         tt = np.append(tt,np.array([row]),axis=0)
-        tmp = np.exp(row[lgndx])
-        print(row[lgndx],tmp)
-   #    gamm = np.append(gamm, round(tmp,sigfigs))
-        gamm = np.append(gamm, np.exp(row[lgndx]))
+        tmp = get_est_or_init('loggamma',ests)
+        tmp = np.exp(tmp)
+        tmp = round(float(tmp),sigfigs)
+        gamm = np.append(gamm,tmp)
+#       gamm = np.append(gamm,round(np.exp(float(get_est_or_init('loggamma',ests))),sigfigs))
         func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
-#       v =  get_estimate('loggamma',ests)
-#       print('loggamma',v,(v==v))
-#       if (np.isnan(v)):
-#           v = None
-#           gamm = np.append(gamm,v) #,notation='sci'))
-#       else:
-#           v=np.exp(v)
-#           gamm = np.append(gamm,round(float(v),sigfigs=4)) #,notation='sci'))
         beta = np.exp(diag['logbeta'])
         mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
         mu = np.exp(diag['logmu'])
@@ -632,9 +600,8 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 ##############################################################################
 if __name__ == '__main__':
 
-#   plot_county_fit('Riverside')
 
-#   make_ADMB_dat(county_dat,'San Francisco')
+#   make_ADMB_dat(county_dat,['New York City','New York'])
 
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
@@ -662,20 +629,24 @@ if __name__ == '__main__':
 #   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
 
 #   pop = get_county_pop('Alameda','California')
-#   print('Alameda popopulation 2019:',pop)
 
-    make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
-                       "Napa", "Orange", "Riverside", "Sacramento",
-                       "San_Bernardino", "San_Diego", "San_Francisco",
-                       "San_Mateo", "Santa_Clara", "Sonoma"])
+#   make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+#                      "Napa", "Orange", "Riverside", "Sacramento",
+#                      "San_Bernardino", "San_Diego", "San_Francisco",
+#                      "San_Mateo", "Santa_Clara", "Sonoma"])
 
 #  for c in ['San Bernardino','San Diego','San_Francisco']:
 #      plot_diagnostics(c,save=True)
-#   plot_diagnostics('Alameda')
+#   plot_diagnostics('New_York_City')
 
+#   plot_beta_mu([ 'New_York_City' ] ,delta_ts=True)
+#   plot_county_fit('New_York_City')
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
+    for c in in county-state['county']:
+        print(c)
+        make_ADMB_dat(county_dat,c)
 
 else:
     print('type something')

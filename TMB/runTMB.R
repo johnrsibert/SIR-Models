@@ -114,9 +114,9 @@ big_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County='Alameda')->fit
+    do_one_run(County='New_York_City')->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(big_county_list))
