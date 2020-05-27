@@ -34,8 +34,12 @@ CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-05-31','%Y-%m-%d')
 
 county_dat = pd.read_csv(counties_path,header=0)
-county-state = pd.read_csv('../county-state.csv',header=0)
-print(county-state.shape)
+county_state = pd.read_csv('../county-state.csv',header=0)
+#print(county_state.shape)
+#print(county_state)
+#for c in range(0,len(county_state)):
+#    print('c:',c,county_state.loc[c])
+
 
 def Strptime(x):
    """
@@ -80,8 +84,8 @@ def check_delta_t(dat,County):
     return(max(dDate[-n:]).days)
 
         
-def make_ADMB_dat(dat,County,State = 'California'):
-#def make_ADMB_dat(dat,county_state):
+#def make_ADMB_dat(dat,County,State = 'California'):
+def make_ADMB_dat(dat,county_state):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
         County: string containing the name of the county in California
@@ -96,7 +100,8 @@ def make_ADMB_dat(dat,County,State = 'California'):
 #   cp_row = pops['county'] == County 
     County = county_state[0]
     State  = county_state[1]
-    population = get_county_pop(County)#, State)
+    print(County,State)
+    population = get_county_pop(County, State)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
@@ -110,7 +115,7 @@ def make_ADMB_dat(dat,County,State = 'California'):
     County_rows = state_filter & county_filter
 
     O = open(County.replace(' ','_',5)+'.dat','w')
-    O.write('# county\n %s\n'%County.replace(' ','_,5'))
+    O.write('# county\n %s\n'%County.replace(' ','_',5))
     O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
     O.write(' %s\n'%update_stamp)
     O.write('# population (N0)\n %10d\n'%population)
@@ -229,7 +234,7 @@ def plot_county_dat(dat,Counties,
 
 #   get county population       
 #   pops = pd.read_csv(pop_data_path,header=0)
-    pops = get_county_pop(County, state='California')
+#   pops = get_county_pop(County, state='California')
     mult = 1000
     eps = 1e-5
 
@@ -272,13 +277,20 @@ def plot_county_dat(dat,Counties,
 
 #   date,county,state,fips,cases,deaths
     print(dat.columns)
-    for cc in Counties:
-        state_filter = dat['state'].isin(['California'])
-        county_filter = dat['county'].isin([cc])
+    print('Counties:',len(Counties))
+    print(Counties)
+    print(Counties.index)
+    for r in Counties.index:
+        county = Counties.iloc[r]['county']
+        state  = Counties.iloc[r]['state']
+        print('* * county,state:',county,',',state)
+        state_filter = dat['state'].isin([state])
+        county_filter = dat['county'].isin([county])
     #   threshold_filter = dat[Column] > threshold
         County_rows = state_filter & county_filter# & threshold_filter
+        print(County_rows)
         cdata = dat[County_rows]
-        county = cc.replace(' ','_',5)
+        print(cdata)
 
         if (per_capita):
             cp_row = pops['county'] == cc
@@ -551,7 +563,8 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     mmu = pd.DataFrame(columns=['mmu'])
     lgndx = tt_cols.index('loggamma')
     sigfigs = 3
-    for fn in fit_files:
+    for ff in fit_files:
+        fn = ff.replace(' ','_',5) 
         pn = fit_path+fn+'.RData'
         fit=pyreadr.read_r(pn)
         ests  = fit['ests']
@@ -606,10 +619,10 @@ if __name__ == '__main__':
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
 
-#   plot_county_dat(county_dat,
-#                 Counties=['San Bernardino','San Diego','San Francisco'],
-#                 death_threshold=1, cases_threshold=1,file='county_plot',
-#                 delta_ts=True,per_capita=False)
+    plot_county_dat(county_dat,
+                  Counties=county_state.iloc[[0,1,7]],
+                  death_threshold=1, cases_threshold=1,file='county_plot',
+                  delta_ts=True,per_capita=False)
 
 #   plot_counties(county_dat,Counties=['Contra Costa'],
 #                 death_threshold=1, cases_threshold=10,file='county_plot',delta_ts=True)
@@ -635,6 +648,8 @@ if __name__ == '__main__':
 #                      "San_Bernardino", "San_Diego", "San_Francisco",
 #                      "San_Mateo", "Santa_Clara", "Sonoma"])
 
+#  make_fit_table(county_state['county'])
+
 #  for c in ['San Bernardino','San Diego','San_Francisco']:
 #      plot_diagnostics(c,save=True)
 #   plot_diagnostics('New_York_City')
@@ -644,9 +659,8 @@ if __name__ == '__main__':
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
-    for c in in county-state['county']:
-        print(c)
-        make_ADMB_dat(county_dat,c)
+#   for c in range(0,len(county_state)):
+#       make_ADMB_dat(county_dat,county_state.loc[c])
 
 else:
     print('type something')

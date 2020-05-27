@@ -12,15 +12,16 @@ save.fit = function(data,obj,opt,map,init,file)
            logmu = obj$report()$logmu
     )
 
+    if (is.null(opt$value))
+        data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
+                       data$prop_zero_deaths,opt$objective,opt$convergence)
+    else
+        data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
+                        data$prop_zero_deaths,opt$value,opt$convergence)
     meta = data.frame(stringsAsFactors = FALSE,
            names = c("county","update_stamp","N0","Date0","ntime","prop_zero_deaths",
                       "fn","convergence"),
-           if (is.null(opt$value))
-               data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
-                       data$prop_zero_deaths,opt$objective,opt$convergence)
-           else
-               data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
-                        data$prop_zero_deaths,opt$value,opt$convergence)
+           data = data
     ) 
 
     est_names = names(init)

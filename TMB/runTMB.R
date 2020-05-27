@@ -123,7 +123,7 @@ big_county_list = list("New_York_City","Los_Angeles","San_Diego","Orange",
                        "Sacramento","Contra_Costa","Fresno","Kern",
                        "San_Francisco","Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
-nrun = 1
+nrun = 2
 if (nrun < 2) {
     do_one_run(County='Orange')->fit
 } else {
