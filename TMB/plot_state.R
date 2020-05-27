@@ -38,7 +38,10 @@ get.error = function(par,opt,map,tn)
 
 plot.log.state = function(dat,par,obj,opt,map,np = 4)
 {
-    title =  paste(dat$county,", f = ",sprintf('%.5g',opt$value),
+    fn = opt$value
+    if (is.null(fn))
+        fn = opt$objective
+    title =  paste(dat$county,", f = ",sprintf('%.5g',fn),
                    ", converge = ", (opt$convergence==0),sep='')
     old.par = par(no.readonly = TRUE) 
     par(mar=c(2,4.5,2,4)+0.1)

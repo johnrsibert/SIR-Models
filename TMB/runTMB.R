@@ -8,7 +8,7 @@ require(TMB)
 do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4')
 {
 cname = sub(" ","_",County)
-datfile=paste('../',cname,'.dat',sep='')
+datfile=paste(fit_path,cname,'.dat',sep='')
 separator = "#############################"
 print(paste(separator,County,separator),quote=FALSE)
 print(paste(separator,County,separator),quote=FALSE)
@@ -28,9 +28,9 @@ init = list(
     sigma_logbeta = 0.05,
     sigma_logmu = 0.005,
     logmu = log(0.1),
-    loggamma = log(0.1),
-    sigma_logC = log(0.5),
-    sigma_logD = log(0.5),
+    loggamma = log(0.02),
+    sigma_logC = log(0.25),
+    sigma_logD = log(0.125),
     logbeta = log(0.1)
 )
 print("--initial parameter values:")
@@ -75,19 +75,23 @@ obj = MakeADFun(data,par,random=c("logbeta","logmu"),
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
 print(obj$par)
+lower <- obj$par*0-Inf
+upper <- obj$par*0+Inf
+lower["sigma_logC"] = -0.001
+lower["sigma_logD"] = -0.001
+lower["loggamma"] = -7.0
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
-#opt = nlminb(obj$par,obj$fn,obj$gr,control=obj$control)
- opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-#tod = format(Sys.time(), "%Y%m%d%H%M%S")
+ opt = nlminb(obj$par,obj$fn,obj$gr,lower=lower)#,upper=upper)
+#opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
+#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B",lower=lower)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
 print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
-print(obj$par)
 print(opt$par)
 print(exp(opt$par))
 gmbeta = exp(mean(obj$report()$logbeta))
@@ -109,19 +113,27 @@ return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 
 county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
                     "Santa_Clara")
-big_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
+CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "Napa", "Orange", "Riverside", "Sacramento",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
+big_county_list = list("New_York_City","Los_Angeles","San_Diego","Orange",
+                       "Riverside","San_Bernardino","Santa_Clara","Alameda",
+                       "Sacramento","Contra_Costa","Fresno","Kern",
+                       "San_Francisco","Ventura","San_Mateo","San_Joaquin",
+                       "Stanislaus","Sonoma","Marin")
 nrun = 1
 if (nrun < 2) {
-    do_one_run(County='New_York_City')->fit
+    do_one_run(County='Orange')->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(big_county_list))
    {
+       print(paste('starting',big_county_list[c]))
        do_one_run(County=big_county_list[c])->junk
+       print(paste('finished',big_county_list[c]))
    }
    sink()
 }
+
