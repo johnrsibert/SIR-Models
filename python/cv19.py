@@ -49,6 +49,15 @@ def Strptime(x):
    y = datetime.strptime(x,'%Y-%m-%d')
    return(y)
 
+def prop_scale(lim,prop):
+    s = lim[0] + prop*(lim[1]-lim[0])
+    return(s)
+
+def moving_average(a, n=3) :
+    ret = np.cumsum(a)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
 def get_county_pop(County,State='California'):
     """
     Reads US Census populations estimates for 2019
@@ -159,7 +168,7 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
 
 def plot_county_fit(county,
                   death_threshold=1, cases_threshold=1,
-                  yscale='linear', per_capita=False, delta_ts=False,
+                  yscale='log', per_capita=False, delta_ts=False,
                   text_spacer='  ', file = None):
     """ 
     Plot predicted & observed cases and deaths vs time from threshold
@@ -169,11 +178,11 @@ def plot_county_fit(county,
     firstDate = mdates.date2num(FirstNYTDate)
     orderDate = mdates.date2num(CAOrderDate)
     lastDate  = mdates.date2num(EndOfTime)
-    print(CAOrderDate,orderDate)
 
     date_list = pd.date_range(start=firstDate,end=lastDate)
     date_lim = [date_list[0],date_list[len(date_list)-1]]
-
+    plt.rcParams['lines.linewidth'] = 1
+    plt.rcParams["scatter.marker"] = '+'
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
     if (per_capita):
         ax[0].set_ylabel('Cases'+' per '+str(mult))
@@ -199,27 +208,40 @@ def plot_county_fit(county,
     pn = fit_path+county.replace(' ','_',5)+'.RData'
     fit=pyreadr.read_r(pn)
     diag = fit['diag']
-    t = diag.index
-    print('diag.index:',t)
+    meta = fit['meta']
+    ests = fit['ests']
+    Date0 = get_metadata('Date0',meta)
+    Date0 = datetime.strptime(Date0,'%Y-%m-%d')
+    pdate = []
+    for t in range(0,len(diag.index)):
+        pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
     obsI = np.exp(diag['log_obs_cases'])
     preI = np.exp(diag['log_pred_cases'])
     obsD = np.exp(diag['log_obs_deaths'])
     preD = np.exp(diag['log_pred_deaths'])
 
-    sigma_logC = 0.09
-    sigma_logD = 0.06
+    sigma_logC = get_est_or_init('sigma_logC',ests)
+    sigma_logD = get_est_or_init('sigma_logD',ests)
 
+    ax[0].set_title(get_metadata('county',meta))
     ax[0].set_yscale(yscale)
-    plot_error(ax[0],t,diag['log_pred_cases'],sigma_logC)
-    ax[0].scatter(t,obsI)
-    print(obsI)
-    ax[0].plot(t,preI,linewidth=2,color='red')
+    plot_error(ax[0],pdate,diag['log_pred_cases'],sigma_logC)
+    ax[0].scatter(pdate,obsI)
+    ax[0].plot(pdate,preI,color='red')
+    tx = prop_scale(ax[0].get_xlim(), 0.05)
+    ty = prop_scale(ax[0].get_ylim(), 0.90)
+    sigstr = '%s = %.3g'%('$\sigma_I$',sigma_logC)
+    ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
-    ax[0].set_yscale(yscale)
-    plot_error(ax[1],t,diag['log_pred_deaths'],sigma_logD)
-    ax[1].scatter(t,obsD)
-    ax[1].plot(t,preD,linewidth=2,color='red')
+    ax[1].set_yscale(yscale)
+    plot_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
+    ax[1].scatter(pdate,obsD)
+    ax[1].plot(pdate,preD,color='red')
+    tx = prop_scale(ax[1].get_xlim(), 0.05)
+    ty = prop_scale(ax[1].get_ylim(), 0.90)
+    sigstr = '%s = %.3g'%('$\sigma_D$',sigma_logD)
+    ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
     plt.show()
 
@@ -281,24 +303,20 @@ def plot_county_dat(dat,Counties,
     print(Counties)
     print(Counties.index)
     for r in Counties.index:
-        county = Counties.iloc[r]['county']
-        state  = Counties.iloc[r]['state']
-        print('* * county,state:',county,',',state)
-        state_filter = dat['state'].isin([state])
-        county_filter = dat['county'].isin([county])
+        cc = Counties['county'][r]
+        st = Counties['state'][r]
+        print('* * county,state:',cc,',',st)
+        state_filter = dat['state'].isin([st])
+        county_filter = dat['county'].isin([cc])
     #   threshold_filter = dat[Column] > threshold
         County_rows = state_filter & county_filter# & threshold_filter
-        print(County_rows)
         cdata = dat[County_rows]
-        print(cdata)
 
         if (per_capita):
             cp_row = pops['county'] == cc
             pop_size = int(pops[cp_row]['population'])
             cases =  mult*cdata['cases']/pop_size + eps
             deaths =  mult*cdata['deaths']/pop_size + eps
-#           cdata['deaths'] = mult*cdata['deaths']/pop_size + eps
-#           cdata['cases'] = mult*cdata['cases']/pop_size + eps
         else :
             cases =  cdata['cases']
             deaths =  cdata['deaths']
@@ -312,6 +330,9 @@ def plot_county_dat(dat,Counties,
         if (delta_ts):
             delta_cases = cases.diff()
             ax2[0].bar(Date,delta_cases,alpha=0.5)
+        #   adc =moving_average(delta_cases, n=7)
+        #   print(adc)
+        #   ax2[0].plot(Date,adc)
 
         d = ax[1].plot(Date, deaths,label=cc)
         if (delta_ts):
@@ -619,10 +640,10 @@ if __name__ == '__main__':
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
 
-    plot_county_dat(county_dat,
-                  Counties=county_state.iloc[[0,1,7]],
-                  death_threshold=1, cases_threshold=1,file='county_plot',
-                  delta_ts=True,per_capita=False)
+#   plot_county_dat(county_dat,
+#                 Counties=county_state.iloc[[1,7]],
+#                 death_threshold=1, cases_threshold=1,file='county_plot',
+#                 delta_ts=True,per_capita=False)
 
 #   plot_counties(county_dat,Counties=['Contra Costa'],
 #                 death_threshold=1, cases_threshold=10,file='county_plot',delta_ts=True)
@@ -655,7 +676,7 @@ if __name__ == '__main__':
 #   plot_diagnostics('New_York_City')
 
 #   plot_beta_mu([ 'New_York_City' ] ,delta_ts=True)
-#   plot_county_fit('New_York_City')
+    plot_county_fit('New York City',yscale='linear')
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
