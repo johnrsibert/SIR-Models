@@ -2,7 +2,7 @@
 #define __TRACE__
 
 #undef STREAM
-#define STREAM std::cerr
+#define STREAM std::cout
 
 #undef HERE
 /**
