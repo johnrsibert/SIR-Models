@@ -2,7 +2,7 @@
 #include <math.h>
 #include <fenv.h> 
 const double TWO_M_PI = 2.0*M_PI;
-const double LOG_M_PI = log(M_PI);
+//const double LOG_M_PI = log(M_PI);
 const double eps = 1e-8;
 const double logeps = log(eps);
 
@@ -24,30 +24,43 @@ template < class Type > Type square(Type x)
     return x * x;
 }
 
+template <class Type>
+Type NLerr(Type logobs, Type logpred, Type var)
+{
+    /*
+    Type resid = (logobs - logpred) / sd;
+    Type nll = -log(sqrt(TWO_M_PI));
+    bool ztest = ((resid+0.0) == 0.0); // 1 if resid = -0
+    if (!ztest)
+    {
+        Type lsd = log(sd);
+        nll -= log(sd) + Type(0.5) * resid * resid;
+    }
+    //Type tmp = dnorm(logobs,logpred,sd);
+    */
+    
+  //Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
+    Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
+    return nll;
+}
+
 // zero-inflated log-normal error
 template <class Type>
 Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
 {
-    Type tmp;
+    Type nll;
 
     if (logobs > logeps)  //log zero deaths
     {
-        tmp = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
+      //nll = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
+        nll = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
     }
     else
     {
-        tmp = prop0*0.5*(log(TWO_M_PI*var));
+      //nll = prop0*0.5*(log(TWO_M_PI*var));
+        nll = prop0*0.5*log(sqrt(2*M_PI)) ;
     }
-
-
-    return tmp;
-}
-
-// log-normal error
-template <class Type>
-Type NLerr(Type logobs, Type logpred, Type var)
-{
-    Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
+    nll = exp(nll);
     return nll;
 }
 
@@ -61,6 +74,16 @@ template < class Type > Type isNaN(Type x, const int line)
     return x;
 }
 
+/*
+// from the TMB dox
+template<class Type>
+Type dnorm(Type x, Type mean, Type sd, int give_log=0)
+{
+   Type resid = (x - mean) / sd;
+   Type logans = -log(sqrt(2*M_PI)) - log(sd) - Type(.5) * resid * resid;
+   if(give_log) return logans; else return exp(logans);
+}
+*/
 
 template<class Type> 
 Type objective_function <Type>::operator()()
@@ -81,11 +104,11 @@ Type objective_function <Type>::operator()()
     PARAMETER(sigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);      // infection rate time series
-    PARAMETER_VECTOR(logmu);               // mortality rate of infection population
+    PARAMETER_VECTOR(logmu);        // mortality rate of infection population
 
     // state variables
-    vector <Type> logEye(ntime);       // number of infections
-    vector <Type> logD(ntime);         // number of deaths from infected population
+    vector <Type> logEye(ntime);    // number of infections
+    vector <Type> logD(ntime);      // number of deaths from infected population
 
   //Type mu = exp(logmu);
     Type gamma = exp(loggamma);
@@ -96,14 +119,15 @@ Type objective_function <Type>::operator()()
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
-    Type var_logPop = square(sigma_logP);
-    Type var_logcases = square(sigma_logC);
-    Type var_logdeaths = square(sigma_logD);
+    Type var_logP = square(sigma_logP);
+    Type var_logC = square(sigma_logC);
+    Type var_logD = square(sigma_logD);
 
     Type f = 0.0;
 
     //  loop over time
     //logEye(0) = log_obs_cases(0);
+    //logD(0) = log_obs_deaths(0);
     for (int t = 1; t <  ntime; t++)
     {
          // infection rate random walk
@@ -116,12 +140,12 @@ Type objective_function <Type>::operator()()
          Type Pnll = 0.0;
          Type prevEye = exp(logEye(t-1));
          logEye(t) = log(prevEye*(1.0 + (exp(logbeta(t-1)) - gamma - exp(logmu(t-1))))+eps);
-         Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logPop),__LINE__);
+         Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
        //logD(t) = logmu(t-1) + logEye(t-1);
          Type prevD = exp(logD(t-1));
          logD(t) = log(prevD+exp(logmu(t-1)+logEye(t-1))+eps);
-         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logPop),__LINE__);
+         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP),__LINE__);
 
          f += isNaN((betanll + munll + Pnll),__LINE__);
      }
@@ -131,9 +155,9 @@ Type objective_function <Type>::operator()()
      Type dnll = 0.0;
      for (int t = 0; t < ntime; t++)
      {   
-         cnll += isNaN(NLerr(log_obs_cases(t),logEye(t),var_logcases),__LINE__);
+         cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
 
-         dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logdeaths, prop_zero_deaths),__LINE__);
+         dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      }
 
      f += isNaN((cnll + dnll),__LINE__);
