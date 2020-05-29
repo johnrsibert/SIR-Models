@@ -38,3 +38,10 @@ ehthumbs.db
 Thumbs.db
 @turtledb
 
+# misc files
+fits/*
+python/*.png
+co-est2019-alldata.csv
+co-est2019-pop.csv
+county-state.csv
+
