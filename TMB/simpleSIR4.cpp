@@ -124,6 +124,11 @@ Type objective_function <Type>::operator()()
     Type var_logD = square(sigma_logD);
 
     Type f = 0.0;
+    Type betanll = 0.0;
+    Type munll = 0.0;
+    Type Pnll = 0.0;
+    Type cnll = 0.0;
+    Type dnll = 0.0;
 
     //  loop over time
     //logEye(0) = log_obs_cases(0);
@@ -131,13 +136,10 @@ Type objective_function <Type>::operator()()
     for (int t = 1; t <  ntime; t++)
     {
          // infection rate random walk
-         Type betanll = 0.0;
          betanll += isNaN(NLerr(logbeta(t-1),logbeta(t),var_logbeta),__LINE__);
 
-         Type munll = 0.0;
          munll += isNaN(NLerr(logmu(t-1),logmu(t),var_logmu),__LINE__);
 
-         Type Pnll = 0.0;
          Type prevEye = exp(logEye(t-1));
          logEye(t) = log(prevEye*(1.0 + (exp(logbeta(t-1)) - gamma - exp(logmu(t-1))))+eps);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
@@ -147,12 +149,10 @@ Type objective_function <Type>::operator()()
          logD(t) = log(prevD+exp(logmu(t-1)+logEye(t-1))+eps);
          Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP),__LINE__);
 
-         f += isNaN((betanll + munll + Pnll),__LINE__);
+      // f += isNaN((betanll + munll + Pnll),__LINE__);
      }
  
      // compute observation likelihoods
-     Type cnll = 0.0;
-     Type dnll = 0.0;
      for (int t = 0; t < ntime; t++)
      {   
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
@@ -160,7 +160,8 @@ Type objective_function <Type>::operator()()
          dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      }
 
-     f += isNaN((cnll + dnll),__LINE__);
+  // f += isNaN((cnll + dnll),__LINE__);
+     f += isNaN((betanll + munll + Pnll + cnll + dnll),__LINE__);
 
      REPORT(logEye)
      REPORT(logD)
@@ -172,6 +173,13 @@ Type objective_function <Type>::operator()()
      REPORT(sigma_logmu);
      REPORT(loggamma);
      REPORT(gamma);
+
+     REPORT(f);
+     REPORT(betanll);
+     REPORT(munll);
+     REPORT(Pnll);
+     REPORT(cnll);
+     REPORT(dnll);
 
      return isNaN(f,__LINE__);
 }

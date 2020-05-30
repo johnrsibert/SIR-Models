@@ -26,11 +26,11 @@ print(data)
 init = list(
     sigma_logP = 0.1,
     sigma_logbeta = 0.05,
-    sigma_logmu = 0.005,
-    logmu = log(0.1),
-    loggamma = log(0.02),
+    sigma_logmu = 0.01,
+    logmu = log(0.005),
+    loggamma = log(0.05),
     sigma_logC = log(0.25),
-    sigma_logD = log(0.125),
+    sigma_logD = log(0.25),
     logbeta = log(0.1)
 )
 print("--initial parameter values:")
@@ -52,14 +52,15 @@ print(par)
 map = list(
            "sigma_logP" = as.factor(1),
            "sigma_logbeta" = as.factor(1),
-           "sigma_logmu" = as.factor(1),
+           "sigma_logmu" = as.factor(NA),
            "loggamma"  = as.factor(1),
-           "sigma_logC" = as.factor(NA),
-           "sigma_logD" = as.factor(NA),
+           "sigma_logC" = as.factor(1),
+           "sigma_logD" = as.factor(1),
            "sigma_logbeta" = as.factor(1)
 )
 #          "logmu"  = as.factor(1),
 #          "logbeta" = rep(factor(1),data$ntime))
+
 print(paste("---- estimation map:",length(map),"variables"))
 print(map)
 
@@ -77,14 +78,14 @@ print("obj$par (1):")
 print(obj$par)
 lower <- obj$par*0-Inf
 upper <- obj$par*0+Inf
-lower["sigma_logC"] = -0.001
-lower["sigma_logD"] = -0.001
-lower["loggamma"] = -7.0
+lower["sigma_logC"] =  0.0
+lower["sigma_logD"] =  0.0
+#lower["loggamma"] = -8.0
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
- opt = nlminb(obj$par,obj$fn,obj$gr,lower=lower)#,upper=upper)
+ opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B",lower=lower)
 
@@ -118,14 +119,15 @@ CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-big_county_list = list("New_York_City","Los_Angeles","San_Diego","Orange",
+big_county_list = list("New_York_City","Los_Angeles","San_Diego",
                        "Riverside","San_Bernardino","Santa_Clara","Alameda",
                        "Sacramento","Contra_Costa","Fresno","Kern",
                        "San_Francisco","Ventura","San_Mateo","San_Joaquin",
-                       "Stanislaus","Sonoma","Marin")
-nrun = 2
+                       "Stanislaus","Sonoma","Marin","Orange")
+                       
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County='Orange')->fit
+    do_one_run(County='Alameda')->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(big_county_list))

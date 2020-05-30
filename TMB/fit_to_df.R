@@ -1,7 +1,6 @@
 save.fit = function(data,obj,opt,map,init,file)
 {
-    diag = data.frame(
-           stringsAsFactors = FALSE,
+    diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
            obs_deaths = data$obs_deaths,
            log_obs_cases = data$log_obs_cases,
@@ -38,13 +37,27 @@ save.fit = function(data,obj,opt,map,init,file)
                      init = init,
                      est = est)
 
+    like_names = c('f','betanll', 'munll', 'Pnll','cnll','dnll')
+    like = vector(length=length(like_names))
+    like[1] = obj$report()$f
+    like[2] = obj$report()$betanll
+    like[3] = obj$report()$munll
+    like[4] = obj$report()$Pnll
+    like[5] = obj$report()$cnll
+    like[6] = obj$report()$dnll
+
+    print(paste(like[1],sum(like)))
+    
+    like_comp = data.frame(stringsAsFactors = FALSE,
+                            names = like_names,
+                            like = like)
+
 #   tod = format(Sys.time(), "%Y%m%d%H%M%S")
 #   file = paste(data$county,'_',tod,'.RData',sep='')
 #   file = "Los_Angeles_20200512111526.RData"
 
-#   print(paste('saving fit:',file))
-
-    save(diag,meta,ests,file=file)
+    print(paste('saving fit:',file))
+    save(diag,meta,ests,like_comp,file=file)
 }
 
 # tnames=names(fit$obj$par)
