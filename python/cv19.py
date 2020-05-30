@@ -449,6 +449,7 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 #  produces: [737487.0, 737488.0, 737489.0, ... , 737559.0, 737560.0, 737561.0]
 
+    #   ax[0].set_ylim(0.0,0.2)
         ax[0].plot(pdate,beta,label = fn)
         sigma_logbeta = get_estimate('sigma_logbeta',est)
         plot_error(ax[0],pdate,diag['logbeta'],sigma_logbeta)
@@ -465,21 +466,20 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
             ax2[1].bar(pdate,delta_obs_deaths,alpha=0.5,label=fn)
             ax2[1].set_ylabel('New Deaths')
 
-    for a in range(0,len(ax)):
+    for a in range(1,len(ax)):
     #   Adjust length of y axis
-        ax[a].set_ylim(0,ax[a].get_ylim()[1])
+    #   ax[a].set_ylim(0,ax[a].get_ylim()[1])
         if (delta_ts):
-            ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
+           ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
     #   Newsome's shelter in place order
         ax[a].plot((orderDate,orderDate),
-                   (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
-                    linewidth=3,alpha=0.5)
-        ax[a].legend()
-        ax[a].legend()
+                  (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
+                   linewidth=3,alpha=0.5)
+        ax[a].legend(fontsize=10)
 
     if save:
-        plt.savefig(fit_path+'beta_mu'+'.png',dpi=300)
-        plt.show(False)
+        plt.savefig(fit_path+'beta_mu'+'.pdf',format='pdf') #dpi=300)
+        plt.show(True)
     else:
         plt.show(True)
 
@@ -634,7 +634,6 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 ##############################################################################
 if __name__ == '__main__':
 
-
 #   make_ADMB_dat(county_dat,['New York City','New York'])
 
 #   for c in LargestCACounties:
@@ -658,9 +657,14 @@ if __name__ == '__main__':
 #                 death_threshold=1, cases_threshold=10,file='Orange')
 #   plot_beta_mu(['Riverside']) #,'San_Mateo' ])#,delta_ts=True)
 #   plot_beta_mu([ 'Contra_Costa', ] ,delta_ts=True)
-#   plot_beta_mu(['San Bernardino','San Diego','San_Francisco'] ,delta_ts=True)
+    plot_beta_mu(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
+                  "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
+                  "Stanislaus","Sonoma","Marin"],
+                 delta_ts=False,save=True)
 
-#   make_fit_table(['Alameda','Contra_Costa','San_Francisco','San_Mateo','Santa_Clara'])
+    make_fit_table(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
+                  "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
+                  "Stanislaus","Sonoma","Marin"])
 
 #   pop = get_county_pop('Alameda','California')
 
@@ -676,7 +680,7 @@ if __name__ == '__main__':
 #   plot_diagnostics('New_York_City')
 
 #   plot_beta_mu([ 'New_York_City' ] ,delta_ts=True)
-    plot_county_fit('New York City',yscale='linear')
+#   plot_county_fit('New York City',yscale='linear')
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)

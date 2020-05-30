@@ -25,13 +25,13 @@ print(data)
 
 init = list(
     sigma_logP = 0.1,
-    sigma_logbeta = 0.05,
+    sigma_logbeta = 0.02,
     sigma_logmu = 0.01,
-    logmu = log(0.005),
-    loggamma = log(0.05),
-    sigma_logC = log(0.25),
-    sigma_logD = log(0.25),
-    logbeta = log(0.1)
+    logmu = log(0.002),
+    loggamma = log(0.001),
+    sigma_logC = log(0.5),
+    sigma_logD = log(0.5),
+    logbeta = log(0.05)
 )
 print("--initial parameter values:")
 print(init)
@@ -52,10 +52,10 @@ print(par)
 map = list(
            "sigma_logP" = as.factor(1),
            "sigma_logbeta" = as.factor(1),
-           "sigma_logmu" = as.factor(NA),
+           "sigma_logmu" = as.factor(1),
            "loggamma"  = as.factor(1),
-           "sigma_logC" = as.factor(1),
-           "sigma_logD" = as.factor(1),
+           "sigma_logC" = as.factor(NA),
+           "sigma_logD" = as.factor(NA),
            "sigma_logbeta" = as.factor(1)
 )
 #          "logmu"  = as.factor(1),
@@ -76,18 +76,19 @@ obj = MakeADFun(data,par,random=c("logbeta","logmu"),
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
 print(obj$par)
-lower <- obj$par*0-Inf
-upper <- obj$par*0+Inf
-lower["sigma_logC"] =  0.0
-lower["sigma_logD"] =  0.0
-#lower["loggamma"] = -8.0
+lb <- obj$par*0-Inf
+ub <- obj$par*0+Inf
+lb["sigma_logD"] =  0.0
+lb["sigma_logD"] =  0.0
+#lb["loggamma"] = -8.0
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
  opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
+#opt = optim(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B",lower=lower)
+#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -119,13 +120,16 @@ CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-big_county_list = list("New_York_City","Los_Angeles","San_Diego",
-                       "Riverside","San_Bernardino","Santa_Clara","Alameda",
-                       "Sacramento","Contra_Costa","Fresno","Kern",
-                       "San_Francisco","Ventura","San_Mateo","San_Joaquin",
-                       "Stanislaus","Sonoma","Marin","Orange")
+big_county_list = list("New_York_City","Los_Angeles",#"San_Diego",
+                       #"Oraange","Riverside",
+                       "San_Bernardino",#"Santa_Clara",
+                       "Alameda",
+                       "Sacramento","Contra_Costa",#"Fresno", "Kern",
+                       #"San_Francisco",
+                       "Ventura","San_Mateo","San_Joaquin",
+                       "Stanislaus","Sonoma","Marin")
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
     do_one_run(County='Alameda')->fit
 } else {

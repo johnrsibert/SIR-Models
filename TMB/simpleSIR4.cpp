@@ -39,7 +39,6 @@ Type NLerr(Type logobs, Type logpred, Type var)
     //Type tmp = dnorm(logobs,logpred,sd);
     */
     
-  //Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
     Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
     return nll;
 }
@@ -52,13 +51,11 @@ Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
 
     if (logobs > logeps)  //log zero deaths
     {
-      //nll = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
         nll = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
     }
     else
     {
-      //nll = prop0*0.5*(log(TWO_M_PI*var));
-        nll = prop0*0.5*log(sqrt(2*M_PI)) ;
+        nll = prop0*0.5*(log(TWO_M_PI*var));
     }
     nll = exp(nll);
     return nll;
@@ -110,12 +107,7 @@ Type objective_function <Type>::operator()()
     vector <Type> logEye(ntime);    // number of infections
     vector <Type> logD(ntime);      // number of deaths from infected population
 
-  //Type mu = exp(logmu);
     Type gamma = exp(loggamma);
-  //Type sigma_P = exp(logsigma_logP);
-  //Type sigma_C = exp(logsigma_logC);
-  //Type sigma_D = exp(logsigma_logD);
-  //Type sigma_beta = exp(logsigma_logbeta);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
@@ -138,18 +130,19 @@ Type objective_function <Type>::operator()()
          // infection rate random walk
          betanll += isNaN(NLerr(logbeta(t-1),logbeta(t),var_logbeta),__LINE__);
 
+         // mortality rate random walk
          munll += isNaN(NLerr(logmu(t-1),logmu(t),var_logmu),__LINE__);
 
+         // cases process error
          Type prevEye = exp(logEye(t-1));
          logEye(t) = log(prevEye*(1.0 + (exp(logbeta(t-1)) - gamma - exp(logmu(t-1))))+eps);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
-       //logD(t) = logmu(t-1) + logEye(t-1);
+         // deaths process error
          Type prevD = exp(logD(t-1));
          logD(t) = log(prevD+exp(logmu(t-1)+logEye(t-1))+eps);
          Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP),__LINE__);
 
-      // f += isNaN((betanll + munll + Pnll),__LINE__);
      }
  
      // compute observation likelihoods
@@ -160,7 +153,6 @@ Type objective_function <Type>::operator()()
          dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      }
 
-  // f += isNaN((cnll + dnll),__LINE__);
      f += isNaN((betanll + munll + Pnll + cnll + dnll),__LINE__);
 
      REPORT(logEye)
