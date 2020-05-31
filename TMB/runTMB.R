@@ -3,6 +3,7 @@ source('SIR_read_dat.R')
 source('fit_to_df.R')
 fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
 require(TMB)
+require(gtools)
 
 
 do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4')
@@ -20,43 +21,50 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
+data$beta_a = 1e-8
+data$beta_b = 0.5
+data$mu_a = 1e-8
+data$mu_b = 0.005
 print("-data:")
 print(data)
 
+#PARAMETER(stlogit_u);
+#then back-transform to get u
+#Type u = a + (b - a)*invlogit(stlogit_u);
+
 init = list(
     sigma_logP = 0.1,
-    sigma_logbeta = 0.02,
-    sigma_logmu = 0.01,
-    logmu = log(0.002),
+    sigma_beta = 0.02,
+    sigma_mu = 0.01,
+    logitmu = logit(0.002,data$mu_a,data$mu_b),
     loggamma = log(0.001),
     sigma_logC = log(0.5),
-    sigma_logD = log(0.5),
-    logbeta = log(0.05)
+    sigma_logD = log(0.25),
+    logitbeta = logit(0.05,data$beta_a,data$beta_b)
 )
 print("--initial parameter values:")
 print(init)
 
 par = list(
     sigma_logP = init$sigma_logP,
-    sigma_logbeta = init$sigma_logbeta,
-    sigma_logmu = init$sigma_logmu,
-    logmu    = rep(init$logmu,data$ntime),
+    sigma_beta = init$sigma_beta,
+    sigma_mu = init$sigma_mu,
+    logitmu    = rep(init$logitmu,data$ntime),
     loggamma = init$loggamma,
     sigma_logC = init$sigma_logC,
     sigma_logD = init$sigma_logD,
-    logbeta = rep(init$logbeta,data$ntime)
+    logitbeta = rep(init$logitbeta,data$ntime)
 )
 print(paste("---model parameters: ", length(par)))
 print(par)
 
 map = list(
            "sigma_logP" = as.factor(1),
-           "sigma_logbeta" = as.factor(1),
-           "sigma_logmu" = as.factor(1),
-           "loggamma"  = as.factor(1),
-           "sigma_logC" = as.factor(NA),
-           "sigma_logD" = as.factor(NA),
-           "sigma_logbeta" = as.factor(1)
+           "sigma_beta" = as.factor(1),
+           "sigma_mu" = as.factor(1),
+           "loggamma"  = as.factor(NA),
+           "sigma_logC" = as.factor(1),
+           "sigma_logD" = as.factor(1)
 )
 #          "logmu"  = as.factor(1),
 #          "logbeta" = rep(factor(1),data$ntime))
@@ -71,7 +79,7 @@ compile(cpp.name)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
+obj = MakeADFun(data,par,random=c("logitbeta","logitmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -85,8 +93,8 @@ lb["sigma_logD"] =  0.0
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
- opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
-#opt = optim(obj$par,obj$fn,obj$gr)
+#opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
+ opt = optim(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
@@ -96,17 +104,17 @@ print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
-gmbeta = exp(mean(obj$report()$logbeta))
-print(paste("geometric mean beta:",gmbeta))
-gmmu = exp(mean(obj$report()$logmu))
-print(paste("geometric mean mu:",gmmu))
+#gmbeta = exp(mean(obj$report()$logbeta))
+#print(paste("geometric mean beta:",gmbeta))
+#gmmu = exp(mean(obj$report()$logmu))
+#print(paste("geometric mean mu:",gmmu))
 
 plot.log.state(data,par,obj,opt,map,np=4)
 dev.file = paste(fit_path,data$county,'.pdf',sep='')
 dev.copy2pdf(file=dev.file,width=6.5,height=6)
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
-save.fit(data,obj,opt,map,init,rd.file)
+#save.fit(data,obj,opt,map,init,rd.file)
 
 return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 

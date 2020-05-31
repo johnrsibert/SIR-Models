@@ -167,7 +167,7 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
     return(t0series)
 
 def plot_county_fit(county,
-                  death_threshold=1, cases_threshold=1,
+    #             death_threshold=1, cases_threshold=1,
                   yscale='log', per_capita=False, delta_ts=False,
                   text_spacer='  ', file = None):
     """ 
@@ -655,12 +655,12 @@ if __name__ == '__main__':
 #                 death_threshold=5, cases_threshold=50)
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
-#   plot_beta_mu(['Riverside']) #,'San_Mateo' ])#,delta_ts=True)
+    plot_beta_mu(['Los Angeles']) #,'San_Mateo' ])#,delta_ts=True)
 #   plot_beta_mu([ 'Contra_Costa', ] ,delta_ts=True)
-    plot_beta_mu(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
-                  "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
-                  "Stanislaus","Sonoma","Marin"],
-                 delta_ts=False,save=True)
+#   plot_beta_mu(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
+#                 "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
+#                 "Stanislaus","Sonoma","Marin"],
+#                delta_ts=False,save=True)
 
     make_fit_table(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
                   "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
