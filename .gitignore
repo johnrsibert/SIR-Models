@@ -45,3 +45,9 @@ co-est2019-alldata.csv
 co-est2019-pop.csv
 county-state.csv
 
+# tex generated files
+*.aux
+*.bbl
+*.bcf
+*.blg
+

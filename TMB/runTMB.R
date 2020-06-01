@@ -22,12 +22,13 @@ print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
 data$beta_a = 1e-8
-data$beta_b = 0.5
+data$beta_b = 2.0
 data$mu_a = 1e-8
-data$mu_b = 0.005
+data$mu_b = 2.0
 print("-data:")
 print(data)
 
+# suggestion from Chris Nottingham TMB user group
 #PARAMETER(stlogit_u);
 #then back-transform to get u
 #Type u = a + (b - a)*invlogit(stlogit_u);
@@ -104,17 +105,17 @@ print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
-#gmbeta = exp(mean(obj$report()$logbeta))
-#print(paste("geometric mean beta:",gmbeta))
-#gmmu = exp(mean(obj$report()$logmu))
-#print(paste("geometric mean mu:",gmmu))
+mbeta = mean(obj$report()$beta)
+print(paste("mean beta:",mbeta))
+mmu = mean(obj$report()$mu)
+print(paste("mean mu:",mmu))
 
 plot.log.state(data,par,obj,opt,map,np=4)
 dev.file = paste(fit_path,data$county,'.pdf',sep='')
 dev.copy2pdf(file=dev.file,width=6.5,height=6)
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
-#save.fit(data,obj,opt,map,init,rd.file)
+save.fit(data,obj,opt,map,init,rd.file)
 
 return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 
@@ -128,12 +129,12 @@ CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Bernardino", "San_Diego", "San_Francisco",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
-big_county_list = list("New_York_City","Los_Angeles",#"San_Diego",
-                       #"Oraange","Riverside",
-                       "San_Bernardino",#"Santa_Clara",
+big_county_list = list("New_York_City","Los_Angeles","San_Diego",
+                       "Orange", "Riverside",
+                       "San_Bernardino","Santa_Clara",
                        "Alameda",
-                       "Sacramento","Contra_Costa",#"Fresno", "Kern",
-                       #"San_Francisco",
+                       "Sacramento","Contra_Costa","Fresno", "Kern",
+                       "San_Francisco",
                        "Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
                        

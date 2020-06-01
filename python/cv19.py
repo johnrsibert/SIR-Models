@@ -24,6 +24,13 @@ NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
 
+big_county_list = ["New York City","Los Angeles","San Diego",
+                       "Orange", "Riverside",
+                       "San Bernardino","Santa Clara", "Alameda",
+                       "Sacramento","Contra Costa","Fresno", "Kern",
+                       "San Francisco",
+                       "Ventura","San Mateo","San Joaquin",
+                       "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
 fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
@@ -92,7 +99,26 @@ def check_delta_t(dat,County):
     print('Maximum delta t for',County,State,':',max(dDate[-n:]))
     return(max(dDate[-n:]).days)
 
+def short_name(s):
+    w = s.split(' ')
+#   print(len(w),w)
+    if (len(w)<2):
+        sn = s[0:3]
+    else:
+        sn = w[0][0]+w[1][0:2]
+#   print(sn)
+    return(sn)  
+
         
+def mark_ends(ax,x,y,label,end='b',spacer=' '):
+    sl = short_name(label)
+    if ( (end =='l') | (end == 'b')):
+        ax.text(x[0],y[0],sl+spacer,ha='right',va='center',fontsize=10)
+   
+    if ( (end =='r') | (end == 'b')):
+        i = len(x)-1
+        ax.text(x[i],y[i],spacer+sl,ha='left',va='center',fontsize=10)
+
 #def make_ADMB_dat(dat,County,State = 'California'):
 def make_ADMB_dat(dat,county_state):
     """ Generate input data for analysis by ADMB or TMB models
@@ -226,7 +252,7 @@ def plot_county_fit(county,
 
     ax[0].set_title(get_metadata('county',meta))
     ax[0].set_yscale(yscale)
-    plot_error(ax[0],pdate,diag['log_pred_cases'],sigma_logC)
+    plot_log_error(ax[0],pdate,diag['log_pred_cases'],sigma_logC)
     ax[0].scatter(pdate,obsI)
     ax[0].plot(pdate,preI,color='red')
     tx = prop_scale(ax[0].get_xlim(), 0.05)
@@ -235,7 +261,7 @@ def plot_county_fit(county,
     ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
     ax[1].set_yscale(yscale)
-    plot_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
+    plot_log_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
     ax[1].scatter(pdate,obsD)
     ax[1].plot(pdate,preD,color='red')
     tx = prop_scale(ax[1].get_xlim(), 0.05)
@@ -393,7 +419,7 @@ def get_initpar(pname, ests):
         return(None)
    
    
-def plot_error(ax,x,logy,logsdy,mult=2.0):
+def plot_log_error(ax,x,logy,logsdy,mult=2.0):
     sdyu = np.array(np.exp(logy + mult*logsdy))
     sdyl = np.array(np.exp(logy - mult*logsdy))
     xy = np.array([x,sdyu])
@@ -401,6 +427,16 @@ def plot_error(ax,x,logy,logsdy,mult=2.0):
     xp = np.transpose(xy).shape
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
                             facecolor='0.9', edgecolor='0.5')
+    ax.add_patch(sd_region)
+   
+def plot_error(ax,x,y,sdy,mult=2.0,ecol='0.5'):
+    sdyu = np.array(y + mult*sdy)
+    sdyl = np.array(y - mult*sdy)
+    xy = np.array([x,sdyu])
+    xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
+    xp = np.transpose(xy).shape
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
+                            facecolor='0.9', edgecolor=ecol)
     ax.add_patch(sd_region)
    
 def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
@@ -429,56 +465,78 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
             ax2.append(ax[a].twinx())
 #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
 
+    max_beta = 0.0
+    max_mu = 0.0
+    line = -1
     for fn in fit_files:
-        pn = fit_path+fn.replace(' ','_',5)+'.RData'
-        fit=pyreadr.read_r(pn)
+        pn = fit_path+fn+'.RData'
+        fit=pyreadr.read_r(pn.replace(' ','_',5))
         diag = fit['diag']
         meta = fit['meta']
         est  = fit['ests']
         Date0 = get_metadata('Date0',meta)
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
-
+        county = get_metadata('county',meta)
 
         ntime = int(get_metadata('ntime',meta))
         tt = list(range(ntime))
-        beta = np.exp(diag['logbeta'])
-        mu = np.exp(diag['logmu'])
+        beta = diag['beta']
+        max_beta = max(max_beta,beta.max())
+        mu = diag['mu']
+        max_mu = max(max_mu,mu.max())
+        line += 1
 
         pdate = []
         for t in tt:
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 #  produces: [737487.0, 737488.0, 737489.0, ... , 737559.0, 737560.0, 737561.0]
+       
+#        print(type(pdate),pdate,mdates.date2num(orderDate))
+        sipndx = pdate.index(mdates.date2num(orderDate))
+#        print(sipndx,pdate[sipndx])
 
-    #   ax[0].set_ylim(0.0,0.2)
-        ax[0].plot(pdate,beta,label = fn)
-        sigma_logbeta = get_estimate('sigma_logbeta',est)
-        plot_error(ax[0],pdate,diag['logbeta'],sigma_logbeta)
+        ax[0].set_ylim(0.0,1.2*max_beta)
+        ax[0].plot(pdate,beta,label = short_name(county))
+        ax[0].scatter(pdate[sipndx],beta[sipndx],#inestyle='None',
+                      marker='|',color='white',edgecolors='face')
+        
+        mark_ends(ax[0],pdate,beta,fn,'l')
+        sigma_beta = get_estimate('sigma_beta',est)
+        plot_error(ax[0],pdate,diag['beta'],sigma_beta,
+                   ecol=ax[0].get_lines()[line].get_color())
         if (delta_ts):
             delta_obs_cases = diag['obs_cases'].diff()
             ax2[0].bar(pdate,delta_obs_cases,alpha=0.5,label=fn)
             ax2[0].set_ylabel('New Cases')
 
-        ax[1].plot(pdate,mu,label = fn)
-        sigma_logmu = get_estimate('sigma_logmu',est)
-        plot_error(ax[1],pdate,diag['logmu'],sigma_logmu)
+
+        ax[1].set_ylim(0.0,0.25*max_mu)
+        ax[1].plot(pdate,mu,label = short_name(county))
+        mark_ends(ax[1],pdate,mu,fn,'r')
+        sigma_mu = get_estimate('sigma_mu',est)
+        plot_error(ax[1],pdate,diag['mu'],sigma_mu,
+                   ecol=ax[1].get_lines()[line].get_color())
         if (delta_ts):
             delta_obs_deaths = diag['obs_deaths'].diff()
             ax2[1].bar(pdate,delta_obs_deaths,alpha=0.5,label=fn)
             ax2[1].set_ylabel('New Deaths')
 
+#    xmin = min(ax[0].get_xlim()[0],ax[1].get_xlim()[0])
+#    xmax = max(ax[0].get_xlim()[1],ax[1].get_xlim()[1])
     for a in range(1,len(ax)):
-    #   Adjust length of y axis
-    #   ax[a].set_ylim(0,ax[a].get_ylim()[1])
+#        ax[a].set_xlim(xmin,xmax)
+    #   Adjust length of y axes
+        ax[a].set_ylim(0,ax[a].get_ylim()[1])
         if (delta_ts):
            ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
     #   Newsome's shelter in place order
         ax[a].plot((orderDate,orderDate),
                   (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
                    linewidth=3,alpha=0.5)
-        ax[a].legend(fontsize=10)
+    #    ax[a].legend(fontsize=10)
 
     if save:
-        plt.savefig(fit_path+'beta_mu'+'.pdf',format='pdf') #dpi=300)
+        plt.savefig(fit_path+'beta_mu'+'.pdf',format='pdf',bbox_inches='tight') #dpi=300)
         plt.show(True)
     else:
         plt.show(True)
@@ -573,7 +631,7 @@ def isNaN(num):
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
-               'sigma_logP'   , 'sigma_logbeta'  ,'sigma_logmu',
+               'sigma_logP'   , 'sigma_beta'  ,'sigma_mu',
                'sigma_logC','sigma_logD', 'loggamma'      ,'gamma']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
@@ -592,7 +650,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         meta = fit['meta']
         diag = fit['diag']
         row = [None]*len(tt_cols)
-        row[0] = fn
+        row[0] = fn #get_metadata('county',meta) 
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
             v = get_est_or_init(n,ests)
@@ -607,9 +665,9 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         gamm = np.append(gamm,tmp)
 #       gamm = np.append(gamm,round(np.exp(float(get_est_or_init('loggamma',ests))),sigfigs))
         func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
-        beta = np.exp(diag['logbeta'])
+        beta = diag['beta']
         mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
-        mu = np.exp(diag['logmu'])
+        mu = diag['mu']
         mmu = np.append(mmu,round(float(mu.quantile(q=0.5)),sigfigs))
 
 #   print(tt)
@@ -626,7 +684,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 #   print(len(header))
     tex = fit_path+'fit_table.tex'
 #                       float_format='%.3f'
-    tt.to_latex(buf=tex,index=False,index_names=False,longtable=True) #,header=header)
+    tt.to_latex(buf=tex,index=False,index_names=False,longtable=False) #,header=header)
 #   print('Table written to file',tex)
     #      '. \usepackage{booktabs} is required.')
 
@@ -655,23 +713,25 @@ if __name__ == '__main__':
 #                 death_threshold=5, cases_threshold=50)
 #   plot_counties(county_dat,Counties=['Orange'],
 #                 death_threshold=1, cases_threshold=10,file='Orange')
-    plot_beta_mu(['Los Angeles']) #,'San_Mateo' ])#,delta_ts=True)
+#   plot_beta_mu(['Los Angeles']) #,'San_Mateo' ])#,delta_ts=True)
 #   plot_beta_mu([ 'Contra_Costa', ] ,delta_ts=True)
-#   plot_beta_mu(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
+#   plot_beta_mu([ 'Alameda', 'Contra_Costa', 'Los Angeles', 'Marin',
+#                  'New York City', 'Sacramento', 'San Bernardino',
+#                  'San Joaquin', 'San_Mateo', 'Sonoma', 'Stanislaus',
+#                  'Ventura'],
+    plot_beta_mu(big_county_list,
+                 delta_ts=False,save=True)
+ 
+#   make_fit_table(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
 #                 "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
-#                 "Stanislaus","Sonoma","Marin"],
-#                delta_ts=False,save=True)
-
-    make_fit_table(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
-                  "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
-                  "Stanislaus","Sonoma","Marin"])
+#                 "Stanislaus","Sonoma","Marin"])
 
 #   pop = get_county_pop('Alameda','California')
 
-#   make_fit_table([ "Alameda", "Contra_Costa", "Los_Angeles", "Marin",
-#                      "Napa", "Orange", "Riverside", "Sacramento",
-#                      "San_Bernardino", "San_Diego", "San_Francisco",
-#                      "San_Mateo", "Santa_Clara", "Sonoma"])
+    make_fit_table(big_county_list)
+
+
+
 
 #  make_fit_table(county_state['county'])
 
