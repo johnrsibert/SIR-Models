@@ -14,6 +14,7 @@ import os
 from io import StringIO
 import scipy.stats as stats
 from sigfig import round
+#from tabulate import tabulate
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
@@ -41,7 +42,8 @@ CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-05-31','%Y-%m-%d')
 
 county_dat = pd.read_csv(counties_path,header=0)
-county_state = pd.read_csv('../county-state.csv',header=0)
+#county_state = pd.read_csv('../county-state.csv',header=0)
+
 #print(county_state.shape)
 #print(county_state)
 #for c in range(0,len(county_state)):
@@ -119,8 +121,7 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
         i = len(x)-1
         ax.text(x[i],y[i],spacer+sl,ha='left',va='center',fontsize=10)
 
-#def make_ADMB_dat(dat,County,State = 'California'):
-def make_ADMB_dat(dat,county_state):
+def make_dat_file (County='Los Angeles',State='California',ST='CA',cpath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
         County: string containing the name of the county in California
@@ -133,10 +134,14 @@ def make_ADMB_dat(dat,county_state):
     
 #   pops = pd.read_csv(pop_data_path,header=0)        # get county population
 #   cp_row = pops['county'] == County 
-    County = county_state[0]
-    State  = county_state[1]
-    print(County,State)
+    
+    dat = pd.read_csv(cpath,header=0)
+    
+    print(dat.columns)
+#   print(dat)
+#   print(dat["ST"])
     population = get_county_pop(County, State)
+    print(population)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
@@ -145,17 +150,21 @@ def make_ADMB_dat(dat,county_state):
 
 #   print(dat.head())
 #   get county cases & deaths    
-    state_filter = dat['state'].isin([State])
+    state_filter = dat['ST'].isin([ST])
     county_filter = dat['county'].isin([County])
     County_rows = state_filter & county_filter
+    print(County_rows)
+    dfile = County.replace(' ','_',5)+ST+'.dat'
+    print(County, ST,dfile)
 
-    O = open(County.replace(' ','_',5)+'.dat','w')
+    O = open(dfile,'w')
     O.write('# county\n %s\n'%County.replace(' ','_',5))
     O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
     O.write(' %s\n'%update_stamp)
     O.write('# population (N0)\n %10d\n'%population)
-    r0 = dat['date'][County_rows].index[0]
-
+    print(dat[County_rows])
+#   r0 = dat['date'][County_rows].index[0]
+    return(0)
     date0 = dat['date'][r0]
 #   print('date0',date0)
     O.write('# date zero\n %s\n'%date0)
@@ -633,6 +642,9 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
                'sigma_logP'   , 'sigma_beta'  ,'sigma_mu',
                'sigma_logC','sigma_logD', 'gamma']
+    header = ['County','$N_0$','$n$','$p_0$','$f$',
+              '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\mu$',
+              '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\\tilde{\mu}$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
@@ -640,7 +652,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     gamm = pd.DataFrame(columns=['gamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
-    lgndx = tt_cols.index('loggamma')
+#   lgndx = tt_cols.index('loggamma')
     sigfigs = 3
     for ff in fit_files:
         fn = ff.replace(' ','_',5) 
@@ -650,7 +662,8 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         meta = fit['meta']
         diag = fit['diag']
         row = [None]*len(tt_cols)
-        row[0] = fn #get_metadata('county',meta) 
+        county = get_metadata('county',meta)  
+        row[0] = county.replace('_',' ',5) 
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
             v = get_est_or_init(n,ests)
@@ -670,29 +683,23 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         mu = diag['mu']
         mmu = np.append(mmu,round(float(mu.quantile(q=0.5)),sigfigs))
 
-#   print(tt)
-#   tt = np.append(tt,header)
     tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
     tt['fn'] = func
     tt['gamma'] = gamm
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
-    print('-----------------------------------------------')
-    print(tt)
 
-#   print(tt.shape)
-#   print(len(header))
     tex = fit_path+'fit_table.tex'
-#                       float_format='%.3f'
-    tt.to_latex(buf=tex,index=False,index_names=False,longtable=False) #,header=header)
-#   print('Table written to file',tex)
-    #      '. \usepackage{booktabs} is required.')
+    ff = open(tex, 'w')
+    ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
+#   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False) #,header=header)
+    print('Fit table written to file',tex)
 
 ##############################################################################
 ##############################################################################
 if __name__ == '__main__':
 
-#   make_ADMB_dat(county_dat,['New York City','New York'])
+    make_dat_file()
 
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
@@ -719,28 +726,24 @@ if __name__ == '__main__':
 #                  'New York City', 'Sacramento', 'San Bernardino',
 #                  'San Joaquin', 'San_Mateo', 'Sonoma', 'Stanislaus',
 #                  'Ventura'],
-    plot_beta_mu(big_county_list,
-                 delta_ts=False,save=True)
- 
+
 #   make_fit_table(["New_York_City","Los_Angeles", "San_Bernardino", "Alameda",
 #                 "Sacramento","Contra_Costa", "Ventura","San_Mateo","San_Joaquin",
 #                 "Stanislaus","Sonoma","Marin"])
 
 #   pop = get_county_pop('Alameda','California')
+#   plot_beta_mu(big_county_list,
+#                delta_ts=False,save=True)
 
-    make_fit_table(big_county_list)
+#   make_fit_table(big_county_list)
 
+#   make_fit_table(county_state['county'])
 
-
-
-#  make_fit_table(county_state['county'])
-
-#  for c in ['San Bernardino','San Diego','San_Francisco']:
-#      plot_diagnostics(c,save=True)
+#   for c in ['San Bernardino','San Diego','San_Francisco']:
+#       plot_diagnostics(c,save=True)
 #   plot_diagnostics('New_York_City')
 
-#   plot_beta_mu([ 'New_York_City' ] ,delta_ts=True)
-#   plot_county_fit('New York City',yscale='linear')
+#   plot_county_fit('Los Angeles',yscale='linear')
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
@@ -748,5 +751,5 @@ if __name__ == '__main__':
 #       make_ADMB_dat(county_dat,county_state.loc[c])
 
 else:
-    print('type something')
+   print('type something')
 
