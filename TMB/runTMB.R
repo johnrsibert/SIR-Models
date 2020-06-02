@@ -138,7 +138,7 @@ big_county_list = list("New_York_City","Los_Angeles","San_Diego",
                        "Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
     do_one_run(County='Alameda')->fit
 } else {

@@ -2,10 +2,10 @@
 //#include "convenience.hpp"
 #include <math.h>
 #include <fenv.h> 
-//const double TWO_M_PI = 2.0*M_PI;
+const double TWO_M_PI = 2.0*M_PI;
 //const double LOG_M_PI = log(M_PI);
-//const double eps = 1e-8;
-//const double logeps = log(eps);
+const double eps = 1e-8;
+const double logeps = log(eps);
 
 //#include <fstream>
 //std::ofstream Clogf;
@@ -40,7 +40,6 @@ Type NLerr(Type logobs, Type logpred, Type var)
     //Type tmp = dnorm(logobs,logpred,sd);
     */
     
-    Type TWO_M_PI = 2.0*M_PI;
     Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
     return nll;
 }
@@ -49,9 +48,6 @@ Type NLerr(Type logobs, Type logpred, Type var)
 template <class Type>
 Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
 {
-    Type TWO_M_PI = 2.0*M_PI;
-    Type eps = 1e-8;
-    Type logeps = log(eps);
     Type nll;
 
     if (logobs > logeps)  //log zero deaths
@@ -91,8 +87,6 @@ template<class Type>
 Type objective_function <Type>::operator()()
 {
  //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO | FE_UNDERFLOW);
-   Type eps = 1e-8;
-   Type logeps = log(eps);
 
     DATA_SCALAR(N0)
     DATA_INTEGER(ntime)

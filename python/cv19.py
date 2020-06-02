@@ -632,7 +632,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
     tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
                'sigma_logP'   , 'sigma_beta'  ,'sigma_mu',
-               'sigma_logC','sigma_logD', 'loggamma'      ,'gamma']
+               'sigma_logC','sigma_logD', 'gamma']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 

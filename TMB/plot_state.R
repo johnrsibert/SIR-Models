@@ -65,10 +65,11 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
     text(ttext,ytext,note,col=note.color,pos=4)
     title(main=title,sub='sub')
 
-    ylim = c(0.0,dat$beta_b)#range(obj$report()$beta)
+#   ylim = c(0.0,dat$beta_b)#range(obj$report()$beta)
+    ylim = c(0.0,max(obj$report()$beta))
     plot(tt,obj$report()$beta,ylab='beta',ylim=ylim, pch=point.symb)
     err = get.error(par,opt,map,'sigma_beta')
-    logspace.plot.error(tt,obj$report()$beta,err)
+    plot.error(tt,obj$report()$beta,err)
     gmbeta = mean(obj$report()$beta)
     abline(h=gmbeta,lty='dashed')
     ytext = make.ytext(ylim,0.9)
@@ -84,10 +85,10 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
     note = paste('sigma_logD ~',sprintf("%.5g",err))
     text(ttext,ytext,note,col=note.color,pos=4)
 
-    ylim = c(0.0,dat$mu_b)#range(obj$report()$mu)
+    ylim = c(0.0,max(obj$report()$mu))
     plot(tt,obj$report()$mu,ylab='mu',ylim=ylim, pch=point.symb)
     err = get.error(par,opt,map,'sigma_mu')
-    logspace.plot.error(tt,obj$report()$mu,err)
+    plot.error(tt,obj$report()$mu,err)
     gmmu = mean(obj$report()$mu)
     abline(h=gmmu,lty='dashed')
     ytext = make.ytext(ylim,0.9)
@@ -141,8 +142,8 @@ plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)
 {
    if (capabilities("cairo"))
    {
-      sdyu = exp(log(y)+mult*sd)
-      sdyl = exp(log(y)-mult*sd)
+      sdyu = y+mult*sd
+      sdyl = y-mult*sd
       frgb = col2rgb(fcol)/255
       
       polygon(c(x,rev(x)),c(sdyl,rev(sdyu)),
