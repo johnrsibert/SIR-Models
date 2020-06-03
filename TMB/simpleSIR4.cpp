@@ -99,16 +99,14 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(mu_b)
 
 
-    PARAMETER(sigma_logP);          // SIR process error
-    PARAMETER(sigma_beta);       // beta random walk sd
-    PARAMETER(sigma_mu);         // mu randomwalk sd
+    PARAMETER(logsigma_logP);          // SIR process error
+    PARAMETER(logsigma_beta);       // beta random walk sd
+    PARAMETER(logsigma_mu);         // mu randomwalk sd
     PARAMETER(loggamma);            // recovery rate of infection population
-    PARAMETER(sigma_logC);          // cases observation error
-    PARAMETER(sigma_logD);          // deaths observation error
+    PARAMETER(logsigma_logC);          // cases observation error
+    PARAMETER(logsigma_logD);          // deaths observation error
 
-//  PARAMETER_VECTOR(logbeta);      // infection rate time series
     PARAMETER_VECTOR(logitbeta);      // infection rate time series
-//  PARAMETER_VECTOR(logmu);        // mortality rate of infection population
     PARAMETER_VECTOR(logitmu);        // mortality rate of infection population
 
     vector <Type> beta(ntime);
@@ -125,6 +123,12 @@ Type objective_function <Type>::operator()()
     vector <Type> logD(ntime);      // number of deaths from infected population
 
     Type gamma = exp(loggamma);
+
+    Type sigma_beta = exp(logsigma_beta); 
+    Type sigma_mu = exp(logsigma_mu); 
+    Type sigma_logP = exp(logsigma_logP);
+    Type sigma_logC = exp(logsigma_logC);
+    Type sigma_logD = exp(logsigma_logD);
 
     Type var_beta = square(sigma_beta);
     Type var_mu = square(sigma_mu);
