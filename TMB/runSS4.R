@@ -6,7 +6,7 @@ require(TMB)
 require(gtools)
 
 
-do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR3')
+do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4')
 {
 cname = sub(" ","_",County)
 datfile=paste(fit_path,cname,'.dat',sep='')
@@ -28,10 +28,28 @@ data$mu_b = 2.0
 print("-data:")
 print(data)
 
+# suggestion from Chris Nottingham TMB user group
+#PARAMETER(stlogit_u);
+#then back-transform to get u
+#Type u = a + (b - a)*invlogit(stlogit_u);
+#init = list(
+#    logsigma_logP = 0.1,
+#    logsigma_beta = 0.02,
+#    logsigma_mu = 0.01,
+#    logitmu = logit(0.002,data$mu_a,data$mu_b),
+#    loggamma = log(0.001),
+#    logsigma_logC = log(0.5),
+#    logsigma_logD = log(0.25),
+#    logitbeta = logit(0.05,data$beta_a,data$beta_b)
+#)
+#print("--initial parameter values:")
+#print(init)
+
 init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
-    logmu = log(0.001),
+    logsigma_mu = log(0.001),
+    logitmu = logit(0.001,data$mu_a,data$mu_b),
     loggamma = log(0.001),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
@@ -43,7 +61,8 @@ print(init)
 par = list(
     logsigma_logP = init$logsigma_logP,
     logsigma_beta = init$logsigma_beta,
-    logmu = init$logmu,
+    logsigma_mu = init$logsigma_mu,
+    logitmu    = rep(init$logitmu,data$ntime),
     loggamma = init$loggamma,
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
@@ -55,11 +74,12 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_beta" = as.factor(1),
-           "logmu" = as.factor(1),
+           "logsigma_mu" = as.factor(1),
            "loggamma"  = as.factor(1),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )
+#          "logitmu" = rep(as.factor(NA),data$ntime),
 
 print(paste("---- estimation map:",length(map),"variables"))
 print(map)
@@ -71,7 +91,7 @@ compile(cpp.name)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par,random="logitbeta", 
+obj = MakeADFun(data,par,random=c("logitbeta","logitmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -101,16 +121,16 @@ print(paste("mean beta:",mbeta))
 mmu = mean(obj$report()$mu)
 print(paste("mean mu:",mmu))
 
-plot.log.state(data,par,obj,opt,map,np=3)
+plot.log.state(data,par,obj,opt,map,np=4)
 dev.file = paste(fit_path,data$county,'.pdf',sep='')
 dev.copy2pdf(file=dev.file,width=6.5,height=6)
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
-save.fit(data,obj,opt,map,init,rd.file,mod=model.name)
+save.fit(data,obj,opt,map,init,rd.file)
 
 return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 
-} # do_one_run = function((County = "Santa Clara",model.name = 
+} # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
 
 
 county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
@@ -131,9 +151,9 @@ big_county_list = list(
                        "Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County='Alameda')->fit
+    do_one_run(County='Los_Angeles')->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(big_county_list))

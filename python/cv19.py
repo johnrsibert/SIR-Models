@@ -14,7 +14,7 @@ import os
 from io import StringIO
 import scipy.stats as stats
 from sigfig import round
-#from tabulate import tabulate
+from tabulate import tabulate
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
@@ -25,7 +25,8 @@ NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
 
-big_county_list = ["New York City","Los Angeles","San Diego",
+#big_county_list = ["New York City","Los Angeles","San Diego",
+big_county_list = ["Los Angeles","San Diego",
                        "Orange", "Riverside",
                        "San Bernardino","Santa Clara", "Alameda",
                        "Sacramento","Contra Costa","Fresno", "Kern",
@@ -448,7 +449,7 @@ def plot_error(ax,x,y,sdy,mult=2.0,ecol='0.5'):
                             facecolor='0.9', edgecolor=ecol)
     ax.add_patch(sd_region)
    
-def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
+def plot_beta_mu(fit_files=['Alameda'],plot_mu=True,delta_ts=False,save=True):
     """
     Draws estimated infection and death rate on calander date
     with standard deviation envelopes
@@ -462,7 +463,8 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
 #                              sharex=True
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0),sharex=True)
     ax[0].set_ylabel('Infection Rate, 'r'$\beta\ (da^{-1})$')
-    ax[1].set_ylabel('Mortality Rate, 'r'$\mu\ (da^{-1})$')
+    if (plot_mu):
+        ax[1].set_ylabel('Mortality Rate, 'r'$\mu\ (da^{-1})$')
     ax2 = []
 
     for a in range(0,len(ax)):
@@ -479,6 +481,7 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
     line = -1
     for fn in fit_files:
         pn = fit_path+fn+'.RData'
+        print(fn,pn)
         fit=pyreadr.read_r(pn.replace(' ','_',5))
         diag = fit['diag']
         meta = fit['meta']
@@ -510,7 +513,7 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
                       marker='|',color='white',edgecolors='face')
         
         mark_ends(ax[0],pdate,beta,fn,'l')
-        sigma_beta = get_estimate('sigma_beta',est)
+        sigma_beta = np.exp(get_estimate('logsigma_beta',est))
         plot_error(ax[0],pdate,diag['beta'],sigma_beta,
                    ecol=ax[0].get_lines()[line].get_color())
         if (delta_ts):
@@ -518,22 +521,22 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
             ax2[0].bar(pdate,delta_obs_cases,alpha=0.5,label=fn)
             ax2[0].set_ylabel('New Cases')
 
-
-        ax[1].set_ylim(0.0,0.25*max_mu)
-        ax[1].plot(pdate,mu,label = short_name(county))
-        mark_ends(ax[1],pdate,mu,fn,'r')
-        sigma_mu = get_estimate('sigma_mu',est)
-        plot_error(ax[1],pdate,diag['mu'],sigma_mu,
-                   ecol=ax[1].get_lines()[line].get_color())
-        if (delta_ts):
-            delta_obs_deaths = diag['obs_deaths'].diff()
-            ax2[1].bar(pdate,delta_obs_deaths,alpha=0.5,label=fn)
-            ax2[1].set_ylabel('New Deaths')
+        if (plot_mu):
+            ax[1].set_ylim(0.0,0.25*max_mu)
+            ax[1].plot(pdate,mu,label = short_name(county))
+            mark_ends(ax[1],pdate,mu,fn,'r')
+            sigma_mu = get_estimate('sigma_mu',est)
+            plot_error(ax[1],pdate,diag['mu'],sigma_mu,
+                       ecol=ax[1].get_lines()[line].get_color())
+            if (delta_ts):
+                delta_obs_deaths = diag['obs_deaths'].diff()
+                ax2[1].bar(pdate,delta_obs_deaths,alpha=0.5,label=fn)
+                ax2[1].set_ylabel('New Deaths')
 
 #    xmin = min(ax[0].get_xlim()[0],ax[1].get_xlim()[0])
 #    xmax = max(ax[0].get_xlim()[1],ax[1].get_xlim()[1])
-    for a in range(1,len(ax)):
-#        ax[a].set_xlim(xmin,xmax)
+    for a in range(0,len(ax)):
+#       ax[a].set_xlim(xmin,xmax)
     #   Adjust length of y axes
         ax[a].set_ylim(0,ax[a].get_ylim()[1])
         if (delta_ts):
@@ -542,7 +545,7 @@ def plot_beta_mu(fit_files=['Alameda'],delta_ts=False,save=True):
         ax[a].plot((orderDate,orderDate),
                   (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
                    linewidth=3,alpha=0.5)
-    #    ax[a].legend(fontsize=10)
+    #   ax[a].legend(fontsize=10)
 
     if save:
         plt.savefig(fit_path+'beta_mu'+'.pdf',format='pdf',bbox_inches='tight') #dpi=300)
@@ -699,7 +702,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 ##############################################################################
 if __name__ == '__main__':
 
-    make_dat_file()
+#   make_dat_file()
 
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
@@ -732,10 +735,9 @@ if __name__ == '__main__':
 #                 "Stanislaus","Sonoma","Marin"])
 
 #   pop = get_county_pop('Alameda','California')
-#   plot_beta_mu(big_county_list,
-#                delta_ts=False,save=True)
 
-#   make_fit_table(big_county_list)
+#   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=False,save=True)
+    make_fit_table(big_county_list)
 
 #   make_fit_table(county_state['county'])
 

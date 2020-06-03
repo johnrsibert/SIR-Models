@@ -1,4 +1,4 @@
-save.fit = function(data,obj,opt,map,init,file)
+save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
 {
     diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
@@ -13,13 +13,13 @@ save.fit = function(data,obj,opt,map,init,file)
 
     if (is.null(opt$value))
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
-                       data$prop_zero_deaths,opt$objective,opt$convergence)
+                       data$prop_zero_deaths,opt$objective,opt$convergence,mod)
     else
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
-                        data$prop_zero_deaths,opt$value,opt$convergence)
+                        data$prop_zero_deaths,opt$value,opt$convergence,mod)
     meta = data.frame(stringsAsFactors = FALSE,
            names = c("county","update_stamp","N0","Date0","ntime","prop_zero_deaths",
-                      "fn","convergence"),
+                      "fn","convergence","model"),
            data = data
     ) 
 
@@ -41,12 +41,13 @@ save.fit = function(data,obj,opt,map,init,file)
     like = vector(length=length(like_names))
     like[1] = obj$report()$f
     like[2] = obj$report()$betanll
-    like[3] = obj$report()$munll
+    if (mod == 'simpleSIR3')
+        like[3] = NA
+    else
+        like[3] = obj$report()$munll
     like[4] = obj$report()$Pnll
     like[5] = obj$report()$cnll
     like[6] = obj$report()$dnll
-
-    print(paste(like[1],sum(like)))
     
     like_comp = data.frame(stringsAsFactors = FALSE,
                             names = like_names,
