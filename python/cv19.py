@@ -68,6 +68,10 @@ def moving_average(a, n=3) :
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
 
+def median(x):
+    mx = x.quantile(q=0.5)
+    return float(mx)
+
 def get_county_pop(County,State='California'):
     """
     Reads US Census populations estimates for 2019
@@ -642,12 +646,19 @@ def isNaN(num):
 
 def make_fit_table(fit_files=['Alameda','Santa_Clara'],
                  fit_path = '/home/jsibert/Projects/SIR-Models/fits/'):
-    tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
-               'sigma_logP'   , 'sigma_beta'  ,'sigma_mu',
-               'sigma_logC','sigma_logD', 'gamma']
+#   tt_cols = ['county','N0','ntime','prop_zero_deaths','fn'  ,
+#              'sigma_logP'   , 'sigma_beta'  ,'sigma_mu',
+#              'sigma_logC','sigma_logD', 'gamma']
+    md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
+    es_cols = ['logsigma_logP'   , 'logsigma_beta'  ,
+               'logsigma_logC','logsigma_logD', 'gamma']
+    tt_cols = md_cols + es_cols
+#   header = ['County','$N_0$','$n$','$p_0$','$f$',
+#             '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\mu$',
+#             '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\\tilde{\mu}$']
     header = ['County','$N_0$','$n$','$p_0$','$f$',
-              '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\mu$',
-              '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\\tilde{\mu}$']
+              '$\sigma_\eta$','$\sigma_\\beta$',
+              '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\mu$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
@@ -670,21 +681,26 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
             v = get_est_or_init(n,ests)
-            row[k] = round(v,sigfigs)
+            if ("logsigma" in n):
+                v = float(np.exp(v))
+            row[k] = v
+        #   row[k] = round(v,sigfigs)
         row[1] = int(get_metadata('N0',meta))
         row[2] = int(get_metadata('ntime',meta))
-        row[3] = round(float(get_metadata('prop_zero_deaths',meta)),sigfigs)
+        row[3] = float(get_metadata('prop_zero_deaths',meta))
         tt = np.append(tt,np.array([row]),axis=0)
         tmp = get_est_or_init('loggamma',ests)
         tmp = np.exp(tmp)
-        tmp = round(float(tmp),sigfigs)
+        tmp = float(tmp)
         gamm = np.append(gamm,tmp)
 #       gamm = np.append(gamm,round(np.exp(float(get_est_or_init('loggamma',ests))),sigfigs))
-        func = np.append(func,round(       get_metadata('fn',meta),sigfigs))
+        func = np.append(func,float(get_metadata('fn',meta)))
         beta = diag['beta']
-        mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
+#       print('beta:',type(beta))
+#       mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
+        mbeta = np.append(mbeta,median(beta))
         mu = diag['mu']
-        mmu = np.append(mmu,round(float(mu.quantile(q=0.5)),sigfigs))
+        mmu = np.append(mmu,mu.quantile(q=0.5))
 
     tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
     tt['fn'] = func
@@ -692,10 +708,33 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
 
+    row = pd.Series(None,index=tt.columns)
+    row['county'] = 'Median'
+#   print('row 1:',row)
+    for n in tt.columns:
+#       print(n) #,tt[n])
+        if (n != 'county'):
+            mn = tt[n].quantile()
+#       print(mn)
+            row[n] = mn
+
+#   print('row 2:',row.shape,row)
+#   print(tt.shape)
+    tt = pd.DataFrame(np.append(tt,np.array([row]),axis=0))
+    print(tt.shape)
+##  print(tt[1])
+    for c in range(1,len(tt.columns)):
+        for r in range(0,tt.shape[0]):
+           tt[c][r] = round(float(tt[c][r]),sigfigs)
+           print(c,r)
+
+    print(tt)
     tex = fit_path+'fit_table.tex'
     ff = open(tex, 'w')
     ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
-#   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False) #,header=header)
+#   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
+#               header=header,escape=False,#float_format='{:0.4f}'.format
+#               na_rep='',column_format='lrrrrrrrrrrr')
     print('Fit table written to file',tex)
 
 ##############################################################################
