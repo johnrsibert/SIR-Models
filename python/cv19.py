@@ -209,7 +209,7 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
 def plot_county_fit(county,
     #             death_threshold=1, cases_threshold=1,
                   yscale='log', per_capita=False, delta_ts=False,
-                  text_spacer='  ', file = None):
+                  text_spacer='  ', save = False):
     """ 
     Plot predicted & observed cases and deaths vs time from threshold
     Counties: list of California counties to plotted
@@ -261,8 +261,8 @@ def plot_county_fit(county,
     obsD = np.exp(diag['log_obs_deaths'])
     preD = np.exp(diag['log_pred_deaths'])
 
-    sigma_logC = get_est_or_init('sigma_logC',ests)
-    sigma_logD = get_est_or_init('sigma_logD',ests)
+    sigma_logC = np.exp(get_est_or_init('logsigma_logC',ests))
+    sigma_logD = np.exp(get_est_or_init('logsigma_logD',ests))
 
     ax[0].set_title(get_metadata('county',meta))
     ax[0].set_yscale(yscale)
@@ -283,7 +283,11 @@ def plot_county_fit(county,
     sigstr = '%s = %.3g'%('$\sigma_D$',sigma_logD)
     ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
-    plt.show()
+    if save:
+        plt.savefig(fit_path+county.replace(' ','_',5)+'_obsVpred.png',dpi=300)
+        plt.show(False)
+    else:
+        plt.show(True)
 
 def plot_county_dat(dat,Counties,
                   death_threshold=1, cases_threshold=1,
@@ -493,6 +497,7 @@ def plot_beta_mu(fit_files=['Alameda'],plot_mu=True,delta_ts=False,save=True):
         Date0 = get_metadata('Date0',meta)
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
         county = get_metadata('county',meta)
+        N0 = float(get_metadata('N0',meta))
 
         ntime = int(get_metadata('ntime',meta))
         tt = list(range(ntime))
@@ -521,7 +526,7 @@ def plot_beta_mu(fit_files=['Alameda'],plot_mu=True,delta_ts=False,save=True):
         plot_error(ax[0],pdate,diag['beta'],sigma_beta,
                    ecol=ax[0].get_lines()[line].get_color())
         if (delta_ts):
-            delta_obs_cases = diag['obs_cases'].diff()
+            delta_obs_cases = diag['obs_cases'].diff()/N0
             ax2[0].bar(pdate,delta_obs_cases,alpha=0.5,label=fn)
             ax2[0].set_ylabel('New Cases')
 
@@ -666,7 +671,6 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
     gamm = pd.DataFrame(columns=['gamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
-#   lgndx = tt_cols.index('loggamma')
     sigfigs = 3
     for ff in fit_files:
         fn = ff.replace(' ','_',5) 
@@ -696,8 +700,6 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 #       gamm = np.append(gamm,round(np.exp(float(get_est_or_init('loggamma',ests))),sigfigs))
         func = np.append(func,float(get_metadata('fn',meta)))
         beta = diag['beta']
-#       print('beta:',type(beta))
-#       mbeta = np.append(mbeta,round(float(beta.quantile(q=0.5)),sigfigs))
         mbeta = np.append(mbeta,median(beta))
         mu = diag['mu']
         mmu = np.append(mmu,mu.quantile(q=0.5))
@@ -710,25 +712,16 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 
     row = pd.Series(None,index=tt.columns)
     row['county'] = 'Median'
-#   print('row 1:',row)
     for n in tt.columns:
-#       print(n) #,tt[n])
         if (n != 'county'):
             mn = tt[n].quantile()
-#       print(mn)
             row[n] = mn
 
-#   print('row 2:',row.shape,row)
-#   print(tt.shape)
     tt = pd.DataFrame(np.append(tt,np.array([row]),axis=0))
-    print(tt.shape)
-##  print(tt[1])
-    for c in range(1,len(tt.columns)):
+    for c in range(3,len(tt.columns)):
         for r in range(0,tt.shape[0]):
            tt[c][r] = round(float(tt[c][r]),sigfigs)
-           print(c,r)
 
-    print(tt)
     tex = fit_path+'fit_table.tex'
     ff = open(tex, 'w')
     ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
@@ -775,16 +768,12 @@ if __name__ == '__main__':
 
 #   pop = get_county_pop('Alameda','California')
 
-#   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=False,save=True)
-    make_fit_table(big_county_list)
-
-#   make_fit_table(county_state['county'])
-
-#   for c in ['San Bernardino','San Diego','San_Francisco']:
+    plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
+#   make_fit_table(big_county_list)
+#   for c in big_county_list:
 #       plot_diagnostics(c,save=True)
-#   plot_diagnostics('New_York_City')
-
-#   plot_county_fit('Los Angeles',yscale='linear')
+#   for c in big_county_list:
+#       plot_county_fit(c,yscale='linear',save=True)
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
