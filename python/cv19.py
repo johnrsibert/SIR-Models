@@ -89,7 +89,13 @@ def get_county_pop(County,State='California'):
     state_filter = dat['state'].isin([State])
     county_filter = dat['county'].isin([County])
     County_rows = state_filter & county_filter
-    population = int(dat[County_rows]['population'])
+#   w = -1
+#   for k in range(0,len(County_rows)):
+#       if (County_rows[k]):
+#           w=k
+#   print(w)
+#   print(County_rows[w])
+    population = pd.to_numeric(dat[County_rows]['population'])
     return(population)
 
 
@@ -126,7 +132,7 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
         i = len(x)-1
         ax.text(x[i],y[i],spacer+sl,ha='left',va='center',fontsize=10)
 
-def make_dat_file (County='Los Angeles',State='California',ST='CA',cpath='../county-state.csv'):
+def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
         County: string containing the name of the county in California
@@ -140,48 +146,64 @@ def make_dat_file (County='Los Angeles',State='California',ST='CA',cpath='../cou
 #   pops = pd.read_csv(pop_data_path,header=0)        # get county population
 #   cp_row = pops['county'] == County 
     
-    dat = pd.read_csv(cpath,header=0)
-    
-    print(dat.columns)
-#   print(dat)
-#   print(dat["ST"])
-    population = get_county_pop(County, State)
-    print(population)
+    csdat = pd.read_csv(cspath,header=0)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
     update_stamp = str(dtime.date())
- 
+    dat = county_dat
+#   print('nyt columns:',dat.columns)
+#   print('cs columns:',csdat.columns)
 
-#   print(dat.head())
-#   get county cases & deaths    
-    state_filter = dat['ST'].isin([ST])
-    county_filter = dat['county'].isin([County])
-    County_rows = state_filter & county_filter
-    print(County_rows)
-    dfile = County.replace(' ','_',5)+ST+'.dat'
-    print(County, ST,dfile)
+    for cs in range(0,len(csdat)):
+    #   print(csdat['county'][cs],csdat['state'][cs])
+        population = get_county_pop(csdat['county'][cs],csdat['state'][cs])
+    #   print(csdat['county'][cs],csdat['state'][cs],population)
+    #   ppop = population
+    #   print(ppop)#,population)
 
-    O = open(dfile,'w')
-    O.write('# county\n %s\n'%County.replace(' ','_',5))
-    O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
-    O.write(' %s\n'%update_stamp)
-    O.write('# population (N0)\n %10d\n'%population)
-    print(dat[County_rows])
-#   r0 = dat['date'][County_rows].index[0]
-    return(0)
-    date0 = dat['date'][r0]
-#   print('date0',date0)
-    O.write('# date zero\n %s\n'%date0)
-#   print(dat[County_rows])
-    ntime = len(dat[County_rows])-1
-#   print('----------------ntime',ntime)
-    O.write('# ntime\n %4d\n'%ntime)
-#   print(dat[County_rows].index)
-#   print('date','index','cases','deaths')
-    O.write('#%6s %5s\n'%('cases','deaths'))
-    for r in dat[County_rows].index:
-        O.write('%7d %6d\n'%(dat['cases'][r],dat['deaths'][r]))
+
+        State = csdat['state'][cs]
+        County = csdat['county'][cs]
+        ST = csdat['ST'][cs]
+        state_filter = dat['state'].isin([State])
+        county_filter = dat['county'].isin([County])
+        County_rows = state_filter & county_filter
+
+        Date = dat[County_rows]['date'].map(Strptime)
+        dDate = Date.diff()
+        n = len(dDate) - 1
+
+        if (n < 1):
+            print('* * * No records found for',County,State)
+            return(0)
+  
+        print(len(Date),'records found for',County,State)
+        print('    delta t:(',min(dDate[-n:]),'),(',max(dDate[-n:]),')')
+   #    if (max(dDate[-n:])>1):
+   #        print('* * * Missing time steps for',County,State)
+
+        dfile = County.replace(' ','_',5)+ST+'.dat'
+   #    print(County, ST,dfile)
+        O = open(dfile,'w')
+        O.write('# county\n %s\n'%(County.replace('_',' ',5)+ST))
+        O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
+        O.write(' %s\n'%update_stamp)
+        O.write('# population (N0)\n %10d\n'%population)
+   #    print(dat[County_rows])
+        r0 = dat['date'][County_rows].index[0]
+        date0 = dat['date'][r0]
+    #   print('date0',date0)
+        O.write('# date zero\n %s\n'%date0)
+    #   print(dat[County_rows])
+        ntime = len(dat[County_rows])-1
+    #   print('----------------ntime',ntime)
+        O.write('# ntime\n %4d\n'%ntime)
+    #   print(dat[County_rows].index)
+    #   print('date','index','cases','deaths')
+        O.write('#%6s %5s\n'%('cases','deaths'))
+        for r in dat[County_rows].index:
+            O.write('%7d %6d\n'%(dat['cases'][r],dat['deaths'][r]))
 
 
 
@@ -734,7 +756,6 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 ##############################################################################
 if __name__ == '__main__':
 
-#   make_dat_file()
 
 #   for c in LargestCACounties:
 #       make_ADMB_dat(county_dat,c)
@@ -768,7 +789,7 @@ if __name__ == '__main__':
 
 #   pop = get_county_pop('Alameda','California')
 
-    plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
+#   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
 #   make_fit_table(big_county_list)
 #   for c in big_county_list:
 #       plot_diagnostics(c,save=True)
@@ -779,6 +800,8 @@ if __name__ == '__main__':
 #       check_delta_t(county_dat,c)
 #   for c in range(0,len(county_state)):
 #       make_ADMB_dat(county_dat,county_state.loc[c])
+
+    make_dat_file()
 
 else:
    print('type something')

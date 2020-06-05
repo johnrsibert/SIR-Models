@@ -18,6 +18,8 @@ dat = read.dat.file(datfile)
 eps = 1e-8
 data=dat$data
 print(names(data))
+#data$prop_zero_deaths = 0.25
+
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
@@ -86,7 +88,7 @@ print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10)
 #opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
- opt = optim(obj$par,obj$fn,obj$gr)
+ opt = optim(obj$par,obj$fn,obj$gr,trace=6)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
@@ -130,17 +132,38 @@ big_county_list = list(
                        "San_Francisco",
                        "Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
+
+largest_us_counties = list(
+#"AlamedaCA", "BexarTX",
+## "BrowardFL", "ClarkNV", 
+"Contra_CostaCA",
+#"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+##"KingWA", 
+#"Los_AngelesCA", 
+#"MaricopaAZ", "MarinCA", 
+##"Miami-DadeFL",
+##"New_York_CityNY", 
+#"OrangeCA", "RiversideCA", "SacramentoCA",
+"San_BernardinoCA", 
+"San_DiegoCA", 
+"San_FranciscoCA", "San_JoaquinCA",
+"San_MateoCA", "Santa_ClaraCA", "SonomaCA", "StanislausCA",
+"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI")
+
+
+
+
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County='Alameda')->fit
+    do_one_run(County="AlamedaCA")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   for (c in 1:length(big_county_list))
+   for (c in 1:length(largest_us_counties))
    {
-       print(paste('starting',big_county_list[c]))
-       do_one_run(County=big_county_list[c])->junk
-       print(paste('finished',big_county_list[c]))
+       print(paste('starting',largest_us_counties[c]))
+       do_one_run(County=largest_us_counties[c])->junk
+       print(paste('finished',largest_us_counties[c]))
    }
    sink()
 }
