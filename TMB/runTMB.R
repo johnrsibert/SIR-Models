@@ -33,8 +33,8 @@ print(data)
 init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
-    logmu = log(0.001),
-    loggamma = log(0.001),
+    logmu = log(0.1),
+    loggamma = log(0.1),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
     logitbeta = logit(0.1,data$beta_a,data$beta_b)
@@ -86,9 +86,9 @@ ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
-obj$control=list(eval.max=500,iter.max=10)
+obj$control=list(eval.max=500,iter.max=10,trace=6)
 #opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
- opt = optim(obj$par,obj$fn,obj$gr,trace=6)
+ opt = optim(obj$par,obj$fn,obj$gr,control=obj$control)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
