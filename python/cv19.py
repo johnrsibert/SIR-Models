@@ -21,6 +21,17 @@ plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 LargestCACounties = ['Los Angeles', 'San Diego', 'Orange', 'Riverside',
                          'San Bernardino', 'Santa Clara', 'Alameda',
                          'Sacramento', 'Contra Costa']
+
+
+largest_us_counties = ["AlamedaCA", "BexarTX", "BrowardFL", "ClarkNV", 
+"Contra_CostaCA", "CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+"KingWA", "Los_AngelesCA", "MaricopaAZ", "MarinCA", "Miami-DadeFL",
+"New_York_CityNY", "OrangeCA", "RiversideCA", "SacramentoCA",
+"San_BernardinoCA", "San_DiegoCA", "San_FranciscoCA", "San_JoaquinCA",
+"San_MateoCA", "Santa_ClaraCA", "SonomaCA", "StanislausCA",
+"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI"]
+
+
 NewYorkCounties = ['New York City']#,'Tompkins']
 EastBayCounties = ['Santa Clara','Alameda','Contra Costa','Sonoma','Napa']
 BayAreaCounties = EastBayCounties + ['San Mateo','San Francisco','Marin']
@@ -40,7 +51,7 @@ pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-05-31','%Y-%m-%d')
+EndOfTime = datetime.strptime('2020-06-15','%Y-%m-%d')
 
 county_dat = pd.read_csv(counties_path,header=0)
 #county_state = pd.read_csv('../county-state.csv',header=0)
@@ -311,24 +322,14 @@ def plot_county_fit(county,
     else:
         plt.show(True)
 
-def plot_county_dat(dat,Counties,
-                  death_threshold=1, cases_threshold=1,
+def plot_county_dat(dat,County, State,
                   yscale='linear', per_capita=False, delta_ts=True,
-                  text_spacer='  ', file = None):
+                  text_spacer='  ', file = 'prevalence'):
     """ 
-    Plots cases and deaths vs time from threshold by countiy
-    Counties: list of California counties to plotted
+    Plots cases and deaths vs time
     """
-
-#   get county population       
-#   pops = pd.read_csv(pop_data_path,header=0)
-#   pops = get_county_pop(County, state='California')
     mult = 1000
     eps = 1e-5
-
-#   firstDate = FirstNYTDate
-#   orderDate = CAOrderDate
-#   lastDate = EndOfTime
 
     firstDate = mdates.date2num(FirstNYTDate)
     orderDate = mdates.date2num(CAOrderDate)
@@ -341,6 +342,9 @@ def plot_county_dat(dat,Counties,
 #   dat['Date'] = dat['date'].map(Strptime)
 
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
+    print(type(fig))
+    print(type(ax))
+    print(type(ax[0]))
     if (per_capita):
         ax[0].set_ylabel('Cases'+' per '+str(mult))
         ax[1].set_ylabel('Deaths'+' per '+str(mult))
@@ -365,46 +369,46 @@ def plot_county_dat(dat,Counties,
 
 #   date,county,state,fips,cases,deaths
     print(dat.columns)
-    print('Counties:',len(Counties))
-    print(Counties)
-    print(Counties.index)
-    for r in Counties.index:
-        cc = Counties['county'][r]
-        st = Counties['state'][r]
-        print('* * county,state:',cc,',',st)
-        state_filter = dat['state'].isin([st])
-        county_filter = dat['county'].isin([cc])
-    #   threshold_filter = dat[Column] > threshold
-        County_rows = state_filter & county_filter# & threshold_filter
-        cdata = dat[County_rows]
+    print(County,State)
+#   cc = Counties['county'][r]
+    cc = County
+#   st = Counties['state'][r]
+#   print('* * county,state:',cc,',',st)
+    state_filter = dat['state'].isin([State])
+    county_filter = dat['county'].isin([County])
+    County_rows = state_filter & county_filter
+    cdata = dat[County_rows]
 
-        if (per_capita):
-            cp_row = pops['county'] == cc
-            pop_size = int(pops[cp_row]['population'])
-            cases =  mult*cdata['cases']/pop_size + eps
-            deaths =  mult*cdata['deaths']/pop_size + eps
-        else :
-            cases =  cdata['cases']
-            deaths =  cdata['deaths']
-        
-        Date = []
-        for d in cdata['date']:
-            Date.append(mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date()))
+    if (per_capita):
+        cp_row = pops['county'] == cc
+        pop_size = int(pops[cp_row]['population'])
+        cases =  mult*cdata['cases']/pop_size + eps
+        deaths =  mult*cdata['deaths']/pop_size + eps
+    else :
+        cases =  cdata['cases']
+        deaths =  cdata['deaths']
+    
+    Date = []
+    for d in cdata['date']:
+        Date.append(mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date()))
 
-        
-        c = ax[0].plot(Date, cases,label=cc)
-        if (delta_ts):
-            delta_cases = cases.diff()
-            ax2[0].bar(Date,delta_cases,alpha=0.5)
-        #   adc =moving_average(delta_cases, n=7)
-        #   print(adc)
-        #   ax2[0].plot(Date,adc)
+    
+    c = ax[0].plot(Date, cases,label=cc)
+    if (delta_ts):
+        delta_cases = cases.diff()
+        ax2[0].bar(Date,delta_cases,alpha=0.5)
+    #   adc = delta_cases.interpolate(method='cubic')
+        adc = delta_cases.rolling(window=5).mean()
+        ax2[0].plot(Date,adc,linewidth=1)
 
-        d = ax[1].plot(Date, deaths,label=cc)
-        if (delta_ts):
-            delta_deaths = deaths.diff()
-            ax2[1].bar(Date,delta_deaths,alpha=0.5)
-
+    d = ax[1].plot(Date, deaths,label=cc)
+    if (delta_ts):
+        delta_deaths = deaths.diff()
+        ax2[1].bar(Date,delta_deaths,alpha=0.5)
+    #   add = delta_deaths.interpolate(method='cubic')
+        add = delta_deaths.rolling(window=5).mean()
+    #     pandas.rolling_mean
+        ax2[1].plot(Date,add,linewidth=1)
  
     for a in range(0,len(ax)):
     #   Adjust length of y axis
@@ -415,16 +419,22 @@ def plot_county_dat(dat,Counties,
         ax[a].plot((orderDate,orderDate),
                    (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
                     linewidth=3,alpha=0.5)
-        ax[a].legend()
+    #   ax[a].legend()
+
+    title = 'COVID-19 Prevalence in '+County+' County, '+State
+#   fig.text(0.5,1.0,'COVID-19 Prevalence by County',ha='center',va='top')
+    fig.text(0.5,1.0,title ,ha='center',va='top')
+    fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
+             ha='left',va='bottom', fontsize=8)
 
     mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
     dtime = datetime.fromtimestamp(mtime)
-    fig.text(0.5,1.0,'COVID-19 Prevalence by County',ha='center',va='top')
-    fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
-             ha='left',va='bottom', fontsize=8)
     fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
 
-#   in rcParams
+#   signature = 'Graphics by John Sibert'
+#   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
+
+#   in rcParams: 
 #   plt.tight_layout() #pad=1.0, w_pad=1.0, h_pad=5.0)
 
     save = file
@@ -789,8 +799,10 @@ if __name__ == '__main__':
 
 #   pop = get_county_pop('Alameda','California')
 
+#   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
-#   make_fit_table(big_county_list)
+#   make_fit_table(largest_us_counties,
+#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-08/')
 #   for c in big_county_list:
 #       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
@@ -800,8 +812,10 @@ if __name__ == '__main__':
 #       check_delta_t(county_dat,c)
 #   for c in range(0,len(county_state)):
 #       make_ADMB_dat(county_dat,county_state.loc[c])
-
-    make_dat_file()
+    plot_county_dat(county_dat,
+                    County='Harris',State='Texas',file='HarrisTX')
+#                   County='Alameda',State='California',file='AlamedaCA')
+                 
 
 else:
    print('type something')
