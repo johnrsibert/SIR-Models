@@ -32,12 +32,12 @@ print(data)
 
 init = list(
     logsigma_logP = log(0.2),
-    logsigma_beta = log(0.02),
-    logmu = log(0.1),
-    loggamma = log(0.1),
-    logsigma_logC = log(0.25),
+    logsigma_beta = log(0.04),
+    logmu = log(0.001),
+    loggamma = log(0.001),
+    logsigma_logC = log(0.3),
     logsigma_logD = log(0.25),
-    logitbeta = logit(0.1,data$beta_a,data$beta_b)
+    logitbeta = logit(0.03,data$beta_a,data$beta_b)
 )
 print("--initial parameter values:")
 print(init)
@@ -88,7 +88,7 @@ print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10,trace=6)
 #opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
- opt = optim(obj$par,obj$fn,obj$gr,control=obj$control)
+ opt = optim(obj$par,obj$fn,obj$gr)#,control=obj$control)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
@@ -134,16 +134,16 @@ big_county_list = list(
                        "Stanislaus","Sonoma","Marin")
 
 largest_us_counties = list(
-#"AlamedaCA", "BexarTX",
-## "BrowardFL", "ClarkNV", 
+"AlamedaCA", "BexarTX",
+"BrowardFL", "ClarkNV", 
 "Contra_CostaCA",
-#"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
-##"KingWA", 
-#"Los_AngelesCA", 
-#"MaricopaAZ", "MarinCA", 
-##"Miami-DadeFL",
-##"New_York_CityNY", 
-#"OrangeCA", "RiversideCA", "SacramentoCA",
+"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+"KingWA", 
+"Los_AngelesCA", 
+"MaricopaAZ", "MarinCA", 
+"Miami-DadeFL",
+"New_York_CityNY", 
+"OrangeCA", "RiversideCA", "SacramentoCA",
 "San_BernardinoCA", 
 "San_DiegoCA", 
 "San_FranciscoCA", "San_JoaquinCA",
@@ -154,7 +154,7 @@ largest_us_counties = list(
 
 
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
     do_one_run(County="AlamedaCA")->fit
 } else {

@@ -46,7 +46,7 @@ Type NLerr(Type logobs, Type logpred, Type var)
 
 // zero-inflated log-normal error
 template <class Type>
-Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
+Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0)
 {
     Type nll;
 
@@ -58,7 +58,7 @@ Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
     {
         nll = prop0*0.5*(log(TWO_M_PI*var));
     }
-    nll = exp(nll);
+    //nll = exp(nll);
     return nll;
 }
 
@@ -86,7 +86,7 @@ Type dnorm(Type x, Type mean, Type sd, int give_log=0)
 template<class Type> 
 Type objective_function <Type>::operator()()
 {
-   feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO | FE_UNDERFLOW);
+// feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO | FE_UNDERFLOW);
 
     DATA_SCALAR(N0)
     DATA_INTEGER(ntime)
@@ -154,7 +154,7 @@ Type objective_function <Type>::operator()()
          // deaths process error
          Type prevD = exp(logD(t-1));
          logD(t) = log(prevD + mu*exp(logEye(t-1))+eps);
-         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP),__LINE__);
+         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP, prop_zero_deaths),__LINE__);
 
      }
  
