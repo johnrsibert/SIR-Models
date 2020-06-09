@@ -46,7 +46,7 @@ big_county_list = ["Los Angeles","San Diego",
                        "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-08/'
 pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
@@ -605,7 +605,7 @@ def QQ_plot(ax,x,y,Q=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
     qmin = np.min([x,y])
     ax.plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
 
-def plot_diagnostics(county='Alameda',
+def plot_diagnostics(county='AlamedaCA',
                  save = False):
     fig, ax = plt.subplots(3,2,figsize=(6.5,9.0))
     county_name = county.replace(' ','_',5)
@@ -803,17 +803,16 @@ if __name__ == '__main__':
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
 #   make_fit_table(largest_us_counties,
 #                fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-08/')
-#   for c in big_county_list:
-#       plot_diagnostics(c,save=True)
+    for c in largest_us_counties:
+        plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
-#   for c in range(0,len(county_state)):
-#       make_ADMB_dat(county_dat,county_state.loc[c])
-    plot_county_dat(county_dat,
-                    County='Harris',State='Texas',file='HarrisTX')
+#   plot_county_dat(county_dat,
+#                   County='Miami-Dade',State='Florida',file='MiamiDadeFL')
+#                   County='Harris',State='Texas',file='HarrisTX')
 #                   County='Alameda',State='California',file='AlamedaCA')
                  
 

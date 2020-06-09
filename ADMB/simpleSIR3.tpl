@@ -79,6 +79,20 @@ GLOBALS_SECTION;
   //}
   //template dvariable isNaN(const dvariable& x, const int line);
 
+TOP_OF_MAIN_SECTION
+  arrmblsize = 50000000;
+  gradient_structure::set_CMPDIF_BUFFER_SIZE(  150000000L);
+  gradient_structure::set_GRADSTACK_BUFFER_SIZE(12550000L);
+  gradient_structure::set_MAX_NVAR_OFFSET(3000000);
+
+  adstring logname(adstring(argv[0])+"_program.log");
+  clogf.open(logname);
+  if ( !clogf ) {
+    cerr << "Cannot open program log " << logname << endl;
+    ad_exit(1);
+  }
+  cout << "Opened program log: " << logname << endl;
+  pad();
 
 DATA_SECTION
   init_adstring county;
@@ -170,7 +184,10 @@ PRELIMINARY_CALCS_SECTION
   logmu = log(0.001);
 
  
-  
+RUNTIME_SECTION
+  // derivatives get inaccurate at gradients < 1e-4
+  // with current data
+  convergence_criteria .001
 
 PROCEDURE_SECTION
 

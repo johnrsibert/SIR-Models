@@ -143,9 +143,11 @@ Type objective_function <Type>::operator()()
     //logD(0) = log_obs_deaths(0);
     for (int t = 1; t <  ntime; t++)
     {
+    // Fnll += 0.5*(log(TWO_M_PI*varlogF) + square(ft1(g)-ft2(g))/varlogF);
          // infection rate random walk
          betanll += isNaN(NLerr(beta(t-1),beta(t),var_beta),__LINE__);
-
+ 
+    // Pnll += 0.5*(log(TWO_M_PI*varlogPop) + square(p12-nextLogN)/varlogPop);
          // cases process error
          Type prevEye = exp(logEye(t-1));
          logEye(t) = log(prevEye*(1.0 + (beta(t-1) - gamma - mu))+eps);
