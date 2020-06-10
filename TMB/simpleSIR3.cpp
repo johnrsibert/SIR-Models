@@ -139,8 +139,8 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-    //logEye(0) = log_obs_cases(0);
-    //logD(0) = log_obs_deaths(0);
+    logEye(0) = log_obs_cases(0);
+    logD(0) = log_obs_deaths(0);
     for (int t = 1; t <  ntime; t++)
     {
     // Fnll += 0.5*(log(TWO_M_PI*varlogF) + square(ft1(g)-ft2(g))/varlogF);

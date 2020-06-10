@@ -15,6 +15,7 @@ print(paste(separator,County,separator),quote=FALSE)
 print(paste(separator,County,separator),quote=FALSE)
 print(paste(separator,County,separator),quote=FALSE)
 dat = read.dat.file(datfile)
+
 eps = 1e-8
 data=dat$data
 print(names(data))
@@ -31,13 +32,13 @@ print("-data:")
 print(data)
 
 init = list(
-    logsigma_logP = log(0.05), #0.2),
-    logsigma_beta = log(0.04),
-    logmu = log(0.0001),
-    loggamma = log(0.001),
-    logsigma_logC = log(0.19), #3),
-    logsigma_logD = log(0.31), #25),
-    logitbeta = logit(0.01,data$beta_a,data$beta_b)
+    logsigma_logP = log(0.2),
+    logsigma_beta = log(0.02),
+    logmu = log(0.1),
+    loggamma = log(0.1),
+    logsigma_logC = log(0.25),
+    logsigma_logD = log(0.25),
+    logitbeta = logit(0.1,data$beta_a,data$beta_b)
 )
 print("--initial parameter values:")
 print(init)
@@ -88,9 +89,9 @@ print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10,trace=6)
 #opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
-#opt = optim(obj$par,obj$fn,obj$gr)   #,control=obj$control)
+ opt = optim(obj$par,obj$fn,obj$gr)   #,control=obj$control)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
- opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
+#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -146,19 +147,22 @@ largest_us_counties = list(
 "OrangeCA", "RiversideCA", "SacramentoCA",
 "San_BernardinoCA", 
 "San_DiegoCA", 
-"San_FranciscoCA", "San_JoaquinCA",
-"San_MateoCA", "Santa_ClaraCA", "SonomaCA", "StanislausCA",
+"San_FranciscoCA", 
+"San_JoaquinCA",
+"San_MateoCA",
+"Santa_ClaraCA", 
+"SonomaCA", "StanislausCA",
 "SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI")
 
 
 
 
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-    do_one_run(County="BrowardFL")->fit
+    do_one_run(County="Contra_CostaCA")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(largest_us_counties))

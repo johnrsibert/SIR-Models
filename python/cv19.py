@@ -143,6 +143,10 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
         i = len(x)-1
         ax.text(x[i],y[i],spacer+sl,ha='left',va='center',fontsize=10)
 
+def update_dat():
+    os.system('git -C /home/other/nytimes-covid-19-data pull -v')
+    make_dat_file()
+
 def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
         dat: pandas object read by another function
@@ -197,7 +201,8 @@ def make_dat_file (cspath='../county-state.csv'):
         dfile = County.replace(' ','_',5)+ST+'.dat'
    #    print(County, ST,dfile)
         O = open(dfile,'w')
-        O.write('# county\n %s\n'%(County.replace('_',' ',5)+ST))
+   #    O.write('# county\n %s\n'%(County.replace('_',' ',5)+ST))
+        O.write('# county\n %s\n'%(County.replace(' ','_',5)+ST))
         O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
         O.write(' %s\n'%update_stamp)
         O.write('# population (N0)\n %10d\n'%population)
@@ -688,7 +693,7 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 #              'sigma_logC','sigma_logD', 'gamma']
     md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     es_cols = ['logsigma_logP'   , 'logsigma_beta'  ,
-               'logsigma_logC','logsigma_logD', 'gamma']
+               'logsigma_logC','logsigma_logD', 'gamma','mbeta','mmu']
     tt_cols = md_cols + es_cols
 #   header = ['County','$N_0$','$n$','$p_0$','$f$',
 #             '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\mu$',
@@ -711,20 +716,20 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         ests  = fit['ests']
         meta = fit['meta']
         diag = fit['diag']
-        row = [None]*len(tt_cols)
+        row = pd.Series(index=tt_cols)
         county = get_metadata('county',meta)  
-        row[0] = county.replace('_',' ',5) 
+        row['county'] = county.replace('_',' ',5) 
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
             v = get_est_or_init(n,ests)
             if ("logsigma" in n):
                 v = float(np.exp(v))
-            row[k] = v
-        #   row[k] = round(v,sigfigs)
-        row[1] = int(get_metadata('N0',meta))
-        row[2] = int(get_metadata('ntime',meta))
-        row[3] = float(get_metadata('prop_zero_deaths',meta))
-        tt = np.append(tt,np.array([row]),axis=0)
+            row.iloc[k] = v
+
+        row['N0'] = int(get_metadata('N0',meta))
+        row['ntime'] = int(get_metadata('ntime',meta))
+        row['prop_zero_deaths'] = float(get_metadata('prop_zero_deaths',meta))
+        tt = tt.append(row,ignore_index=True)
         tmp = get_est_or_init('loggamma',ests)
         tmp = np.exp(tmp)
         tmp = float(tmp)
@@ -736,11 +741,15 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         mu = diag['mu']
         mmu = np.append(mmu,mu.quantile(q=0.5))
 
-    tt = pd.DataFrame(tt,columns=tt_cols)#,dtype=float)
     tt['fn'] = func
     tt['gamma'] = gamm
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
+
+    for c in range(3,len(tt.columns)):
+        for r in range(0,tt.shape[0]):
+           tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
+    tt = tt.sort_values(by='N0',ascending=False)#,inplace=True)
 
     row = pd.Series(None,index=tt.columns)
     row['county'] = 'Median'
@@ -748,11 +757,8 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         if (n != 'county'):
             mn = tt[n].quantile()
             row[n] = mn
-
-    tt = pd.DataFrame(np.append(tt,np.array([row]),axis=0))
-    for c in range(3,len(tt.columns)):
-        for r in range(0,tt.shape[0]):
-           tt[c][r] = round(float(tt[c][r]),sigfigs)
+    tt = tt.append(row,ignore_index=True)
+    print(tt)
 
     tex = fit_path+'fit_table.tex'
     ff = open(tex, 'w')
@@ -799,18 +805,20 @@ if __name__ == '__main__':
 
 #   pop = get_county_pop('Alameda','California')
 
+#   update_dat()
 #   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
-#   make_fit_table(largest_us_counties,
-#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-08/')
-    for c in largest_us_counties:
-        plot_diagnostics(c,save=True)
+    make_fit_table(largest_us_counties,
+                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+#   for c in largest_us_counties:
+#       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
 #   plot_county_dat(county_dat,
+#                   County='Broward',State='Florida',file='BrowardFL')
 #                   County='Miami-Dade',State='Florida',file='MiamiDadeFL')
 #                   County='Harris',State='Texas',file='HarrisTX')
 #                   County='Alameda',State='California',file='AlamedaCA')
