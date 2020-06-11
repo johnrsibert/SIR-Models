@@ -35,7 +35,7 @@ init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
     logmu = log(0.1),
-    loggamma = log(0.1),
+    loggamma = log(0.002),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
     logitbeta = logit(0.1,data$beta_a,data$beta_b)
@@ -59,7 +59,7 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_beta" = as.factor(1),
            "logmu" = as.factor(1),
-           "loggamma"  = as.factor(1),
+           "loggamma"  = as.factor(NA),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )

@@ -46,7 +46,7 @@ big_county_list = ["Los Angeles","San Diego",
                        "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-08/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
 pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
@@ -824,8 +824,8 @@ if __name__ == '__main__':
 #   update_dat()
 #   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
-#   make_fit_table(largest_us_counties,
-#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+    make_fit_table(largest_us_counties,
+                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 #   plot_diagnostics(save=True)
 #   for c in largest_us_counties:
 #       plot_diagnostics(c,save=True)
@@ -843,7 +843,7 @@ if __name__ == '__main__':
                  
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
 #   plot_county_fit('CookIL',yscale='linear',save=True)
-    plot_diagnostics('CookIL',save=False)
+#   plot_diagnostics('CookIL',save=False)
 
 else:
    print('type something')
