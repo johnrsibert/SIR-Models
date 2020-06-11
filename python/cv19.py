@@ -608,74 +608,90 @@ def QQ_plot(ax,x,y,Q=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
 #   ax.plot([xl[0],xl[1]],[yl[0],yl[1]], linewidth=1, color='black')
     qmax = np.max([x,y])
     qmin = np.min([x,y])
-    ax.plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
+    ax.plot([qmin,qmax],[qmin,qmax], linewidth=1, color='red')
 
 def plot_diagnostics(county='AlamedaCA',
                  save = False):
+    Q=[0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
     fig, ax = plt.subplots(3,2,figsize=(6.5,9.0))
     county_name = county.replace(' ','_',5)
     pn = fit_path+county_name+'.RData'
     fit=pyreadr.read_r(pn)
     diag = fit['diag']
-    print(diag.columns)
+#   print(diag.columns)
     meta = fit['meta']
-    print(meta)
-    ests  = fit['ests']
-    print(ests)
+#   print(meta)
+#   ests  = fit['ests']
+#   print(ests)
 
     obsD = diag['log_obs_deaths']
     preD = diag['log_pred_deaths']
 
-    do_probplot = True
-    if (do_probplot):
+    ax[0,0].scatter(diag['log_obs_cases'].values,
+                    diag['log_pred_cases'].values)
+    xl = ax[0,0].get_xlim()
+    yl = ax[0,0].get_ylim()
+    ax[0,0].plot([xl[0],xl[1]],[yl[0],yl[1]], linewidth=1, color='black')
+    ax[0,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$')
+    ax[0,0].set_xlabel(r'$\log\ \rm{I}$')
+
+    ax[0,1].scatter(preD[obsD>0.0],obsD[obsD>0.0])
+    ax[0,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$')
+    ax[0,1].set_xlabel(r'$\log\ \rm{D}$')
+
+    qmax = np.max([obsD[obsD>0.0],preD[obsD>0.0]])
+    qmin = np.min([obsD[obsD>0.0],preD[obsD>0.0]])
+    ax[0,1].plot([qmin,qmax],[qmin,qmax], linewidth=1, color='red')
+
+    QQ_plot(ax[1,0],diag['log_obs_cases'].values,
+                    diag['log_pred_cases'].values,Q=Q)
+    ax[1,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$ quantiles')
+    ax[1,0].set_xlabel(r'$\log\ \rm{I}$ quantiles')
+
+    QQ_plot(ax[1,1], preD[obsD>0.0], obsD[obsD>0.0],Q=Q)
+    ax[1,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$ quantiles')
+    ax[1,1].set_xlabel(r'$\log\ \rm{D}$ quantiles')
+
+    do_probplot = False
+    if (do_probplot): # use stats library
         ax5 = fig.add_subplot(325)
         residuals = diag['log_pred_cases'] - diag['log_obs_cases']
         res5 = stats.probplot(residuals,plot=ax5)
-#   print('res5:',res5)
         ax5.set_title('')
         ax5.set_xlabel('Cases Residuals')
 
         ax6 = fig.add_subplot(326)
         residuals = preD[obsD>0.0] - obsD[obsD>0.0]
         res6 = stats.probplot(residuals,plot=ax6)
-    #   print('res6:',res6)
         ax6.set_title('')
         ax6.set_xlabel('Deaths Residuals')
 
-    else:
-        ax5 = fig.add_subplot(325)
-        ax5.plot(diag['obs_cases'])
-        ax6 = fig.add_subplot(326)
+    else: # roll your own
+        resid = diag['log_pred_cases'] - diag['log_obs_cases']
+        qR = resid.quantile(Q)
+        normR = pd.Series(stats.norm.ppf(resid))
+        qN = normR.quantile(Q)
+        ax[2,0].scatter(qR,qN)
+        slope, intercept, r, prob, sterrest = stats.linregress(qR,qN)
+        ax[2,0].plot(qR,slope*qR+intercept,linewidth=1, color='red')
+        ax[2,0].set_xlabel(r'$\log\ \rm{I}$ Residuals')
+        ax[2,0].set_ylabel('Normal quantiles')
 
-    ax[1,0].scatter(diag['log_obs_cases'].values,
-                    diag['log_pred_cases'].values)
-    xl = ax[1,0].get_xlim()
-    yl = ax[1,0].get_ylim()
-    ax[1,0].plot([xl[0],xl[1]],[yl[0],yl[1]], linewidth=1, color='black')
-#   qmax = np.max(diag['log_obs_cases'], diag['log_pred_cases'])
-#   qmin = np.min(diag['log_obs_cases'].values, diag['log_pred_cases'].values)
-#   ax[1,0].plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
-    ax[1,0].set_xlabel('log Observed Cases')
-    ax[1,0].set_ylabel('log predicted Cases')
-    ax[1,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$')
-    ax[1,0].set_xlabel(r'$\log\ \rm{I}$')
+        resid = preD[obsD>0.0] - obsD[obsD>0.0]
+    #   print(resid)
+        qR = resid.quantile(Q)
+    #   print('qR:',qR)
 
-    ax[1,1].scatter(preD[obsD>0.0],obsD[obsD>0.0])
-    ax[1,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$')
-    ax[1,1].set_xlabel(r'$\log\ \rm{D}$')
+        normR = pd.Series(stats.norm.ppf(resid))
+    #   print('normR:',normR)
+        qN = normR.quantile(Q)
+    #   print('qN:',qN)
 
-    qmax = np.max([obsD[obsD>0.0],preD[obsD>0.0]])
-    qmin = np.min([obsD[obsD>0.0],preD[obsD>0.0]])
-    ax[1,1].plot([qmin,qmax],[qmin,qmax], linewidth=1, color='black')
-
-    QQ_plot(ax[0,0],diag['log_obs_cases'].values,
-                    diag['log_pred_cases'].values)
-    ax[0,0].set_ylabel(r'$\log\ \widehat{\rm{I}}$ quantiles')
-    ax[0,0].set_xlabel(r'$\log\ \rm{I}$ quantiles')
-
-    QQ_plot(ax[0,1], preD[obsD>0.0], obsD[obsD>0.0])
-    ax[0,1].set_ylabel(r'$\log\ \widehat{\rm{D}}$ quantiles')
-    ax[0,1].set_xlabel(r'$\log\ \rm{D}$ quantiles')
+        ax[2,1].scatter(qR,qN)
+        slope, intercept, r, prob, sterrest = stats.linregress(qR,qN)
+        ax[2,1].plot(qR,slope*qR+intercept, linewidth=1, color='red')
+        ax[2,1].set_xlabel(r'$\log\ \rm{D}$ Residuals')
+        ax[2,1].set_ylabel('Normal quantiles')
 
     if save:
         plt.savefig(fit_path+county_name+'_diagnostics'+'.png',dpi=300)
@@ -808,8 +824,9 @@ if __name__ == '__main__':
 #   update_dat()
 #   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
-    make_fit_table(largest_us_counties,
-                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+#   make_fit_table(largest_us_counties,
+#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+#   plot_diagnostics(save=True)
 #   for c in largest_us_counties:
 #       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
@@ -818,11 +835,15 @@ if __name__ == '__main__':
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
 #   plot_county_dat(county_dat,
+#                   County='Cook',State='Illinois',file='CookIL')
 #                   County='Broward',State='Florida',file='BrowardFL')
 #                   County='Miami-Dade',State='Florida',file='MiamiDadeFL')
 #                   County='Harris',State='Texas',file='HarrisTX')
 #                   County='Alameda',State='California',file='AlamedaCA')
                  
+#   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
+#   plot_county_fit('CookIL',yscale='linear',save=True)
+    plot_diagnostics('CookIL',save=False)
 
 else:
    print('type something')
