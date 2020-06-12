@@ -59,7 +59,7 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_beta" = as.factor(1),
            "logmu" = as.factor(1),
-           "loggamma"  = as.factor(NA),
+           "loggamma"  = as.factor(1),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )

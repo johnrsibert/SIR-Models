@@ -3,7 +3,7 @@
 """
 @author: jsibert
 """
-import pyreadr
+
 import pandas as pd
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
@@ -11,6 +11,7 @@ import matplotlib.dates as mdates
 from matplotlib import rc
 import numpy as np
 import os
+import pyreadr
 from io import StringIO
 import scipy.stats as stats
 from sigfig import round
@@ -146,6 +147,8 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
 def update_dat():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
     make_dat_file()
+    plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
+    plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
 
 def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
@@ -402,7 +405,6 @@ def plot_county_dat(dat,County, State,
     if (delta_ts):
         delta_cases = cases.diff()
         ax2[0].bar(Date,delta_cases,alpha=0.5)
-    #   adc = delta_cases.interpolate(method='cubic')
         adc = delta_cases.rolling(window=5).mean()
         ax2[0].plot(Date,adc,linewidth=1)
 
@@ -410,9 +412,7 @@ def plot_county_dat(dat,County, State,
     if (delta_ts):
         delta_deaths = deaths.diff()
         ax2[1].bar(Date,delta_deaths,alpha=0.5)
-    #   add = delta_deaths.interpolate(method='cubic')
         add = delta_deaths.rolling(window=5).mean()
-    #     pandas.rolling_mean
         ax2[1].plot(Date,add,linewidth=1)
  
     for a in range(0,len(ax)):
