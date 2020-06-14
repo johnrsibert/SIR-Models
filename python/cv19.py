@@ -47,7 +47,7 @@ big_county_list = ["Los Angeles","San Diego",
                        "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-10/'
 pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
@@ -148,7 +148,8 @@ def update_dat():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
     make_dat_file()
     plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
-    plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
+#   plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
+    plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
 
 def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
@@ -264,13 +265,16 @@ def plot_county_fit(county,
     date_lim = [date_list[0],date_list[len(date_list)-1]]
     plt.rcParams['lines.linewidth'] = 1
     plt.rcParams["scatter.marker"] = '+'
-    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
+    npl = 3
+    fig, ax = plt.subplots(npl,1,figsize=(6.5,npl*2.5))
     if (per_capita):
         ax[0].set_ylabel('Cases'+' per '+str(mult))
         ax[1].set_ylabel('Deaths'+' per '+str(mult))
     else:
         ax[0].set_ylabel('Cases')
         ax[1].set_ylabel('Deaths')
+    if (npl > 2):
+        ax[2].set_ylabel(r'$\beta\ (da^{-1})$')
 
 
     for a in range(0,len(ax)):
@@ -281,10 +285,6 @@ def plot_county_fit(county,
 #       if (delta_ts):
 #           ax2.append(ax[a].twinx())
 #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
-
-
-#   ax[0].set_xlabel('Time (days after n>%.0f)'%cases_threshold)
-#   ax[1].set_xlabel('Time (days after n>%.0f)'%death_threshold)
 
     pn = fit_path+county.replace(' ','_',5)+'.RData'
     fit=pyreadr.read_r(pn)
@@ -300,6 +300,7 @@ def plot_county_fit(county,
     obsI = np.exp(diag['log_obs_cases'])
     preI = np.exp(diag['log_pred_cases'])
     obsD = np.exp(diag['log_obs_deaths'])
+    print(diag['log_pred_deaths'])
     preD = np.exp(diag['log_pred_deaths'])
 
     sigma_logC = np.exp(get_est_or_init('logsigma_logC',ests))
@@ -324,9 +325,14 @@ def plot_county_fit(county,
     sigstr = '%s = %.3g'%('$\sigma_D$',sigma_logD)
     ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
+    if (npl > 2):
+       sigma_beta = np.exp(get_est_or_init('logsigma_beta',ests))
+       plot_error(ax[2],pdate,diag['beta'],sigma_beta)
+       ax[2].scatter(pdate,diag['beta'])
+
     if save:
         plt.savefig(fit_path+county.replace(' ','_',5)+'_obsVpred.png',dpi=300)
-        plt.show(False)
+        plt.show(True)
     else:
         plt.show(True)
 
@@ -338,6 +344,7 @@ def plot_county_dat(dat,County, State,
     """
     mult = 1000
     eps = 1e-5
+    pops = pd.read_csv(pop_data_path,header=0)        # get county population
 
     firstDate = mdates.date2num(FirstNYTDate)
     orderDate = mdates.date2num(CAOrderDate)
@@ -349,10 +356,7 @@ def plot_county_dat(dat,County, State,
 
 #   dat['Date'] = dat['date'].map(Strptime)
 
-    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
-    print(type(fig))
-    print(type(ax))
-    print(type(ax[0]))
+    fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
     if (per_capita):
         ax[0].set_ylabel('Cases'+' per '+str(mult))
         ax[1].set_ylabel('Deaths'+' per '+str(mult))
@@ -376,8 +380,8 @@ def plot_county_dat(dat,County, State,
             ax2[a].set_ylabel("Daily Change")
 
 #   date,county,state,fips,cases,deaths
-    print(dat.columns)
-    print(County,State)
+#   print(dat.columns)
+#   print(County,State)
 #   cc = Counties['county'][r]
     cc = County
 #   st = Counties['state'][r]
@@ -408,13 +412,21 @@ def plot_county_dat(dat,County, State,
         adc = delta_cases.rolling(window=5).mean()
         ax2[0].plot(Date,adc,linewidth=1)
 
+    #   rescaled second differences
+    #   dd_cases = delta_cases.diff()
+    #   b = np.nanmin(dd_cases)-np.nanmax(dd_cases)/(np.nanmin(delta_cases)-np.nanmax(delta_cases))
+    #   a = np.nanmax(dd_cases)-b*np.nanmax(delta_cases)
+    #   dd_cases = a + b*delta_cases 
+    #   adc = dd_cases.rolling(window=5).mean()
+    #   ax2[0].plot(Date,adc,linewidth=1,color='purple')
+
     d = ax[1].plot(Date, deaths,label=cc)
     if (delta_ts):
         delta_deaths = deaths.diff()
         ax2[1].bar(Date,delta_deaths,alpha=0.5)
         add = delta_deaths.rolling(window=5).mean()
         ax2[1].plot(Date,add,linewidth=1)
- 
+
     for a in range(0,len(ax)):
     #   Adjust length of y axis
         ax[a].set_ylim(0,ax[a].get_ylim()[1])
@@ -824,13 +836,14 @@ if __name__ == '__main__':
 #   update_dat()
 #   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
-    make_fit_table(largest_us_counties,
-                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+#   make_fit_table(largest_us_counties,
+#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 #   plot_diagnostics(save=True)
 #   for c in largest_us_counties:
 #       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
+    plot_county_fit('Miami-DadeFL',yscale='log',save=True)
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)
@@ -844,6 +857,7 @@ if __name__ == '__main__':
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
 #   plot_county_fit('CookIL',yscale='linear',save=True)
 #   plot_diagnostics('CookIL',save=False)
+
 
 else:
    print('type something')

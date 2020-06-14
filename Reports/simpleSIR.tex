@@ -67,9 +67,9 @@ infection rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
 
 Unfortunately, few data sets include data for each of
 these compartments. 
-The New York Times' ``historical'' data
-(https://github.com/nytimes/covid-19-data/) is an
-easily accessible and source of data. These
+The New York Times' ``historical'' 
+data\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
+is an easily accessible and source of data. These
 data comprise daily totals of ``cases'' and ''deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
 a reasonable approximations of the Infectious compartment ($I$) in a SIR model. 
@@ -138,7 +138,7 @@ One approach to modeling time-dependent rates of infection and
 mortality, $\beta$ and $\mu$, is to treat them as random effects
 (\cite{Skaug2006}). Random effects are appropriate if repeating a time
 series of observations would not yield the same outcome as the initial
-observations. Random effects would also be important when observing
+observations. Random effects are also appropriate when observing
 the same process in two different areas. I model the  $\beta$ and
 $\mu$ time series as log-normal random walks. I assume that
 \begin{eqnarray}
@@ -207,9 +207,10 @@ $\alpha_t$ is the vector of the daily calculations of the state
 variables and random effects,
 and $\theta$ 
 is a vector of model parameters (Table~\ref{tab:allvars1}).
-The model is implemented in TMB (\cite{TMB0000}).
-
-\url{https://github.com/johnrsibert/SIR-Models}.
+The R package TMB (\cite{TMB0000} package was provisionally used to 
+estimate the parameters of the model. 
+The R and supporting C++ files are available on 
+github.\footnote{\url{https://github.com/johnrsibert/SIR-Models}}
 
 
 
@@ -230,8 +231,9 @@ Variable & Definition\\
 \hline
 \hline
        & {\it State variables:}\\
-I      & Number of infected individuals or ``cases''\\
-D      & Number of deaths\\
+$I$      & Number of infected individuals or ``cases''\\
+$D$      & Number of deaths\\
+$N_0$    & Population size (not used in current models)\\
        & {\it Random effects:}\\
 $\beta_t$ & Infection rate\\
 $\mu_t$   & Mortality rate\\
@@ -250,15 +252,26 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 
 \section*{Results}
 
+All data are derived from the New York times github 
+site\footnote{See note \ref{ff:nyt}.}.
+% {\url{https://github.com/nytimes/covid-19-data/}}. 
+The Times amalgamates data
+from the 5 counties that comprise New York City into a single
+``geography'' which appears as ``New York CityNY County'' in my
+analysis. The test data consist of data from New York City, the 19
+most populous counties in the United States, plus select
+counties form California, specifically including counties in the San
+Francisco Bay Area.
+
 Whether the available data are sufficiently informative to enable
 estimation of the model parameters is a critical aspect of the
 evaluation of any statistical model.
 The speed at which the COVID-19 pandemic spread during the first
 quarter of
-2020 means that the length of the time series nearly doubled during
-the development of this model. Consequently, the capability of the
-model seemed to improve during the development period.
-Whether the improvement is
+2020 means that the length of the time series doubled during
+the development of this model. The capability of the
+model improve conveniently during the model development period,
+but whether the improvement is
 attributable to changes in model structure or to the increase in the
 length of the time series is unclear. This ambiguity influenced the
 development of the model.
@@ -268,8 +281,50 @@ infection rate, $\beta_t$, and the mortality rate, $\mu$, is
 considered constant over time. There are thus seven estimated
 parameters.      
 
+Results for different counties seem to fall into three general
+categories: (1) pretty good; 
+(2) good fit to cases and bad fit to deaths; 
+(3) bad fit to cases and good fit to deaths. 
+
 \clearpage
 \printbibliography[title=References]
+
+\clearpage
+
+\begin{figure}
+\begin{center}
+\caption{\label{fig:pgf}
+Example of a ``pretty good'' fit for data from
+Miami-Dade County, Florida.
+Observed and estimated cases and fits and estimated infection rate
+trend.}
+\includegraphics[width=1.00\textwidth]{../Graphics/Miami-DadeFL-2020-06-10.pdf}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{\label{fig:gcbd}
+Example of a fit with good agreement between observed and estimated
+cases, but poor agreement for observed and estimated deaths.
+Cook County, Illinois.
+Observed and estimated cases and fits and estimated infection rate
+trend.}
+\includegraphics[width=1.00\textwidth]{../Graphics/CookIL-2020-06-10.pdf}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{\label{fig:bcgd}
+Example of a fit with good agreement between observed and estimated
+deaths, but poor agreement for observed and estimated cases.
+Riverside County, California.
+Observed and estimated cases and fits and estimated infection rate
+trend.}
+\includegraphics[width=1.00\textwidth]{../Graphics/RiversideCA-2020-06-10.pdf}
+\end{center}
+\end{figure}
 
 
 \end{document}
