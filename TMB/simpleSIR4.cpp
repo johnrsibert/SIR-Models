@@ -58,7 +58,6 @@ Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
     {
         nll = prop0*0.5*(log(TWO_M_PI*var));
     }
-    nll = exp(nll);
     return nll;
 }
 
@@ -86,7 +85,7 @@ Type dnorm(Type x, Type mean, Type sd, int give_log=0)
 template<class Type> 
 Type objective_function <Type>::operator()()
 {
- //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO | FE_UNDERFLOW);
+// feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO | FE_UNDERFLOW);
 
     DATA_SCALAR(N0)
     DATA_INTEGER(ntime)
@@ -144,8 +143,8 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-    //logEye(0) = log_obs_cases(0);
-    //logD(0) = log_obs_deaths(0);
+    logEye(0) = log_obs_cases(0);
+    logD(0) = log_obs_deaths(0);
     for (int t = 1; t <  ntime; t++)
     {
          // infection rate random walk
@@ -162,7 +161,7 @@ Type objective_function <Type>::operator()()
          // deaths process error
          Type prevD = exp(logD(t-1));
          logD(t) = log(prevD + mu(t-1)*exp(logEye(t-1))+eps);
-         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP),__LINE__);
+         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP, prop_zero_deaths),__LINE__);
 
      }
  

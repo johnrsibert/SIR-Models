@@ -503,7 +503,7 @@ def plot_error(ax,x,y,sdy,mult=2.0,ecol='0.5'):
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
-                            facecolor='0.9', edgecolor=ecol)
+                            facecolor='0.9', edgecolor='0.5')
     ax.add_patch(sd_region)
    
 def plot_beta_mu(fit_files=['Alameda'],plot_mu=True,delta_ts=False,save=True):
@@ -833,7 +833,7 @@ if __name__ == '__main__':
 
 #   pop = get_county_pop('Alameda','California')
 
-#   update_dat()
+    update_dat()
 #   make_dat_file()
 #   plot_beta_mu(big_county_list,plot_mu=False, delta_ts=True,save=True)
 #   make_fit_table(largest_us_counties,
@@ -843,7 +843,7 @@ if __name__ == '__main__':
 #       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
-    plot_county_fit('Miami-DadeFL',yscale='log',save=True)
+#   plot_county_fit('Miami-DadeFL',yscale='log',save=True)
 
 #   for c in LargestCACounties:
 #       check_delta_t(county_dat,c)

@@ -104,11 +104,12 @@ ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
-obj$control=list(eval.max=500,iter.max=10)
-#opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
- opt = optim(obj$par,obj$fn,obj$gr)
+#obj$control=list(eval.max=500,iter.max=10)
+#opt = nlminb(obj$par,obj$fn,obj$gr,
+#    control=list('trace'=1,'abs.tol'=1e-3,'rel.tol'=1e-3))
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
+ opt = optim(obj$par,obj$fn,obj$gr)
+#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -150,17 +151,39 @@ big_county_list = list(
                        "San_Francisco",
                        "Ventura","San_Mateo","San_Joaquin",
                        "Stanislaus","Sonoma","Marin")
+
+largest_us_counties = list(
+"AlamedaCA", "BexarTX",
+"BrowardFL", "ClarkNV", 
+"Contra_CostaCA",
+"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+"KingWA", 
+"Los_AngelesCA", 
+"MaricopaAZ", "MarinCA", 
+"Miami-DadeFL",
+"New_York_CityNY", 
+"OrangeCA", "RiversideCA", "SacramentoCA",
+"San_BernardinoCA", 
+"San_DiegoCA", 
+"San_FranciscoCA", 
+"San_JoaquinCA",
+"San_MateoCA",
+"Santa_ClaraCA", 
+"SonomaCA", "StanislausCA",
+"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI")
                        
 nrun = 1
 if (nrun < 2) {
-    do_one_run(County='Los_Angeles')->fit
+    do_one_run(County="AlamedaCA")->fit
+#   do_one_run(County="New_York_CityNY")->fit
+#   do_one_run(County="Contra_CostaCA")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   for (c in 1:length(big_county_list))
+   for (c in 1:length(largest_us_counties))
    {
-       print(paste('starting',big_county_list[c]))
-       do_one_run(County=big_county_list[c])->junk
-       print(paste('finished',big_county_list[c]))
+       print(paste('starting',largest_us_counties[c]))
+       do_one_run(County=largest_us_counties[c])->junk
+       print(paste('finished',largest_us_counties[c]))
    }
    sink()
 }

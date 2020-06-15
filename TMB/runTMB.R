@@ -88,9 +88,9 @@ ub <- obj$par*0+Inf
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
 obj$control=list(eval.max=500,iter.max=10,trace=6)
-#opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
- opt = optim(obj$par,obj$fn,obj$gr)   #,control=obj$control)
+#opt = optim(obj$par,obj$fn,obj$gr)   #,control=obj$control)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
+ opt = nlminb(obj$par,obj$fn,obj$gr)#,lower=lower)#,upper=upper)
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")#,lower=lower)
 
 print("Done minimization-----------------------------",quote=FALSE)
@@ -158,11 +158,11 @@ largest_us_counties = list(
 
 
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-#   do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-    do_one_run(County="Contra_CostaCA")->fit
+#   do_one_run(County="Contra_CostaCA")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    for (c in 1:length(largest_us_counties))
