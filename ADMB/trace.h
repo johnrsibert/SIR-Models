@@ -1,16 +1,20 @@
 #ifndef __TRACE__
 #define __TRACE__
-/* The log file.
 
+/* The log file.
 #include <fstream>
 using std::ofstream;
 Must be declared and opened in a different file, usually the file containing
 main()
-extern ofstream clogf;
 */
 
+#include <fstream>
+using std::ofstream;
+extern ofstream Clogf;
+
 #undef STREAM
-#define STREAM std::cout
+//#define STREAM std::cout
+#define STREAM Clogf
 
 #undef HERE
 /**

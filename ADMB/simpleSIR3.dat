@@ -1,3 +1,41 @@
+#init = list(
+#    logsigma_logP = log(0.2),
+#    logsigma_beta = log(0.02),
+#    logmu = log(0.1),
+#    loggamma = log(0.002),
+#    logsigma_logC = log(0.25),
+#    logsigma_logD = log(0.25),
+#    logitbeta = logit(0.1,data$beta_a,data$beta_b)
+#)
+
+# logsigma_logP
+# phase value
+   1    0.2 
+# logsigma_logbeta
+# phase value
+   1    0.02 
+# mu
+# phase value
+   1    0.1 
+# gamma
+# phase value
+   1    0.002 
+# logsigma_logC
+# phase value
+   1    0.25 
+# logsigma_logD
+# phase value
+   1    0.25 
+# beta
+   0.1
+# beta_a beta_b for logit transormation
+  1.0e-08  2.0
+# dat file path
+  
+../fits/AlamedaCA.dat
+## EOF
+
+
 # county
  New_York_CityNY
 # updateed from https://github.com/nytimes/covid-19-data.git
