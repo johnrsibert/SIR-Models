@@ -47,7 +47,7 @@ big_county_list = ["Los Angeles","San Diego",
                        "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-15-mu-beta/'
 pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
@@ -493,7 +493,7 @@ def plot_log_error(ax,x,logy,logsdy,mult=2.0):
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
-                            facecolor='0.9', edgecolor='0.5')
+                            facecolor='0.9', edgecolor=ecol,lw=1)
     ax.add_patch(sd_region)
    
 def plot_error(ax,x,y,sdy,mult=2.0,ecol='0.5'):
@@ -503,7 +503,7 @@ def plot_error(ax,x,y,sdy,mult=2.0,ecol='0.5'):
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
-                            facecolor='0.9', edgecolor='0.5')
+                            facecolor='0.9', edgecolor=ecol,lw=1)
     ax.add_patch(sd_region)
    
 def plot_beta_mu(fit_files=['AlamedaCA','SonomaCA'],delta_ts=False,save=True):
@@ -711,8 +711,8 @@ def plot_diagnostics(county='AlamedaCA',
 
     if save:
         plt.savefig(fit_path+county_name+'_diagnostics'+'.png',dpi=300)
-        plt.show(False)
     else:
+        plt.show(False)
         plt.show(True)
 
 def isNaN(num):
@@ -754,8 +754,10 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
         for k in range(1,len(tt_cols)):
             n = tt_cols[k]
             v = get_est_or_init(n,ests)
+            print(k,n,v)
             if ("logsigma" in n):
-                v = float(np.exp(v))
+                if (v != None):
+                    v = float(np.exp(v))
             row.iloc[k] = v
 
     #   row['N0'] = int(get_metadata('N0',meta))
@@ -780,7 +782,8 @@ def make_fit_table(fit_files=['Alameda','Santa_Clara'],
 
     for c in range(3,len(tt.columns)):
         for r in range(0,tt.shape[0]):
-           tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
+           if (tt.iloc[r,c] != None):
+               tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
 #   tt = tt.sort_values(by='N0',ascending=False)#,inplace=True)
 
     row = pd.Series(None,index=tt.columns)
@@ -835,14 +838,14 @@ if __name__ == '__main__':
 #   make_dat_file()
 
 #   plot_beta_mu(largest_us_counties,save=True)
-#   plot_beta_mu(['MaricopaAZ','WayneMI'])
+    plot_beta_mu(['MaricopaAZ','WayneMI'])
 
 #   make_fit_table(largest_us_counties,
 #                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 
 #   plot_diagnostics(save=True)
-    for c in largest_us_counties:
-        plot_diagnostics(c,save=True)
+#   for c in largest_us_counties:
+#       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
 #   plot_county_fit('Miami-DadeFL',yscale='log',save=True)
