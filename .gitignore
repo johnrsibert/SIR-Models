@@ -5,6 +5,7 @@
 *.dll
 *.exe
 *.o
+*.obj
 *.so
 *.pyc
 
@@ -38,15 +39,23 @@ ehthumbs.db
 Thumbs.db
 @turtledb
 
-# misc files
+# misc files #
 fits/*
 python/*.png
 co-est2019-alldata.csv
 co-est2019-pop.csv
 county-state.csv
+
+# ADMB generated files #
+comp.out
+f1b2list1
+f1b2list12
+f1b2list13
+nf1b2list1
+nf1b2list12
+nf1b2list13
+simpleSIR3
 admodel.*
-f2b2*
-nf2b2*
 hess*
 *.bar
 *.bgs

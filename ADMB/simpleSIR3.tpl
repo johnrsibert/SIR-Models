@@ -1,5 +1,6 @@
    //  simpleSIR3 -noinit -iprint 1 &> simpleSIR3.out&
    //  simpleSIR3 -noinit -mcmc2 500000 -mcsave 20 -shess &> simpleSIR3.out
+   //  simpleSIR3 -noinit -est -shess
 GLOBALS_SECTION;
   #include <math.h>
   #include <adstring.hpp>
@@ -165,14 +166,14 @@ PARAMETER_SECTION
   init_number logsigma_logC(phase_sigma_logC);    // cases observation error
   init_number logsigma_logD(phase_sigma_logD);    // deaths observation error
 
+  // state variables
+  init_vector logEye(0,ntime);    // number of infections
+  init_vector logD(0,ntime);      // number of deaths from infected population
+
   random_effects_vector logitbeta(0,ntime);       // infection rate time series
   //vector beta(0,ntime);
 
-  // state variables
-  random_effects_vector logEye(0,ntime);    // number of infections
-  random_effects_vector logD(0,ntime);      // number of deaths from infected population
-
-  objective_function_value f;
+  objective_function_value nll;
 
 
 PRELIMINARY_CALCS_SECTION
@@ -197,14 +198,12 @@ PRELIMINARY_CALCS_SECTION
        log_obs_deaths(t) = log(obs_deaths(t)+eps);
      //TTRACE(t,obs_deaths(t))
   }
-  prop_zero_deaths = double(zero_count)/double(ntime);
+  prop_zero_deaths = double(zero_count)/double(ntime+1);
   TRACE(prop_zero_deaths)
   //  if(1)  ad_exit(1);
  
-RUNTIME_SECTION
-  // derivatives get inaccurate at gradients < 1e-4
-  // with current data
-  convergence_criteria .0001
+  //RUNTIME_SECTION
+    //convergence_criteria .001
 
 PROCEDURE_SECTION
 
@@ -215,21 +214,14 @@ PROCEDURE_SECTION
   logD(0) = log_obs_deaths(0);
   for (int t = 1; t <=  ntime; t++)
   {
-       TRACE(t)
        step(t, logitbeta, logsigma_beta, logEye, logD, logsigma_logP, loggamma, logmu);
-       TRACE(t)
   }
-  //TRACE(f)
   
        // compute observation likelihoods
   for (int t = 0; t <= ntime; t++)
   {   
        obs(t, logEye, logsigma_logC, logD, logsigma_logD);
   }
-  TRACE(f)
-
-
-
 
           //step(t, logitbeta, logsigma_beta, logEye, logD, logsigma_logP, loggamma, logmu);
 SEPARABLE_FUNCTION void step(const int t, const dvar_vector& logitbeta, const dvariable& logsigma_beta, const dvar_vector& logEye, const dvar_vector& logD, const dvariable& logsigma_logP, const dvariable& loggamma, const dvariable& logmu)
@@ -249,16 +241,13 @@ SEPARABLE_FUNCTION void step(const int t, const dvar_vector& logitbeta, const dv
            dvariable nlogEye = log(pEye*(1.0 + (pbeta - gamma - mu))+eps);
 
            dvariable varP = square(mfexp(logsigma_logP));
-        // Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
            Pnll += 0.5*(log(TWO_M_PI*varP) + square(logEye(t-1)-nlogEye)/varP);
 
            // deaths process error
            dvariable prevD = mfexp(logD(t-1));
-        // logd(t) = log(prevd + mu*exp(logeye(t-1))+eps);
            dvariable nlogD = log(prevD + mu*mfexp(logEye(t-1))+eps);
-           //Pnll += zilnerr(plogD, logdt, varp, prop_zero_deaths);
            if (log_obs_deaths(t) > logeps)
-         //if (nlogD > logeps)
+         //if (value(nlogD) > logeps)
            {
               Pnll += (1.0-prop_zero_deaths)*0.5*(log(TWO_M_PI*varP) + square(logD(t-1) - nlogD)/varP);
            }
@@ -267,7 +256,7 @@ SEPARABLE_FUNCTION void step(const int t, const dvar_vector& logitbeta, const dv
               Pnll += prop_zero_deaths*0.5*(log(TWO_M_PI*varP));
            }
 
-           f += (betanll + Pnll);
+           nll += (betanll + Pnll);
  
      //obs(t, logEye, logsigma_logC, logD, logsigma_logD);
 SEPARABLE_FUNCTION void obs(const int t, const dvar_vector& logEye, const dvariable& logsigma_logC, const dvar_vector& logD, const dvariable& logsigma_logD)
@@ -275,7 +264,6 @@ SEPARABLE_FUNCTION void obs(const int t, const dvar_vector& logEye, const dvaria
            dvariable dnll = 0.0;
            dvariable varC = square(mfexp(logsigma_logC));
            cnll+= 0.5*(log(TWO_M_PI*varC) + square(log_obs_cases(t)-logEye(t))/varC);
-           TRACE(cnll)
 
            //dvariable dnll = ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths);
            dvariable varD = square(mfexp(logsigma_logD));
@@ -288,12 +276,24 @@ SEPARABLE_FUNCTION void obs(const int t, const dvar_vector& logEye, const dvaria
               dnll += prop_zero_deaths*0.5*(log(TWO_M_PI*varD));
            }
 
-           f += (cnll + dnll);
+           nll += (cnll + dnll);
 
 REPORT_SECTION
+  report << "# meta:" << endl;
+  report << "names , data" << endl;
+  report << "county , " << county << endl;
+  report << "update_stamp , " << updated << endl;
+  report << "N0 , " << N0 << endl;
+  report << "Date0 , " << Date0 << endl;
+  report << "ntime , " << ntime << endl;
+  report << "prop_zero_deaths , " << prop_zero_deaths << endl;
+  report << "fn , " << nll << endl;
+  report << "convergence , " << nll.gmax << endl;
+  report << "model , "  << argv[0] << endl;
+
+  report << "# diag:" <<endl;
   report << "obs_cases , obs_deaths , log_obs_cases , log_obs_deaths ," <<
              "logEye , logD , beta" << endl;
-
   for (int t = 0; t <= ntime; t++) 
   {
       report << obs_cases(t) << ","
@@ -302,11 +302,20 @@ REPORT_SECTION
              << log_obs_deaths (t) << ","
              << logEye(t) << ","
              << logD(t) << ","
-             << (beta_a + (beta_b - beta_a)*invlogit(logitbeta(t)))
-       //    << beta(t)
+             << (beta_a + (beta_b - beta_a)*invlogit(logitbeta(t))) << ","
+             << (mfexp(logmu))
              << endl; // ","
              //<< mu << endl;
   }
+
+  report << "# ests:" << endl;
+  report << "names , init , est" << endl;
+  report << "logsigma_logP , " << log(init_sigma_logP) << "," << logsigma_logP << endl;
+  report << "logsigma_beta , " << log(init_sigma_beta) << "," << logsigma_beta << endl;
+  report << "logmu , " << log(init_mu) << "," << logmu << endl;
+  report << "loggamma , " << log(init_gamma) << "," << loggamma << endl;
+  report << "logsigma_logC , " << log(init_sigma_logC) << "," << logsigma_logC << endl;
+  report << "logsigma_logD , " << log(init_sigma_logD) << "," << logsigma_logD << endl;
        /*
        REPORT(logEye)
        REPORT(logD)
