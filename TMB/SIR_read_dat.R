@@ -27,9 +27,11 @@ read.dat.file=function(dat.file = "")
    data$Date0 = get.field()         # calander date of first case
    data$ntime = get.numeric.field() # number of dat records
    ntime = data$ntime
+   nobs  = ntime + 1
    data$obs_cases  = vector(len=ntime)
    data$obs_deaths = vector(len=ntime)
-   for (t in 0:ntime)
+#  for (t in 0:ntime)
+   for (t in 1:nobs)
    {
       data$obs_cases[t]  = get.numeric.field()# + tiny
       data$obs_deaths[t] = get.numeric.field()# + tiny

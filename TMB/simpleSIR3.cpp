@@ -98,26 +98,25 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(mu_a)
     DATA_SCALAR(mu_b)
 
-
-    PARAMETER(logsigma_logP);          // SIR process error
+    PARAMETER(logsigma_logP);       // SIR process error
     PARAMETER(logsigma_beta);       // beta random walk sd
-    PARAMETER(logmu);         // mu randomwalk sd
+    PARAMETER(logmu);               // mu randomwalk sd
     PARAMETER(loggamma);            // recovery rate of infection population
-    PARAMETER(logsigma_logC);          // cases observation error
-    PARAMETER(logsigma_logD);          // deaths observation error
+    PARAMETER(logsigma_logC);       // cases observation error
+    PARAMETER(logsigma_logD);       // deaths observation error
 
-    PARAMETER_VECTOR(logitbeta);      // infection rate time series
+    PARAMETER_VECTOR(logitbeta);    // infection rate time series
 
-    vector <Type> beta(ntime);
-    for (int t = 0; t <  ntime; t++)
+    vector <Type> beta(ntime+1);
+    for (int t = 0; t <=  ntime; t++)
     {
      // Type u = a + (b - a)*invlogit(stlogit_u);
         beta[t] = beta_a + (beta_b - beta_a)*invlogit(logitbeta[t]);
     }
 
     // state variables
-    vector <Type> logEye(ntime);    // number of infections
-    vector <Type> logD(ntime);      // number of deaths from infected population
+    vector <Type> logEye(ntime+1);  // number of infections
+    vector <Type> logD(ntime+1);    // number of deaths from infected population
 
     Type mu = exp(logmu);
     Type gamma = exp(loggamma);
@@ -139,9 +138,9 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-    logEye(0) = log_obs_cases(0);
-    logD(0) = log_obs_deaths(0);
-    for (int t = 1; t <  ntime; t++)
+//  logEye(0) = log_obs_cases(0);
+//  logD(0) = log_obs_deaths(0);
+    for (int t = 1; t <=  ntime; t++)
     {
     // Fnll += 0.5*(log(TWO_M_PI*varlogF) + square(ft1(g)-ft2(g))/varlogF);
          // infection rate random walk
@@ -161,7 +160,7 @@ Type objective_function <Type>::operator()()
      }
  
      // compute observation likelihoods
-     for (int t = 0; t < ntime; t++)
+     for (int t = 0; t <= ntime; t++)
      {   
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
 

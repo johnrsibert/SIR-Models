@@ -108,9 +108,9 @@ Type objective_function <Type>::operator()()
     PARAMETER_VECTOR(logitbeta);      // infection rate time series
     PARAMETER_VECTOR(logitmu);        // mortality rate of infection population
 
-    vector <Type> beta(ntime);
-    vector <Type> mu(ntime);
-    for (int t = 0; t <  ntime; t++)
+    vector <Type> beta(ntime+1);
+    vector <Type> mu(ntime+1);
+    for (int t = 0; t <=  ntime; t++)
     {
      // Type u = a + (b - a)*invlogit(stlogit_u);
         beta[t] = beta_a + (beta_b - beta_a)*invlogit(logitbeta[t]);
@@ -118,8 +118,8 @@ Type objective_function <Type>::operator()()
     }
 
     // state variables
-    vector <Type> logEye(ntime);    // number of infections
-    vector <Type> logD(ntime);      // number of deaths from infected population
+    vector <Type> logEye(ntime+1);    // number of infections
+    vector <Type> logD(ntime+1);      // number of deaths from infected population
 
     Type gamma = exp(loggamma);
 
@@ -143,9 +143,9 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-    logEye(0) = log_obs_cases(0);
-    logD(0) = log_obs_deaths(0);
-    for (int t = 1; t <  ntime; t++)
+//  logEye(0) = log_obs_cases(0);
+//  logD(0) = log_obs_deaths(0);
+    for (int t = 1; t <= ntime; t++)
     {
          // infection rate random walk
          betanll += isNaN(NLerr(beta(t-1),beta(t),var_beta),__LINE__);
@@ -166,7 +166,7 @@ Type objective_function <Type>::operator()()
      }
  
      // compute observation likelihoods
-     for (int t = 0; t < ntime; t++)
+     for (int t = 0; t <= ntime; t++)
      {   
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
 

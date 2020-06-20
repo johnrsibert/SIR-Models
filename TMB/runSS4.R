@@ -28,23 +28,6 @@ data$mu_b = 2.0
 print("-data:")
 print(data)
 
-# suggestion from Chris Nottingham TMB user group
-#PARAMETER(stlogit_u);
-#then back-transform to get u
-#Type u = a + (b - a)*invlogit(stlogit_u);
-#init = list(
-#    logsigma_logP = 0.1,
-#    logsigma_beta = 0.02,
-#    logsigma_mu = 0.01,
-#    logitmu = logit(0.002,data$mu_a,data$mu_b),
-#    loggamma = log(0.001),
-#    logsigma_logC = log(0.5),
-#    logsigma_logD = log(0.25),
-#    logitbeta = logit(0.05,data$beta_a,data$beta_b)
-#)
-#print("--initial parameter values:")
-#print(init)
-
 init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
@@ -62,11 +45,11 @@ par = list(
     logsigma_logP = init$logsigma_logP,
     logsigma_beta = init$logsigma_beta,
     logsigma_mu = init$logsigma_mu,
-    logitmu    = rep(init$logitmu,data$ntime),
+    logitmu    = rep(init$logitmu,data$ntime+1),
     loggamma = init$loggamma,
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
-    logitbeta = rep(init$logitbeta,data$ntime)
+    logitbeta = rep(init$logitbeta,(data$ntime+1))
 )
 print(paste("---model parameters: ", length(par)))
 print(par)
@@ -172,7 +155,7 @@ largest_us_counties = list(
 "SonomaCA", "StanislausCA",
 "SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI")
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
     do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="New_York_CityNY")->fit

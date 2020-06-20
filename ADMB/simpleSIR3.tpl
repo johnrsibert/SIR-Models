@@ -1,6 +1,7 @@
+   //  simpleSIR3 -noinit -est -shess
    //  simpleSIR3 -noinit -iprint 1 &> simpleSIR3.out&
    //  simpleSIR3 -noinit -mcmc2 500000 -mcsave 20 -shess &> simpleSIR3.out
-   //  simpleSIR3 -noinit -est -shess
+
 GLOBALS_SECTION;
   #include <math.h>
   #include <adstring.hpp>
@@ -167,8 +168,8 @@ PARAMETER_SECTION
   init_number logsigma_logD(phase_sigma_logD);    // deaths observation error
 
   // state variables
-  init_vector logEye(0,ntime);    // number of infections
-  init_vector logD(0,ntime);      // number of deaths from infected population
+  vector logEye(0,ntime);    // number of infections
+  vector logD(0,ntime);      // number of deaths from infected population
 
   random_effects_vector logitbeta(0,ntime);       // infection rate time series
   //vector beta(0,ntime);
@@ -198,6 +199,7 @@ PRELIMINARY_CALCS_SECTION
        log_obs_deaths(t) = log(obs_deaths(t)+eps);
      //TTRACE(t,obs_deaths(t))
   }
+  TTRACE(zero_count,ntime)
   prop_zero_deaths = double(zero_count)/double(ntime+1);
   TRACE(prop_zero_deaths)
   //  if(1)  ad_exit(1);
@@ -210,8 +212,8 @@ PROCEDURE_SECTION
   //f = 0.0;
 
   //  loop over time
-  logEye(0) = log_obs_cases(0);
-  logD(0) = log_obs_deaths(0);
+  //logEye(0) = log_obs_cases(0);
+  //logD(0) = log_obs_deaths(0);
   for (int t = 1; t <=  ntime; t++)
   {
        step(t, logitbeta, logsigma_beta, logEye, logD, logsigma_logP, loggamma, logmu);
@@ -280,20 +282,20 @@ SEPARABLE_FUNCTION void obs(const int t, const dvar_vector& logEye, const dvaria
 
 REPORT_SECTION
   report << "# meta:" << endl;
-  report << "names , data" << endl;
-  report << "county , " << county << endl;
-  report << "update_stamp , " << updated << endl;
-  report << "N0 , " << N0 << endl;
-  report << "Date0 , " << Date0 << endl;
-  report << "ntime , " << ntime << endl;
-  report << "prop_zero_deaths , " << prop_zero_deaths << endl;
-  report << "fn , " << nll << endl;
-  report << "convergence , " << nll.gmax << endl;
-  report << "model , "  << argv[0] << endl;
+  report << "names,data" << endl;
+  report << "county," << county << endl;
+  report << "update_stamp," << updated << endl;
+  report << "N0," << N0 << endl;
+  report << "Date0," << Date0 << endl;
+  report << "ntime," << ntime << endl;
+  report << "prop_zero_deaths," << prop_zero_deaths << endl;
+  report << "fn," << nll << endl;
+  report << "convergence," << nll.gmax << endl;
+  report << "model,"  << argv[0] << endl;
 
   report << "# diag:" <<endl;
-  report << "obs_cases , obs_deaths , log_obs_cases , log_obs_deaths ," <<
-             "logEye , logD , beta" << endl;
+  report << "obs_cases,obs_deaths,log_obs_cases,log_obs_deaths ," <<
+             "logEye,logD,beta" << endl;
   for (int t = 0; t <= ntime; t++) 
   {
       report << obs_cases(t) << ","
@@ -309,13 +311,13 @@ REPORT_SECTION
   }
 
   report << "# ests:" << endl;
-  report << "names , init , est" << endl;
-  report << "logsigma_logP , " << log(init_sigma_logP) << "," << logsigma_logP << endl;
-  report << "logsigma_beta , " << log(init_sigma_beta) << "," << logsigma_beta << endl;
-  report << "logmu , " << log(init_mu) << "," << logmu << endl;
-  report << "loggamma , " << log(init_gamma) << "," << loggamma << endl;
-  report << "logsigma_logC , " << log(init_sigma_logC) << "," << logsigma_logC << endl;
-  report << "logsigma_logD , " << log(init_sigma_logD) << "," << logsigma_logD << endl;
+  report << "names,init,est" << endl;
+  report << "logsigma_logP," << log(init_sigma_logP) << "," << logsigma_logP << endl;
+  report << "logsigma_beta," << log(init_sigma_beta) << "," << logsigma_beta << endl;
+  report << "logmu," << log(init_mu) << "," << logmu << endl;
+  report << "loggamma," << log(init_gamma) << "," << loggamma << endl;
+  report << "logsigma_logC," << log(init_sigma_logC) << "," << logsigma_logC << endl;
+  report << "logsigma_logD," << log(init_sigma_logD) << "," << logsigma_logD << endl;
        /*
        REPORT(logEye)
        REPORT(logD)

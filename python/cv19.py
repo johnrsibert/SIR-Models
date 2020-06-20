@@ -47,7 +47,7 @@ big_county_list = ["Los Angeles","San Diego",
                        "Stanislaus","Sonoma","Marin"]
 
 counties_path = "../us-counties.csv"
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/2020-06-15-mu-beta/'
+fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
 pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
@@ -838,14 +838,14 @@ if __name__ == '__main__':
 #   make_dat_file()
 
 #   plot_beta_mu(largest_us_counties,save=True)
-    plot_beta_mu(['MaricopaAZ','WayneMI'])
+#   plot_beta_mu(['MaricopaAZ','WayneMI'])
 
 #   make_fit_table(largest_us_counties,
 #                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 
 #   plot_diagnostics(save=True)
-#   for c in largest_us_counties:
-#       plot_diagnostics(c,save=True)
+    for c in largest_us_counties:
+        plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
 #   plot_county_fit('Miami-DadeFL',yscale='log',save=True)
