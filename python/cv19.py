@@ -16,6 +16,7 @@ from io import StringIO
 import scipy.stats as stats
 from sigfig import round
 from tabulate import tabulate
+from collections import OrderedDict
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
@@ -248,8 +249,37 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
 
     return(t0series)
 
-def plot_county_fit(county,
-    #             death_threshold=1, cases_threshold=1,
+def read_ADMB_rep(rep_file = 'simpleSIR3.rep', meta_rows=9, ests_rows=8):
+    rep_path = '/home/jsibert/Projects/SIR-Models/ADMB/'
+    with  open(rep_path+rep_file) as rep:
+        rep_text = rep.read()
+    
+    meta_pos = rep_text.find('# meta:')
+    diag_pos = rep_text.find('# diag:')
+    ests_pos = rep_text.find('# ests:')
+
+    meta = pd.read_csv(StringIO(rep_text[meta_pos:]),comment='#',nrows=meta_rows,
+                   lineterminator='\n',sep=',',index_col=False)
+    ntime=int(get_metadata('ntime',meta))
+#   print('meta:\n',meta)
+#   print(ntime)
+    diag = pd.read_csv(StringIO(rep_text[diag_pos:]),comment='#',nrows=ntime+1,
+                       lineterminator='\n',sep=',',index_col=False)
+#   print('diag:\n',diag)
+    ests = pd.read_csv(StringIO(rep_text[ests_pos:]),comment='#',nrows=ests_rows,
+                       lineterminator='\n',sep=',',index_col=False)
+#   print('ests:\n',ests)
+
+
+    fit = OrderedDict() # mimic pyreadr here
+    fit['meta']=meta
+    fit['diag'] = diag
+    fit['ests'] = ests
+
+    return(fit)
+
+
+def plot_county_fit(county,fit_type = 'TMB',
                   yscale='log', per_capita=False, delta_ts=False,
                   text_spacer='  ', save = False):
     """ 
@@ -287,8 +317,13 @@ def plot_county_fit(county,
 #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
 
     pn = fit_path+county.replace(' ','_',5)+'.RData'
-    fit=pyreadr.read_r(pn)
+    if (fit_type == 'ADMB'):
+        fit = read_ADMB_rep()
+    else:
+        fit=pyreadr.read_r(pn)
+    print(type(fit))
     diag = fit['diag']
+    print(diag)
     meta = fit['meta']
     ests = fit['ests']
     Date0 = get_metadata('Date0',meta)
@@ -309,6 +344,7 @@ def plot_county_fit(county,
     ax[0].set_title(get_metadata('county',meta))
     ax[0].set_yscale(yscale)
     plot_log_error(ax[0],pdate,diag['log_pred_cases'],sigma_logC)
+                  #    ecol=ax[0].get_lines()[line].get_color())
     ax[0].scatter(pdate,obsI)
     ax[0].plot(pdate,preI,color='red')
     tx = prop_scale(ax[0].get_xlim(), 0.05)
@@ -328,6 +364,7 @@ def plot_county_fit(county,
     if (npl > 2):
        sigma_beta = np.exp(get_est_or_init('logsigma_beta',ests))
        plot_error(ax[2],pdate,diag['beta'],sigma_beta)
+                 #     ecol=ax[2].get_lines()[line].get_color())
        ax[2].scatter(pdate,diag['beta'])
 
     if save:
@@ -486,7 +523,7 @@ def get_initpar(pname, ests):
         return(None)
    
    
-def plot_log_error(ax,x,logy,logsdy,mult=2.0):
+def plot_log_error(ax,x,logy,logsdy,mult=2.0,ecol='0.5'):
     sdyu = np.array(np.exp(logy + mult*logsdy))
     sdyl = np.array(np.exp(logy - mult*logsdy))
     xy = np.array([x,sdyu])
@@ -844,8 +881,8 @@ if __name__ == '__main__':
 #                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 
 #   plot_diagnostics(save=True)
-    for c in largest_us_counties:
-        plot_diagnostics(c,save=True)
+#   for c in largest_us_counties:
+#       plot_diagnostics(c,save=True)
 #   for c in big_county_list:
 #       plot_county_fit(c,yscale='linear',save=True)
 #   plot_county_fit('Miami-DadeFL',yscale='log',save=True)
@@ -860,8 +897,11 @@ if __name__ == '__main__':
 #                   County='Alameda',State='California',file='AlamedaCA')
                  
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
-#   plot_county_fit('CookIL',yscale='linear',save=True)
+    plot_county_fit('AlamedaCA',yscale='linear',save=False,fit_type='ADMB')
 #   plot_diagnostics('CookIL',save=False)
+
+#   fit = read_ADMB_rep()
+#   print(fit['diag'])
 
 
 else:
