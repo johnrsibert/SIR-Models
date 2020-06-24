@@ -136,11 +136,11 @@ big_county_list = list(
                        "Stanislaus","Sonoma","Marin")
 
 largest_us_counties = list(
-"AlamedaCA", "BexarTX",
-"BrowardFL", "ClarkNV", 
-"Contra_CostaCA",
-"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
-"KingWA", 
+#"AlamedaCA", "BexarTX",
+#"BrowardFL", "ClarkNV", 
+#"Contra_CostaCA",
+#"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+##"KingWA", 
 "Los_AngelesCA", 
 "MaricopaAZ", "MarinCA", 
 "Miami-DadeFL",

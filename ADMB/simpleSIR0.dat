@@ -3,22 +3,25 @@
    1    0.2 
 # logsigma_logbeta
 # phase value
-   2    0.02 
+   1    0.02 
 # mu
 # phase value
-   1    0.001 
+  -1    0.001 
 # gamma
 # phase value
-   1    0.002 
+  -1    0.002 
 # logsigma_logC
 # phase value
    1    0.25 
 # logsigma_logD
 # phase value
    1    0.15 
+# Eye0
+# phase value
+  -1    1.0
 # logitbeta
 # phase value
-   1    0.01
+   1    0.2
 # beta_a beta_b for logit transormation
   1.0e-05  0.95
 # dat file path

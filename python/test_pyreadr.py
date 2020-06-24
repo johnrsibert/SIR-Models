@@ -17,7 +17,7 @@ import pandas
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('Alameda.RData')
+fit=pyreadr.read_r('AlamedaCA.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
@@ -32,7 +32,7 @@ print('meta:',md)
 #Date0 = md.data[rs]
 #print('Date0:',Date0)
 
-est = fit['est']
+est = fit['ests']
 print('est:',est)
 
 rs = est['names'].isin(['logmu'])

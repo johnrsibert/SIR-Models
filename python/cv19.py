@@ -112,18 +112,18 @@ def get_county_pop(County,State='California'):
     return(population)
 
 
-def check_delta_t(dat,County):
-    State = 'California'
-    state_filter = dat['state'].isin([State])
-    county_filter = dat['county'].isin([County])
-    County_rows = state_filter & county_filter
-    cdat = dat[County_rows]
-
-    Date = cdat['date'].map(Strptime)
-    dDate = Date.diff()
-    n = len(dDate) - 1
-    print('Maximum delta t for',County,State,':',max(dDate[-n:]))
-    return(max(dDate[-n:]).days)
+#def check_delta_t(dat,County):
+#    State = 'California'
+#    state_filter = dat['state'].isin([State])
+#    county_filter = dat['county'].isin([County])
+#    County_rows = state_filter & county_filter
+#    cdat = dat[County_rows]
+#
+#    Date = cdat['date'].map(Strptime)
+#    dDate = Date.diff()
+#    n = len(dDate) - 1
+#    print('Maximum delta t for',County,State,':',max(dDate[-n:]))
+#    return(max(dDate[-n:]).days)
 
 def short_name(s):
     w = s.split(' ')
@@ -887,7 +887,7 @@ if __name__ == '__main__':
 #       plot_county_fit(c,yscale='linear',save=True)
 #   plot_county_fit('Miami-DadeFL',yscale='log',save=True)
 
-#   for c in LargestCACounties:
+#   for c in largest_us_counties:
 #       check_delta_t(county_dat,c)
 #   plot_county_dat(county_dat,
 #                   County='Cook',State='Illinois',file='CookIL')
