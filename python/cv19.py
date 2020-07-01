@@ -127,12 +127,10 @@ def get_county_pop(County,State='California'):
 
 def short_name(s):
     w = s.split(' ')
-#   print(len(w),w)
     if (len(w)<2):
         sn = s[0:3]
     else:
         sn = w[0][0]+w[1][0:2]
-#   print(sn)
     return(sn)  
 
         
@@ -150,7 +148,9 @@ def update_dat():
     make_dat_file()
     plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
 #   plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
-    plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
+#   plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
+    plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
+    plot_county_dat(county_dat,County='Tompkins',State='New York',file='TompkinsNY')
 
 def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
@@ -249,7 +249,7 @@ def make_t0_series(dat,County,Column,threshold,State='California'):
 
     return(t0series)
 
-def read_ADMB_rep(rep_file = 'simpleSIR3.rep', meta_rows=9, ests_rows=8):
+def read_ADMB_rep(rep_file = 'simpleSIR0.rep', meta_rows=9, ests_rows=8):
     rep_path = '/home/jsibert/Projects/SIR-Models/ADMB/'
     with  open(rep_path+rep_file) as rep:
         rep_text = rep.read()
@@ -281,7 +281,7 @@ def read_ADMB_rep(rep_file = 'simpleSIR3.rep', meta_rows=9, ests_rows=8):
 
 def plot_county_fit(county,fit_type = 'TMB',
                   yscale='log', per_capita=False, delta_ts=False,
-                  text_spacer='  ', save = False):
+                  save = False):
     """ 
     Plot predicted & observed cases and deaths vs time from threshold
     Counties: list of California counties to plotted
@@ -321,9 +321,7 @@ def plot_county_fit(county,fit_type = 'TMB',
         fit = read_ADMB_rep()
     else:
         fit=pyreadr.read_r(pn)
-    print(type(fit))
     diag = fit['diag']
-    print(diag)
     meta = fit['meta']
     ests = fit['ests']
     Date0 = get_metadata('Date0',meta)
@@ -335,7 +333,6 @@ def plot_county_fit(county,fit_type = 'TMB',
     obsI = np.exp(diag['log_obs_cases'])
     preI = np.exp(diag['log_pred_cases'])
     obsD = np.exp(diag['log_obs_deaths'])
-    print(diag['log_pred_deaths'])
     preD = np.exp(diag['log_pred_deaths'])
 
     sigma_logC = np.exp(get_est_or_init('logsigma_logC',ests))
@@ -343,9 +340,9 @@ def plot_county_fit(county,fit_type = 'TMB',
 
     ax[0].set_title(get_metadata('county',meta))
     ax[0].set_yscale(yscale)
+    ax[0].scatter(pdate,obsI)
     plot_log_error(ax[0],pdate,diag['log_pred_cases'],sigma_logC)
                   #    ecol=ax[0].get_lines()[line].get_color())
-    ax[0].scatter(pdate,obsI)
     ax[0].plot(pdate,preI,color='red')
     tx = prop_scale(ax[0].get_xlim(), 0.05)
     ty = prop_scale(ax[0].get_ylim(), 0.90)
@@ -353,6 +350,7 @@ def plot_county_fit(county,fit_type = 'TMB',
     ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
     ax[1].set_yscale(yscale)
+    ax[1].set_ylim(0.0,1.2*max(obsD))
     plot_log_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
     ax[1].scatter(pdate,obsD)
     ax[1].plot(pdate,preD,color='red')
@@ -362,10 +360,17 @@ def plot_county_fit(county,fit_type = 'TMB',
     ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
 
     if (npl > 2):
+       ax[2].set_ylim(0.0,1.2*max(diag['beta']))
        sigma_beta = np.exp(get_est_or_init('logsigma_beta',ests))
+    #  print(get_est_or_init('logsigma_beta',ests),'sigma_beta',sigma_beta)
+       sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
+       tx = prop_scale(ax[2].get_xlim(), 0.05)
+       ty = prop_scale(ax[2].get_ylim(), 0.90)
+       ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=14)
+       ax[2].plot(pdate,diag['beta'])
        plot_error(ax[2],pdate,diag['beta'],sigma_beta)
-                 #     ecol=ax[2].get_lines()[line].get_color())
-       ax[2].scatter(pdate,diag['beta'])
+                 #ecol=ax[2].get_lines()[0].get_color())
+    #  ax[2].scatter(pdate,diag['beta'])
 
     if save:
         plt.savefig(fit_path+county.replace(' ','_',5)+'_obsVpred.png',dpi=300)
@@ -375,7 +380,7 @@ def plot_county_fit(county,fit_type = 'TMB',
 
 def plot_county_dat(dat,County, State,
                   yscale='linear', per_capita=False, delta_ts=True,
-                  text_spacer='  ', file = 'prevalence'):
+                  window=5, file = 'prevalence'):
     """ 
     Plots cases and deaths vs time
     """
@@ -434,20 +439,37 @@ def plot_county_dat(dat,County, State,
         cases =  mult*cdata['cases']/pop_size + eps
         deaths =  mult*cdata['deaths']/pop_size + eps
     else :
-        cases =  cdata['cases']
+        cases  =  cdata['cases']
         deaths =  cdata['deaths']
     
     Date = []
     for d in cdata['date']:
         Date.append(mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date()))
 
+    cases = cases.to_numpy()
+    deaths = deaths.to_numpy()
+    Date = pd.Series(Date)
     
     c = ax[0].plot(Date, cases,label=cc)
+    print('c:',c)
+    tcol = ax[0].get_lines()[0].get_color()
+    print('tcol:',tcol)
+    print(len(Date),len(cases))
+    print(type(cases),cases)
+    print(cases[len(cases)-1])
+    print(Date[len(Date)-1])
+    ax[0].text(Date[len(Date)-1],cases[len(cases)-1],' C',ha='left',va='center',
+               fontsize=10,color=tcol)
+#   ax[0].plot(pdate,preI,color='red')
+
     if (delta_ts):
-        delta_cases = cases.diff()
-        ax2[0].bar(Date,delta_cases,alpha=0.5)
-        adc = delta_cases.rolling(window=5).mean()
-        ax2[0].plot(Date,adc,linewidth=1)
+    #   delta_cases = cases.diff()
+        delta_cases = np.diff(cases)
+        ax2[0].bar(Date[1:], delta_cases, alpha=0.5)
+        adc = pd.Series(delta_cases).rolling(window=window).mean()
+        ax2[0].plot(Date[1:],adc,linewidth=1)
+        ax2[0].text(Date[len(Date)-1],adc[len(adc)-1],r'  $\Delta_1$',ha='left',va='center',
+                   fontsize=10,color=tcol)
 
     #   rescaled second differences
     #   dd_cases = delta_cases.diff()
@@ -458,11 +480,16 @@ def plot_county_dat(dat,County, State,
     #   ax2[0].plot(Date,adc,linewidth=1,color='purple')
 
     d = ax[1].plot(Date, deaths,label=cc)
+    ax[1].text(Date[len(Date)-1],deaths[len(deaths)-1],' D',ha='left',va='center',
+               fontsize=10,color=tcol)
     if (delta_ts):
-        delta_deaths = deaths.diff()
-        ax2[1].bar(Date,delta_deaths,alpha=0.5)
-        add = delta_deaths.rolling(window=5).mean()
-        ax2[1].plot(Date,add,linewidth=1)
+    #   delta_deaths = deaths.diff()
+        delta_deaths = np.diff(deaths)
+        ax2[1].bar(Date[1:],delta_deaths,alpha=0.5)
+        add = pd.Series(delta_deaths).rolling(window=5).mean()
+        ax2[1].plot(Date[1:],add,linewidth=1)
+        ax2[1].text(Date[len(Date)-1],add[len(add)-1],r' $\Delta_1$',ha='left',va='center',
+                   fontsize=10,color=tcol)
 
     for a in range(0,len(ax)):
     #   Adjust length of y axis
@@ -873,7 +900,6 @@ if __name__ == '__main__':
 
 #   update_dat()
 #   make_dat_file()
-
 #   plot_beta_mu(largest_us_counties,save=True)
 #   plot_beta_mu(['MaricopaAZ','WayneMI'])
 
@@ -897,7 +923,9 @@ if __name__ == '__main__':
 #                   County='Alameda',State='California',file='AlamedaCA')
                  
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
-    plot_county_fit('AlamedaCA',yscale='linear',save=False,fit_type='ADMB')
+    plot_county_fit('AlamedaCA',yscale='linear',save=True,fit_type='ADMB')
+#   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
+#   plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
 #   plot_diagnostics('CookIL',save=False)
 
 #   fit = read_ADMB_rep()

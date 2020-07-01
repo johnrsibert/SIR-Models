@@ -1,6 +1,4 @@
    //  simpleSIR3 -noinit -est -shess
-   //  simpleSIR3 -noinit -iprint 1 &> simpleSIR3.out&
-   //  simpleSIR3 -noinit -mcmc2 500000 -mcsave 20 -shess &> simpleSIR3.out
 
 GLOBALS_SECTION;
   #include <math.h>
@@ -8,11 +6,13 @@ GLOBALS_SECTION;
   #include "trace.h"
   #include <admodel.h>
   #include <fvar.hpp>
+  //#include "rlogit.hpp"
 
   #undef PINOUT
   #define PINOUT(object) pin << "# " << #object ":\n" << setprecision(5) << object << endl;
   #undef REPORT
   #define REPORT(object) report << "# " << #object ":\n" << setprecision(5) << object << endl;
+
 
   ofstream Clogf;
   const double TWO_M_PI = 2.0*M_PI;
@@ -20,66 +20,6 @@ GLOBALS_SECTION;
   const double eps = 1e-8;
   const double logeps = log(eps);
   const double logone = log(1.0-eps);
-
-
-  template <typename SCALAR> SCALAR rlogit(const SCALAR& p)
-  {
-     SCALAR a = log(p/(1.0-p));
-     return a;
-  }
-  template double rlogit<double>(const double& p);
-  template dvariable rlogit<dvariable>(const dvariable& p);
-  //template dvariable logit<dvariable>(const double& p);
-
-  template <typename SCALAR> 
-  SCALAR arlogit(const SCALAR& a)
-  {
-     SCALAR p = 1.0/(1.0+mfexp(-a));
-     return p;
-  }
-  template double arlogit<double>(const double& a);
-  template dvariable arlogit<dvariable>(const dvariable& a);
-
-  //  // zero-inflated log-normal error
-  template <typename SCALAR>
-  //SCALAR ZILNerr(const SCALAR& logobs, const SCALAR& logpred, const SCALAR& var, const SCALAR& prop0)
-  //{
-  //    dvariable nll;
-
-  //    if (logobs > logeps)  //log zero deaths
-  //    {
-      //  nll = (1.0-prop0)*0.5*(log(TWO_M_PI*var) + square(logobs - logpred)/var);
-  //        nll = (1.0-prop0)*NLerr(logobs,logpred,var);
-  //    }
-  //    else
-  //    {
-  //        nll = prop0*0.5*(log(TWO_M_PI*var));
-  //    }
-  //    nll = exp(nll);
-  //    return nll;
-  //}
-  //dvariable ZINLerr(const dvariable& logobs, const dvariable& logpred, const dvariable& var, double& prop0);
-
-    // log-normal error
-  //template <typename SCALAR>
-  //SCALAR NLerr(const SCALAR& logobs, const SCALAR& logpred, const SCALAR& var)
-  //{
-  //    SCALAR nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
-  //    return nll;
-  //}
-  //template dvariable NLerr(const dvariable& logobs, const dvariable& logpred, const dvariable& var);
-
-  //template <typename SCALAR> 
-  //SCALAR isNaN(const SCALAR& x, const int line)
-  //{
-  //    if (x != x)
-  //    {
-  //         std::cerr << "NaN at line " << line << std::endl;
-  //         exit(1);
-  //    }
-  //    return x;
-  //}
-  //template dvariable isNaN(const dvariable& x, const int line);
 
 TOP_OF_MAIN_SECTION
   arrmblsize = 50000000;
@@ -126,9 +66,9 @@ DATA_SECTION
   init_number init_Eye0;
   !!  TTRACE(phase_Eye0,init_Eye0)
 
-  init_int phase_logitbeta; 
+  init_int phase_logbeta; 
   init_number init_beta;
-  !!  TTRACE(phase_logitbeta,init_beta)
+  !!  TTRACE(phase_logbeta,init_beta)
   init_number beta_a;
   init_number beta_b;
   !!  TTRACE(beta_a,beta_b)
@@ -176,11 +116,21 @@ PARAMETER_SECTION
   init_number logEye0(phase_Eye0);
 
   // state variables
+  //init_vector logEye(0,ntime);    // number of infections
+  //init_vector logD(0,ntime);      // number of deaths from infected population
   random_effects_vector logEye(0,ntime);    // number of infections
   random_effects_vector logD(0,ntime);      // number of deaths from infected population
 
-  //init_vector logitbeta(0,ntime,phase_logitbeta);       // infection rate time series
-  random_effects_vector logitbeta(0,ntime,phase_logitbeta);       // infection rate time series
+  //init_vector logbeta(0,ntime,phase_logitbeta);       // infection rate time series
+  random_effects_vector logbeta(0,ntime,phase_logbeta);       // infection rate time series
+
+
+  sdreport_number sigma_logP;
+  sdreport_number sigma_beta;
+  //sdreport_number sigma_logC;
+  //sdreport_number sigma_logD;
+  //sdreport_number Eye0;
+
 
   objective_function_value nll;
 
@@ -198,10 +148,10 @@ PRELIMINARY_CALCS_SECTION
   logsigma_logD = log(init_sigma_logD);
   TTRACE(logsigma_logD,active(logsigma_logD))
 
-  double init_logit_beta = beta_a + (beta_b-beta_a)*rlogit(double(init_beta));
-  TRACE(active(logitbeta))
+  double init_logbeta = log(init_beta); //rlogit(beta_a,beta_b,double(init_beta));
+  TRACE(active(logbeta))
   TTRACE(beta_a,beta_b)
-  TTRACE(init_beta,init_logit_beta)
+  TTRACE(init_beta,init_logbeta)
 
   logEye0 = log(init_Eye0);
   TTRACE(logEye0,active(logEye0))
@@ -209,85 +159,75 @@ PRELIMINARY_CALCS_SECTION
   int zero_count = 0;
   for (int t = 0; t <=  ntime; t++)
   {
-       logitbeta(t) = init_logit_beta;
+       logbeta(t) = init_logbeta;
        log_obs_cases(t) = log(obs_cases(t)+eps);
      //TTRACE(t,obs_cases(t))
        if (obs_deaths(t) < 1.0)
             zero_count ++;
        log_obs_deaths(t) = log(obs_deaths(t)+eps);
-     //TTRACE(t,obs_deaths(t))
-     //logEye(t) = eps;
-     //logD(t) = eps;
+       TTRACE(obs_deaths(t),log_obs_deaths(t))
+       logEye(t) = 1.0;
+       logD(t) = eps;
   }
-  //TRACE(logitbeta)
+  TRACE(logbeta)
+  TRACE(logEye)
+  TRACE(logD)
+  TRACE(log_obs_deaths)
   TTRACE(zero_count,ntime)
   prop_zero_deaths = double(zero_count)/double(ntime+1);
   TRACE(prop_zero_deaths)
   //  if(1)  ad_exit(1);
+  HERE
  
 RUNTIME_SECTION
   convergence_criteria .01
 
 PROCEDURE_SECTION
-
-  TTRACE(logsigma_logP,active(logsigma_logP))
-  TTRACE(logsigma_beta,active(logsigma_beta))
-  TTRACE(logmu,active(logmu))
-  TTRACE(loggamma,active(loggamma))
-  TTRACE(logsigma_logC,active(logsigma_logC))
-  TTRACE(logsigma_logD,active(logsigma_logD))
-  TTRACE(logEye0,active(logEye0))
   //f = 0.0;
-
-  //  loop over time
-  //dvariable gamma = mfexp(loggamma);
-  //dvariable mu = mfexp(logmu);
-  //logEye(0) = logEye0;
-  //logD(0) = logmu + logEye0;
+  
+  // compute process errors
   for (int t = 1; t <=  ntime; t++)
   {
-     //dvariable beta =  beta_a + (beta_b - beta_a)*arlogit(logitbeta(t-1)+1e-20);
-     //logEye(t) = logEye(t-1) - log(1.0 -  beta) + log(1.0 - (gamma+mu));
-     //logD(t) = log(mfexp(logD(t-1)) + mu*mfexp(logEye(t-1))+ eps);
-
-       step(t, logitbeta(t-1),logitbeta(t), logsigma_beta, logEye(t-1), logEye(t), logD(t-1), logD(t), logsigma_logP, loggamma, logmu);
+       step(t, logbeta(t-1),logbeta(t), logsigma_beta, logEye(t-1), logEye(t), logD(t-1), logD(t), logsigma_logP, loggamma, logmu);
   }
-  HERE 
-       // compute observation likelihoods
+
+  // compute observation likelihoods
   for (int t = 0; t <= ntime; t++)
   {   
-  //   obs(t, logEye, logsigma_logC, logD, logsigma_logD);
        obs(t, logEye(t), logsigma_logC, logD(t), logsigma_logD);
   }
-  HERE 
 
-  // call:     step(t, logitbeta(t-1),logitbeta(t), logsigma_beta, logEye(t-1), logEye(t), logD(t-1), logD(t), logsigma_logP, loggamma, logmu);
+  if (sd_phase())
+  {
+      sigma_logP = mfexp(logsigma_logP);
+      sigma_beta = mfexp(logsigma_beta);
+      //sigma_logC = mfexp(logsigma_logC);
+      //sigma_logD = mfexp(logsigma_logD);
+      //Eye0 = mfexp(logEye(0));
+   }
+
 SEPARABLE_FUNCTION void step(const int t, const dvariable& lb1, const dvariable& lbt, const dvariable& logsigma_beta, const dvariable& logEye1, const dvariable& logEyet, const dvariable& logD1, const dvariable& logDt, const dvariable& logsigma_logP, const dvariable& loggamma, const dvariable& logmu)
+  // call:     step(t, logbeta(t-1),logbeta(t), logsigma_beta, logEye(t-1), logEye(t), logD(t-1), logD(t), logsigma_logP, loggamma, logmu);
 
            dvariable betanll = 0.0;
            // infection rate random walk
-         //TTRACE(lb1,lbt)
-           dvariable pbeta = beta_a + (beta_b - beta_a)*arlogit(lb1+1e-20);
-         //TTRACE(lb1,pbeta)
-           dvariable nbeta = beta_a + (beta_b - beta_a)*arlogit(lbt+1e-20);
-         //TTRACE(lb1,nbeta)
+           dvariable pbeta = mfexp(lb1); //arlogit(beta_a,beta_b,lb1+1e-20);
+           dvariable nbeta = mfexp(lbt); //arlogit(beta_a,beta_b,lbt+1e-20);
            dvariable varb = square(mfexp(logsigma_beta));
            betanll += 0.5*(log(TWO_M_PI*varb) + square(pbeta-nbeta)/varb);
-         //betanll += NLerr(pbeta,nbeta,varb);
  
            dvariable gamma = mfexp(loggamma);
            dvariable mu = mfexp(logmu);
            dvariable prevlogEye = logEye1;
-           dvariable nextlogEye = prevlogEye - log(1.0 - pbeta+eps) + log(1.0 - (gamma+mu)+eps);
-         //dvariable nlogEye = log(mfexp(logEye1)*(1.0 + (pbeta - gamma - mu))+eps);
-           TTRACE(prevlogEye,nextlogEye)
-    
+           // mixed explicit-implicit approximation:
+           //dvariable nextlogEye = prevlogEye - log(1.0 - pbeta) + log(1.0 - (gamma+mu));
+           // explicit approximation:
+           dvariable nextlogEye = prevlogEye + log(1.0 + pbeta - gamma - mu);
 
            // cases process error
            dvariable Pnll = 0.0;
            dvariable varP = square(mfexp(logsigma_logP));
            Pnll += 0.5*(log(TWO_M_PI*varP) + square(logEye1-nextlogEye)/varP);
-         //Pnll += NLerr(logEye1,nlogEye,varP)
            if (isnan(value(Pnll)))
            {
                 TRACE(t)
@@ -302,9 +242,9 @@ SEPARABLE_FUNCTION void step(const int t, const dvariable& lb1, const dvariable&
            // deaths process error
            dvariable prevD = mfexp(logD1);
            dvariable nextlogD = log(prevD + mu*mfexp(prevlogEye)+eps);
-
-         //Pnll += 0.5*(log(TWO_M_PI*varP) + square(logD1 - logDt)/varP);
-           if (obs_deaths(t-1) > 1.0)
+           TTRACE(prevD,mfexp(nextlogD))
+           
+           if(logD(t-1) > logeps)
            {
               Pnll += (1.0-prop_zero_deaths)*0.5*(log(TWO_M_PI*varP) + square(logD1 - nextlogD)/varP);
            }
@@ -312,21 +252,26 @@ SEPARABLE_FUNCTION void step(const int t, const dvariable& lb1, const dvariable&
            {
               Pnll += prop_zero_deaths*0.5*(log(TWO_M_PI*varP));
            }
-         //Pnll += ZILNerr(logD1,logDt,varP,prop_zero_deaths);
 
-         //TTRACE(betanll,Pnll);
            nll += (betanll + Pnll);
-     //    1  2          3              4        5
-     //obs(t, logEye(t), logsigma_logC, logD(t), logsigma_logD);
-     //                               1                   2                         3                               4                       5
+           TTRACE(betanll,Pnll)
+           TTRACE(t,nll)
+
+
 SEPARABLE_FUNCTION void obs(const int t, const dvariable& logEyet, const dvariable& logsigma_logC, const dvariable& logDt, const dvariable& logsigma_logD)
+  // call: obs(t, logEye(t), logsigma_logC, logD(t), logsigma_logD);
            dvariable cnll = 0.0;
            dvariable varC = square(mfexp(logsigma_logC));
            cnll+= 0.5*(log(TWO_M_PI*varC) + square(log_obs_cases(t)-logEyet)/varC);
 
            dvariable dnll = 0.0;
+
            dvariable varD = square(mfexp(logsigma_logD));
-           if (obs_deaths(t) > 1.0)  //log zero deaths
+           dnll += 0.5*(log(TWO_M_PI*varD) + square(log_obs_deaths(t) - logDt)/varD);
+         //TTRACE(log_obs_deaths(t),logDt)
+          
+         //TTRACE(t,mfexp(log_obs_deaths(t)))
+           if (log_obs_deaths(t) > logeps)  //log zero deaths
            {
               dnll += (1.0-prop_zero_deaths)*0.5*(log(TWO_M_PI*varD) + square(log_obs_deaths(t) - logDt)/varD);
            }
@@ -334,9 +279,10 @@ SEPARABLE_FUNCTION void obs(const int t, const dvariable& logEyet, const dvariab
            {
               dnll += prop_zero_deaths*0.5*(log(TWO_M_PI*varD));
            }
-
-         //TTRACE(cnll , dnll);
+         
            nll += (cnll + dnll);
+           TTRACE(cnll,dnll)
+           TTRACE(t,nll)
 
 REPORT_SECTION
 
@@ -365,7 +311,9 @@ REPORT_SECTION
              << log_obs_deaths (t) << ","
              << logEye(t) << ","
              << logD(t) << ","
-             << (beta_a + (beta_b - beta_a)*arlogit(logitbeta(t))) << ","
+             << mfexp(logbeta(t)) << ","
+       //    << arlogit(beta_a,beta_b,logitbeta(t)) << ","
+       //    << (beta_a + (beta_b - beta_a)*arlogit(logitbeta(t))) << ","
              << (mfexp(logmu))
              << endl; // ","
              //<< mu << endl;

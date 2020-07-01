@@ -20,6 +20,6 @@
 # phase value
    1    0.01
 # beta_a beta_b for logit transormation
-  1.0e-05  0.95
+  1.0e-08  0.5
 # dat file path
 ../fits/AlamedaCA.dat

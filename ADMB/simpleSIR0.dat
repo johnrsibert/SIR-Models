@@ -1,28 +1,28 @@
 # logsigma_logP
 # phase value
-   1    0.5 
+  -1    0.2 
 # logsigma_logbeta
 # phase value
-   1    0.02 
+  -1    0.05  
 # mu
 # phase value
    1    0.001 
 # gamma
 # phase value
-   1    0.001 
+  -1    0.001 
 # logsigma_logC
 # phase value
-   1    0.25 
+   1    1.1
 # logsigma_logD
 # phase value
-   1    0.07 
+   1    0.2 
 # Eye0
 # phase value
   -1    1.0
 # logitbeta
 # phase value
-   1    0.5
+   2    0.03
 # beta_a beta_b for logit transormation
-  1.0e-08  0.95
+  1.0e-8  0.95
 # dat file path
 ../fits/AlamedaCA.dat

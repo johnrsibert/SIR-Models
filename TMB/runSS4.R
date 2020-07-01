@@ -136,11 +136,11 @@ big_county_list = list(
                        "Stanislaus","Sonoma","Marin")
 
 largest_us_counties = list(
-#"AlamedaCA", "BexarTX",
-#"BrowardFL", "ClarkNV", 
-#"Contra_CostaCA",
-#"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
-##"KingWA", 
+"AlamedaCA", "BexarTX",
+"BrowardFL", "ClarkNV", 
+"Contra_CostaCA",
+"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
+"KingWA", 
 "Los_AngelesCA", 
 "MaricopaAZ", "MarinCA", 
 "Miami-DadeFL",
@@ -153,7 +153,8 @@ largest_us_counties = list(
 "San_MateoCA",
 "Santa_ClaraCA", 
 "SonomaCA", "StanislausCA",
-"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI")
+"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI"
+)
                        
 nrun = 2
 if (nrun < 2) {
