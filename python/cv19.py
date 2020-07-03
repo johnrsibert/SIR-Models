@@ -151,6 +151,7 @@ def update_dat():
 #   plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
     plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
     plot_county_dat(county_dat,County='Tompkins',State='New York',file='TompkinsNY')
+    plot_county_dat(county_dat,County='Placer',State='California',file='PlacerCA')
 
 def make_dat_file (cspath='../county-state.csv'):
     """ Generate input data for analysis by ADMB or TMB models
@@ -391,7 +392,7 @@ def plot_county_dat(dat,County, State,
     firstDate = mdates.date2num(FirstNYTDate)
     orderDate = mdates.date2num(CAOrderDate)
     lastDate  = mdates.date2num(EndOfTime)
-    print(CAOrderDate,":",orderDate)
+#   print(CAOrderDate,":",orderDate)
 
     date_list = pd.date_range(start=firstDate,end=lastDate)
     date_lim = [date_list[0],date_list[len(date_list)-1]]
@@ -451,13 +452,13 @@ def plot_county_dat(dat,County, State,
     Date = pd.Series(Date)
     
     c = ax[0].plot(Date, cases,label=cc)
-    print('c:',c)
+#   print('c:',c)
     tcol = ax[0].get_lines()[0].get_color()
-    print('tcol:',tcol)
-    print(len(Date),len(cases))
-    print(type(cases),cases)
-    print(cases[len(cases)-1])
-    print(Date[len(Date)-1])
+#   print('tcol:',tcol)
+#   print(len(Date),len(cases))
+#   print(type(cases),cases)
+#   print(cases[len(cases)-1])
+#   print(Date[len(Date)-1])
     ax[0].text(Date[len(Date)-1],cases[len(cases)-1],' C',ha='left',va='center',
                fontsize=10,color=tcol)
 #   ax[0].plot(pdate,preI,color='red')
@@ -470,6 +471,11 @@ def plot_county_dat(dat,County, State,
         ax2[0].plot(Date[1:],adc,linewidth=1)
         ax2[0].text(Date[len(Date)-1],adc[len(adc)-1],r'  $\Delta_1$',ha='left',va='center',
                    fontsize=10,color=tcol)
+        adc = pd.Series(delta_cases).rolling(window=7).mean()
+        ax2[0].plot(Date[1:],adc,linewidth=1,color='red')
+        adc = pd.Series(delta_cases).rolling(window=3).mean()
+        ax2[0].plot(Date[1:],adc,linewidth=1,color='orange')
+
 
     #   rescaled second differences
     #   dd_cases = delta_cases.diff()
@@ -923,9 +929,9 @@ if __name__ == '__main__':
 #                   County='Alameda',State='California',file='AlamedaCA')
                  
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
-    plot_county_fit('AlamedaCA',yscale='linear',save=True,fit_type='ADMB')
+#   plot_county_fit('AlamedaCA',yscale='linear',save=True,fit_type='ADMB')
 #   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
-#   plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
+    plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')#,per_capita=True)
 #   plot_diagnostics('CookIL',save=False)
 
 #   fit = read_ADMB_rep()

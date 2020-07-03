@@ -28,8 +28,10 @@ NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
 cv_home = '/home/jsibert/Projects/SIR-Models/'
 census_data_path = cv_home+'co-est2019-pop.csv'
+large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'tests/'
+
 
 def Strptime(x):
     """
@@ -53,9 +55,10 @@ class Geography:
         self.dat_file = dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
-        self.Date = None
+        self.date = None
         self.cases = None
         self.deaths = None
+        self.pdate = None # date for plotting on x-axis
         
     def print(self):
         print(self)
@@ -73,11 +76,12 @@ class Geography:
         print(self.ADMB_fit)
         print(self.dat_file)
         print(self.updated)
+        print(self.date0)
 
     def print_data(self):
-        print('Date','cases','deaths')
-        for k in range(0,len(self.Date)):
-            print(self.Date[k],self.cases[k],self.deaths[k])
+        print('date','cases','deaths','pdate')
+        for k in range(0,len(self.date)):
+            print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
             
             
     def get_county_pop(self):
@@ -115,7 +119,6 @@ class Geography:
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
         self.population = self.get_county_pop()
-   #     dat['county'][self.name],dat['state'][self.enclosed_by])
     
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
@@ -124,16 +127,11 @@ class Geography:
             sys.exit(' * * * no recores fround for',self.name,self.surrounded_by)
 
         tmp = dat[County_rows]['date'].map(Strptime)
-        tmp = np.array(tmp)
-#        print(tmp)
-#        print('d0: ',str(tmp[0]),datetime.strptime(str(tmp[0]),'%Y-%m-%d'))
-    
-        r0 = dat['date'][County_rows].index[0]
-        self.date0 = dat['date'][r0]
-
-        self.Date = np.array(mdates.date2num(tmp))
-        self.cases = np.array(dat[County_rows]['cases'])
+        self.pdate  = np.array(mdates.date2num(tmp))
+        self.cases  = np.array(dat[County_rows]['cases'])
         self.deaths = np.array(dat[County_rows]['deaths'])
+        self.date   = np.array(dat[County_rows]['date'])
+        self.date0 = self.date[0]
         
     def write_dat_file(self):
         print(len(self.Date),'records found for',self.name,self.enclosed_by)
@@ -143,19 +141,55 @@ class Geography:
         O.write(' %s\n'%self.updated)
         O.write('# population (N0)\n %10d\n'%self.population)
         O.write('# date zero\n %s\n'%self.date0)
-    #   print(dat[County_rows])
         ntime = len(self.Date)-1
-    #   print('----------------ntime',ntime)
         O.write('# ntime\n %4d\n'%ntime)
-    #   print(dat[County_rows].index)
-    #   print('date','index','cases','deaths')
         O.write('#%6s %5s\n'%('cases','deaths'))
         for r in range(0,len(self.Date)):
             O.write('%7d %6d\n'%(self.cases[r],self.deaths[r]))
 
-        
-test = Geography('Alameda','California','CA')
-test.read_nyt_data('county')
-test.print_metadata()
-#test.print_data()
+    def dow_count(self):
+        names = ['Mo','Tu','We','Th','Fr','Sa','Su','moniker']
+        count = pd.Series(0.0,index=names)
+    #    count = np.array(7*[0.0])
+    #    print(count)
+    
+        for k in range(0,len(self.date)):            
+            j = datetime.strptime(self.date[k],'%Y-%m-%d').weekday()
+            count[j] += self.cases[k]
 
+        count['moniker'] = self.moniker
+     #   print(count,sum(count),sum(self.cases))
+     #   for j in range(0,len(count)):
+     #       print(j,names[j],count[j])
+        return(count) 
+        
+def make_dow_table():        
+    """
+    """
+    names = ['Mo','Tu','We','Th','Fr','Sa','Su']
+    total_count = pd.DataFrame(dtype=float)
+    csdat = pd.read_csv(large_county_path,header=0)
+    
+    for cs in range(0,10): #len(csdat)):
+        tmpG = Geography(csdat['county'][cs],csdat['state'][cs],csdat['ST'][cs])
+        tmpG.read_nyt_data('county')
+        row = pd.Series(tmpG.dow_count())
+    #    print(tmpG.moniker,row)
+        total_count = total_count.append(row,ignore_index=True)
+        
+    print(total_count.shape)
+    print(total_count)   
+    total_count = total_count.set_index('moniker')
+    print(total_count)  
+    total_count = total_count.reindex(columns=names)
+    print(total_count)
+    print(total_count.loc['MaricopaAZ'])    
+   
+        
+alam = Geography('Alameda','California','CA')
+alam.read_nyt_data('county')
+#hono = Geography('Honolulu','Hawaii','HI')
+#hono.read_nyt_data('county')
+#test.print_metadata()
+#test.print_data()
+make_dow_table()
