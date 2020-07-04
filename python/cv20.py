@@ -83,7 +83,16 @@ class Geography:
         for k in range(0,len(self.date)):
             print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
             
-            
+    def get_pdate(self):
+        if (self.pdate):
+            return(pdate)
+
+        else:
+            self.pdate = []
+            for d in self.date:
+                self.pdate.append(mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date()))
+            return(self.pdate)
+
     def get_county_pop(self):
         """
         Reads US Census populations estimates for 2019
@@ -126,8 +135,8 @@ class Geography:
         if (len(County_rows) < 1):
             sys.exit(' * * * no recores fround for',self.name,self.surrounded_by)
 
-        tmp = dat[County_rows]['date'].map(Strptime)
-        self.pdate  = np.array(mdates.date2num(tmp))
+   #    tmp = dat[County_rows]['date'].map(Strptime)
+   #    self.pdate  = np.array(mdates.date2num(tmp))
         self.cases  = np.array(dat[County_rows]['cases'])
         self.deaths = np.array(dat[County_rows]['deaths'])
         self.date   = np.array(dat[County_rows]['date'])
@@ -147,49 +156,75 @@ class Geography:
         for r in range(0,len(self.Date)):
             O.write('%7d %6d\n'%(self.cases[r],self.deaths[r]))
 
-    def dow_count(self):
+    def dow_count(self,mult = 1000.0):
+        """
+        Accumulate first differences of cases and deaths by day of week
+        Scale by mult/population
+        """
         names = ['Mo','Tu','We','Th','Fr','Sa','Su','moniker']
-        count = pd.Series(0.0,index=names)
-    #    count = np.array(7*[0.0])
-    #    print(count)
+        Ccount = pd.Series(0.0,index=names)
+        Dcount = pd.Series(0.0,index=names)
+        d1_cases = np.diff(self.cases)
+        d1_deaths = np.diff(self.deaths)
     
-        for k in range(0,len(self.date)):            
+        for k in range(0,len(self.date)-1):            
             j = datetime.strptime(self.date[k],'%Y-%m-%d').weekday()
-            count[j] += self.cases[k]
+            Ccount[j] += d1_cases[k]
+            Dcount[j] += d1_deaths[k]
 
-        count['moniker'] = self.moniker
-     #   print(count,sum(count),sum(self.cases))
-     #   for j in range(0,len(count)):
-     #       print(j,names[j],count[j])
-        return(count) 
+        scale = mult/self.population
+        Ccount = Ccount * scale
+        Dcount = Dcount * scale
+        Ccount['moniker'] = self.moniker
+        Dcount['moniker'] = self.moniker
+        counts = [Ccount,Dcount]
+        return(counts)
         
-def make_dow_table():        
+def make_dow_table(mult=1000):        
     """
+    accumulate dow counts by geography as table rows
     """
     names = ['Mo','Tu','We','Th','Fr','Sa','Su']
-    total_count = pd.DataFrame(dtype=float)
     csdat = pd.read_csv(large_county_path,header=0)
-    
-    for cs in range(0,10): #len(csdat)):
+    cases_count  = pd.DataFrame(dtype=float)
+    deaths_count = pd.DataFrame(dtype=float)
+   
+    for cs in range(0,len(csdat)):
         tmpG = Geography(csdat['county'][cs],csdat['state'][cs],csdat['ST'][cs])
         tmpG.read_nyt_data('county')
-        row = pd.Series(tmpG.dow_count())
-    #    print(tmpG.moniker,row)
-        total_count = total_count.append(row,ignore_index=True)
-        
-    print(total_count.shape)
-    print(total_count)   
-    total_count = total_count.set_index('moniker')
-    print(total_count)  
-    total_count = total_count.reindex(columns=names)
-    print(total_count)
-    print(total_count.loc['MaricopaAZ'])    
-   
-        
+        row = tmpG.dow_count(mult)
+    #   print(tmpG.moniker,type(row),len(row))
+        cases_count  = cases_count.append(row[0],ignore_index=True)
+        deaths_count = deaths_count.append(row[1],ignore_index=True)
+      
+    cases_count = cases_count.set_index('moniker')
+    deaths_count = deaths_count.set_index('moniker')
+    cases_count = cases_count.reindex(columns=names)
+    deaths_count = deaths_count.reindex(columns=names)
+    return[cases_count,deaths_count]
+    
+def plot_dow_boxes(mult=1000):
+    counts = make_dow_table(mult)
+    labels = counts[0].columns
+    title = str(counts[0].shape[0])+' most populous US counties'
+
+    fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
+    fig.text(0.5,0.9,title,ha='center',va='bottom')
+    ax[0].set_ylabel('Cases'+' per '+str(mult))
+    ax[0].boxplot(counts[0].transpose(),labels=labels)
+    ax[1].set_ylabel('Deaths'+' per '+str(mult))
+    ax[1].boxplot(counts[1].transpose(),labels=labels)
+  
+    plt.savefig('days_of_week.png',dpi=300)
+    plt.show()
+  
+# --------------------------------------------------       
 alam = Geography('Alameda','California','CA')
 alam.read_nyt_data('county')
+alam.get_pdate()
+alam.print_data()
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
 #test.print_metadata()
 #test.print_data()
-make_dow_table()
+#plot_dow_boxes()
