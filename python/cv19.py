@@ -471,10 +471,10 @@ def plot_county_dat(dat,County, State,
         ax2[0].plot(Date[1:],adc,linewidth=1)
         ax2[0].text(Date[len(Date)-1],adc[len(adc)-1],r'  $\Delta_1$',ha='left',va='center',
                    fontsize=10,color=tcol)
-        adc = pd.Series(delta_cases).rolling(window=7).mean()
-        ax2[0].plot(Date[1:],adc,linewidth=1,color='red')
-        adc = pd.Series(delta_cases).rolling(window=3).mean()
-        ax2[0].plot(Date[1:],adc,linewidth=1,color='orange')
+    #   adc = pd.Series(delta_cases).rolling(window=7).mean()
+    #   ax2[0].plot(Date[1:],adc,linewidth=1,color='red')
+    #   adc = pd.Series(delta_cases).rolling(window=3).mean()
+    #   ax2[0].plot(Date[1:],adc,linewidth=1,color='orange')
 
 
     #   rescaled second differences
@@ -931,7 +931,7 @@ if __name__ == '__main__':
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
 #   plot_county_fit('AlamedaCA',yscale='linear',save=True,fit_type='ADMB')
 #   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
-    plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')#,per_capita=True)
+    plot_county_dat(county_dat,County='District of Columbia',State='District of Columbia',file='WashingtonDC')#,per_capita=true)
 #   plot_diagnostics('CookIL',save=False)
 
 #   fit = read_ADMB_rep()
