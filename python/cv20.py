@@ -32,6 +32,9 @@ large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'tests/'
 
+FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
+CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
+EndOfTime = datetime.strptime('2020-07-15','%Y-%m-%d')
 
 def Strptime(x):
     """
@@ -39,6 +42,16 @@ def Strptime(x):
     """
     y = datetime.strptime(x,'%Y-%m-%d')
     return(y)
+    
+def mark_ends(ax,x,y,label,end='b',spacer=' '):
+    c = ax.get_lines()[-1].get_color()
+    if ( (end =='l') | (end == 'b')):
+        ax.text(x,y,label+spacer,ha='right',va='center',fontsize=8,
+                color=c)
+
+    if ( (end =='r') | (end == 'b')):
+        ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
+                color=c)
 
 class Geography:
 
@@ -84,8 +97,8 @@ class Geography:
             print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
             
     def get_pdate(self):
-        if (self.pdate):
-            return(pdate)
+        if (self.pdate != None):
+            return(self.pdate)
 
         else:
             self.pdate = []
@@ -179,6 +192,115 @@ class Geography:
         Dcount['moniker'] = self.moniker
         counts = [Ccount,Dcount]
         return(counts)
+
+
+    def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
+                        window=[5,14], save = True):
+        """ 
+        Plots cases and deaths vs calendar date 
+        """
+        mult = 1000
+        eps = 1e-5
+    
+        firstDate = mdates.date2num(FirstNYTDate)
+        orderDate = mdates.date2num(CAOrderDate)
+        lastDate  = mdates.date2num(EndOfTime)
+    
+        date_list = pd.date_range(start=firstDate,end=lastDate)
+    #    date_lim = [date_list[0],date_list[len(date_list)-1]]
+    
+        fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
+        if (per_capita):
+            ax[0].set_ylabel('Cases'+' per '+str(mult))
+            ax[1].set_ylabel('Deaths'+' per '+str(mult))
+        else:
+            ax[0].set_ylabel('Cases')
+            ax[1].set_ylabel('Deaths')
+    
+    
+        ax2 = []
+        for a in range(0,len(ax)):
+            ax[a].set_xlim([firstDate,lastDate])
+            ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+            ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
+            ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+            ax[a].set_yscale(yscale)
+            if (delta_ts):
+                ax2.append(ax[a].twinx())
+    
+        if (delta_ts):
+            for a in range(0,len(ax2)):
+                ax2[a].set_ylabel("Daily Change")
+        
+        if (per_capita):
+            cp_row = pops['county'] == cc
+#           pop_size = int(pops[cp_row]['population'])
+            cases =  mult*self.cases/self.population + eps
+            deaths =  mult*self.deaths/self.population + eps
+        else :
+            cases  =  self.cases
+            deaths =  self.deaths
+        
+        Date = self.get_pdate()
+        
+        c = ax[0].plot(Date, cases)#,label=cc)
+        tcol = ax[0].get_lines()[0].get_color()
+        mark_ends(ax[0],Date[len(Date)-1],cases[len(cases)-1],'C','r')
+        if (delta_ts):
+            delta_cases = np.diff(cases)
+            ax2[0].bar(Date[1:], delta_cases, alpha=0.5)
+            for w in range(0,len(window)):
+                adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
+                ax2[0].plot(Date[1:],adc,linewidth=1)
+                mark_ends(ax2[0],Date[len(Date)-1],adc[len(adc)-1],
+                          str(window[w])+'da','r')
+                
+        d = ax[1].plot(Date, deaths)#,label=cc)
+        ax[1].text(Date[len(Date)-1],deaths[len(deaths)-1],' D',ha='left',va='center',
+                   fontsize=10,color=tcol)
+        if (delta_ts):
+            delta_deaths = np.diff(deaths)
+            ax2[1].bar(Date[1:],delta_deaths,alpha=0.5)
+            for w in range(0,len(window)):
+                add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
+                ax2[1].plot(Date[1:],add,linewidth=1)
+                mark_ends(ax2[1],Date[len(Date)-1],add[len(add)-1],
+                          str(window[w])+'da','r')
+    
+        for a in range(0,len(ax)):
+        #   Adjust length of y axis
+            ax[a].set_ylim(0,ax[a].get_ylim()[1])
+            if (delta_ts):
+                ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
+        #   Newsome's shelter in place order
+            ax[a].plot((orderDate,orderDate),
+                       (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
+                        linewidth=3,alpha=0.5)
+        #   ax[a].legend()
+    
+        title = 'COVID-19 Prevalence in '+self.name+' County, '+self.enclosed_by
+        fig.text(0.5,0.925,title ,ha='center',va='top')
+        fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
+                 ha='left',va='bottom', fontsize=8)
+    
+        mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
+        dtime = datetime.fromtimestamp(mtime)
+        fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
+    
+    #   signature = 'Graphics by John Sibert'
+    #   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
+    
+    #   in rcParams: 
+    #   plt.tight_layout() #pad=1.0, w_pad=1.0, h_pad=5.0)
+    
+        if save:
+            plt.savefig(self.moniker+'_prevalence.png',dpi=300)
+        plt.show()
+    
+    
+
+
+# ----------- end of class definition --------------       
         
 def make_dow_table(mult=1000):        
     """
@@ -221,8 +343,13 @@ def plot_dow_boxes(mult=1000):
 # --------------------------------------------------       
 alam = Geography('Alameda','California','CA')
 alam.read_nyt_data('county')
+#alam.get_pdate()
+alam.print_metadata()
 alam.get_pdate()
 alam.print_data()
+print('------- here ------')
+alam.plot_prevalence()
+
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
 #test.print_metadata()
