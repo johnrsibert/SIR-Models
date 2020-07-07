@@ -101,7 +101,7 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_logP);          // SIR process error
     PARAMETER(logsigma_beta);       // beta random walk sd
     PARAMETER(logsigma_mu);         // mu randomwalk sd
-    PARAMETER(loggamma);            // recovery rate of infection population
+//  PARAMETER(loggamma);            // recovery rate of infection population
     PARAMETER(logsigma_logC);          // cases observation error
     PARAMETER(logsigma_logD);          // deaths observation error
 
@@ -121,7 +121,9 @@ Type objective_function <Type>::operator()()
     vector <Type> logEye(ntime+1);    // number of infections
     vector <Type> logD(ntime+1);      // number of deaths from infected population
 
-    Type gamma = exp(loggamma);
+//  Type gamma = exp(loggamma);
+
+    vector <Type> gamma(ntime+1);
 
     Type sigma_beta = exp(logsigma_beta); 
     Type sigma_mu = exp(logsigma_mu); 
@@ -155,7 +157,10 @@ Type objective_function <Type>::operator()()
 
          // cases process error
          Type prevEye = exp(logEye(t-1));
-         logEye(t) = log(prevEye*(1.0 + (beta(t-1) - gamma - mu(t-1)))+eps);
+         logEye(t) = log(prevEye*(1.0 + (beta(t-1) - gamma(t-1) - mu(t-1)))+eps);
+
+         gamma(t) = beta(t-1)-mu(t-1) - exp(logEye(t))/prevEye + 1.0;
+
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
          // deaths process error
@@ -183,7 +188,7 @@ Type objective_function <Type>::operator()()
      REPORT(sigma_logP);
      REPORT(sigma_beta);
      REPORT(sigma_mu);
-     REPORT(loggamma);
+//   REPORT(loggamma);
      REPORT(gamma);
 
      REPORT(f);

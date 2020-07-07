@@ -22,9 +22,9 @@ print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
 data$beta_a = eps
-data$beta_b = 2.0
+data$beta_b = 3.0
 data$mu_a = eps
-data$mu_b = 2.0
+data$mu_b = 3.0
 print("-data:")
 print(data)
 
@@ -32,11 +32,11 @@ init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
     logsigma_mu = log(0.001),
-    logitmu = logit(0.001,data$mu_a,data$mu_b),
+    logitmu = logit(0.025,data$mu_a,data$mu_b),
     loggamma = log(0.001),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
-    logitbeta = logit(0.1,data$beta_a,data$beta_b)
+    logitbeta = logit(0.25,data$beta_a,data$beta_b)
 )
 print("--initial parameter values:")
 print(init)
@@ -46,7 +46,7 @@ par = list(
     logsigma_beta = init$logsigma_beta,
     logsigma_mu = init$logsigma_mu,
     logitmu    = rep(init$logitmu,data$ntime+1),
-    loggamma = init$loggamma,
+#   loggamma = init$loggamma,
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
     logitbeta = rep(init$logitbeta,(data$ntime+1))
@@ -58,7 +58,7 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_beta" = as.factor(1),
            "logsigma_mu" = as.factor(1),
-           "loggamma"  = as.factor(1),
+#          "loggamma"  = as.factor(1),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )
@@ -100,10 +100,10 @@ print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
-mbeta = mean(obj$report()$beta)
-print(paste("mean beta:",mbeta))
-mmu = mean(obj$report()$mu)
-print(paste("mean mu:",mmu))
+mbeta = median(obj$report()$beta)
+print(paste("median beta:",mbeta))
+mmu = median(obj$report()$mu)
+print(paste("median mu:",mmu))
 
 plot.log.state(data,par,obj,opt,map,np=4)
 dev.file = paste(fit_path,data$county,'.pdf',sep='')
