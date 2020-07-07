@@ -53,7 +53,7 @@ pop_data_path = '../co-est2019-pop.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-06-30','%Y-%m-%d')
+EndOfTime = datetime.strptime('2020-07-15','%Y-%m-%d')
 
 county_dat = pd.read_csv(counties_path,header=0)
 #county_state = pd.read_csv('../county-state.csv',header=0)
@@ -909,8 +909,8 @@ if __name__ == '__main__':
 #   plot_beta_mu(largest_us_counties,save=True)
 #   plot_beta_mu(['MaricopaAZ','WayneMI'])
 
-#   make_fit_table(largest_us_counties,
-#                fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
+    make_fit_table(largest_us_counties,
+                 fit_path = '/home/jsibert/Projects/SIR-Models/fits/')
 
 #   plot_diagnostics(save=True)
 #   for c in largest_us_counties:
@@ -931,7 +931,7 @@ if __name__ == '__main__':
 #   plot_beta_mu(['CookIL'],plot_mu=False, delta_ts=True,save=True)
 #   plot_county_fit('AlamedaCA',yscale='linear',save=True,fit_type='ADMB')
 #   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
-    plot_county_dat(county_dat,County='District of Columbia',State='District of Columbia',file='WashingtonDC')#,per_capita=true)
+#   plot_county_dat(county_dat,County='District of Columbia',State='District of Columbia',file='WashingtonDC')#,per_capita=true)
 #   plot_diagnostics('CookIL',save=False)
 
 #   fit = read_ADMB_rep()

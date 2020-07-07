@@ -22,6 +22,9 @@ print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
 print(diag)
+print(diag['mu'])
+#mmu = diag['mu'].quantile(q=0.5)
+print('median mu:',mmu)
 
 md = fit['meta']
 print('meta:',md)
@@ -35,6 +38,10 @@ print('meta:',md)
 est = fit['ests']
 print('est:',est)
 
-rs = est['names'].isin(['logmu'])
-logmu = est.obs[rs]
-print('logmu',logmu)
+#rs = est['names'].isin(['logmu'])
+#print(rs)
+#if (rs):
+#    logmu = est.obs[rs]
+#    print('logmu',logmu)
+# mx = x.quantile(q=0.5)
+

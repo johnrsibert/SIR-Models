@@ -22,19 +22,7 @@ from sigfig import round
 from tabulate import tabulate
 from collections import OrderedDict
 
-NYT_home = '/home/other/nytimes-covid-19-data/'
-NYT_counties = NYT_home + 'us-counties.csv'
-NYT_states = NYT_home + 'us-states.csv'
-NYT_us = NYT_home + 'us.csv'
-cv_home = '/home/jsibert/Projects/SIR-Models/'
-census_data_path = cv_home+'co-est2019-pop.csv'
-large_county_path = cv_home + 'county-state.csv'
-fit_path = cv_home + 'fits/'
-dat_path = cv_home + 'tests/'
-
-FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
-CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-07-15','%Y-%m-%d')
+import js_covid as cv
 
 def Strptime(x):
     """
@@ -65,7 +53,7 @@ class Geography:
         self.moniker = name+code
         self.TMB_fit = None
         self.ADMB_fit = None
-        self.dat_file = dat_path+self.moniker+'.dat'
+        self.dat_file = cv.dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
         self.date = None
@@ -120,7 +108,7 @@ class Geography:
         if (self.name == 'New York City'):
             return(nyc_pop)
 
-        dat = pd.read_csv(census_data_path,header=0)
+        dat = pd.read_csv(cv.census_data_path,header=0)
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
         County_rows = state_filter & county_filter
@@ -130,7 +118,7 @@ class Geography:
     def read_nyt_data(self,gtype):
         self.gtype = gtype
         if (gtype == 'county'):
-            cspath = NYT_counties
+            cspath = cv.NYT_counties
         else:
             sys.exit('No data for',gtype)
         
@@ -202,9 +190,9 @@ class Geography:
         mult = 1000
         eps = 1e-5
     
-        firstDate = mdates.date2num(FirstNYTDate)
-        orderDate = mdates.date2num(CAOrderDate)
-        lastDate  = mdates.date2num(EndOfTime)
+        firstDate = mdates.date2num(cv.FirstNYTDate)
+        orderDate = mdates.date2num(cv.CAOrderDate)
+        lastDate  = mdates.date2num(cv.EndOfTime)
     
         date_list = pd.date_range(start=firstDate,end=lastDate)
     #    date_lim = [date_list[0],date_list[len(date_list)-1]]
@@ -296,18 +284,32 @@ class Geography:
         if save:
             plt.savefig(self.moniker+'_prevalence.png',dpi=300)
         plt.show()
-    
-    
+
+class Fit(Geography):
+
+    def __init__(self, fit_type = 'TMB'):
+        if (self.fit_type == 'TMB'):
+    #       fn = ff.replace(' ','_',5) 
+            pn = cv.fit_path+monker+'.RData'
+            tfit=pyreadr.read_r(pn)
+        elif (self.fit_type == 'ADMB'):
+            sys.exit('still working on ADMB fits')
+        else:
+            sys.exit(self.fit_type+' not recognised')
+
+        self.fit_type = fit_type;
+
+        print('type:',self.fit_type)
 
 
-# ----------- end of class definition --------------       
+# ----------- end of class definitions--------------       
         
 def make_dow_table(mult=1000):        
     """
     accumulate dow counts by geography as table rows
     """
     names = ['Mo','Tu','We','Th','Fr','Sa','Su']
-    csdat = pd.read_csv(large_county_path,header=0)
+    csdat = pd.read_csv(cv.large_county_path,header=0)
     cases_count  = pd.DataFrame(dtype=float)
     deaths_count = pd.DataFrame(dtype=float)
    
@@ -341,14 +343,17 @@ def plot_dow_boxes(mult=1000):
     plt.show()
   
 # --------------------------------------------------       
-alam = Geography('Alameda','California','CA')
-alam.read_nyt_data('county')
+#alam = Geography('Alameda','California','CA')
+#alam.read_nyt_data('county')
 #alam.get_pdate()
-alam.print_metadata()
-alam.get_pdate()
-alam.print_data()
+#alam.print_metadata()
+#alam.get_pdate()
+#alam.print_data()
+geo = Geography('Los Angeles','California','CA')
+geo.read_nyt_data('county')
 print('------- here ------')
-alam.plot_prevalence()
+#geo.plot_prevalence()
+tfit = geo.Fit('ADMB')
 
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
