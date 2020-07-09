@@ -145,6 +145,9 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
 
 def update_dat():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
+# mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv -o 
+
+
     make_dat_file()
     plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
 #   plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')

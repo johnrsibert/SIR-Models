@@ -9,6 +9,8 @@ Created on Tue Jul  7 15:08:58 2020
 """
 from datetime import datetime
 
+# mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
+
 NYT_home = '/home/other/nytimes-covid-19-data/'
 NYT_counties = NYT_home + 'us-counties.csv'
 NYT_states = NYT_home + 'us-states.csv'

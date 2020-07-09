@@ -15,21 +15,29 @@ import matplotlib.dates as mdates
 from matplotlib import rc
 import numpy as np
 import os
+import sys
 import pyreadr
 from io import StringIO
 import scipy.stats as stats
 from sigfig import round
 from tabulate import tabulate
 from collections import OrderedDict
+import glob
 
+plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 import js_covid as cv
 
+eps = 1e-5
 def Strptime(x):
     """
     wrapper for datetime.strptime callable by map(..)
     """
     y = datetime.strptime(x,'%Y-%m-%d')
     return(y)
+
+def prop_scale(lim,prop):
+    s = lim[0] + prop*(lim[1]-lim[0])
+    return(s)
     
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
@@ -41,18 +49,43 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
         ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
                 color=c)
 
+def plot_error(ax,x,y,sdy,logscale,mult=2.0):
+    if (logscale):
+        sdyu = np.array(y + mult*sdy)
+        sdyl = np.array(y - mult*sdy)
+    else:
+        sdyu = np.array(np.exp(y + mult*sdy))
+        sdyl = np.array(np.exp(y - mult*sdy))
+
+    xy = np.array([x,sdyu])
+    xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
+    xp = np.transpose(xy).shape
+    c = '0.5' # ax.get_lines()[-1].get_color()
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
+                            facecolor='0.9', edgecolor=c,lw=1)
+    ax.add_patch(sd_region)
+
+def isNaN(num):
+    return num != num
+
+def median(x):
+    mx = x.quantile(q=0.5)
+    return float(mx)
+
 class Geography:
 
-    def __init__(self,name,enclosed_by,code):
+#   def __init__(self,name,enclosed_by,code):
+    def __init__(self,**kwargs):
         self.gtype = None
-        self.name = name 
-        self.enclosed_by = enclosed_by
-        self.code = code
+        self.name = kwargs.get('name')
+        self.enclosed_by = kwargs.get('enclosed_by')
+        self.code = kwargs.get('code')
         self.population = None
         self.source = None
-        self.moniker = name+code
-        self.TMB_fit = None
-        self.ADMB_fit = None
+        self.moniker = self.name+self.code
+        self.moniker =  self.moniker.replace(' ','_',5) 
+    #   self.TMB_fit = None
+    #   self.ADMB_fit = None
         self.dat_file = cv.dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
@@ -66,18 +99,18 @@ class Geography:
         
         
     def print_metadata(self):
-        print(self.gtype)
-        print(self.name)
-        print(self.enclosed_by)
-        print(self.code)
-        print(self.population)
-        print(self.source)
-        print(self.moniker)
-        print(self.TMB_fit)
-        print(self.ADMB_fit)
-        print(self.dat_file)
-        print(self.updated)
-        print(self.date0)
+        print('gtype:',self.gtype)
+        print('gname:',self.name)
+        print('genclosed_by:',self.enclosed_by)
+        print('gcode:',self.code)
+        print('gpopulation:',self.population)
+        print('gsource:',self.source)
+        print('gmoniker:',self.moniker)
+    #   print(self.TMB_fit)
+    #   print(self.ADMB_fit)
+        print('gdat_file:',self.dat_file)
+        print('gupdated:',self.updated)
+        print('gdate0:',self.date0)
 
     def print_data(self):
         print('date','cases','deaths','pdate')
@@ -188,7 +221,6 @@ class Geography:
         Plots cases and deaths vs calendar date 
         """
         mult = 1000
-        eps = 1e-5
     
         firstDate = mdates.date2num(cv.FirstNYTDate)
         orderDate = mdates.date2num(cv.CAOrderDate)
@@ -285,24 +317,285 @@ class Geography:
             plt.savefig(self.moniker+'_prevalence.png',dpi=300)
         plt.show()
 
-class Fit(Geography):
+class Fit: #(Geography):
 
-    def __init__(self, fit_type = 'TMB'):
-        if (self.fit_type == 'TMB'):
-    #       fn = ff.replace(' ','_',5) 
-            pn = cv.fit_path+monker+'.RData'
+#   def __init__(self,name,enclosed_by,code,fit_type='TMB'):
+#       super().__init__(name,enclosed_by,code)
+#       self.fit_type = fit_type;
+#       if (self.fit_type == 'TMB'):
+#           pn = cv.fit_path+self.moniker+'.RData'
+#           self.fit=pyreadr.read_r(pn)
+#       elif (self.fit_type == 'ADMB'):
+#           sys.exit('still working on ADMB fits')
+#       else:
+#           sys.exit(self.fit_type+' not recognised')
+
+    def __init__(self,fit_file):
+        pn = fit_file #cv.fit_path+fit_file
+        filename, extension = os.path.splitext(pn)
+        if (extension == '.RData'):
+            self.fit_type = 'TMB'
             tfit=pyreadr.read_r(pn)
-        elif (self.fit_type == 'ADMB'):
-            sys.exit('still working on ADMB fits')
         else:
-            sys.exit(self.fit_type+' not recognised')
+            sys.exit('class Fit  not yet implemented on '+extension+' files.')
 
-        self.fit_type = fit_type;
+    #   print('keys',tfit.keys())
+        self.diag = tfit['diag']
+    #   print(self.diag.columns)
+        self.md = tfit['meta']
+    #   print(self.md)
+        self.ests = tfit['ests']
+    #   print('ests:',self.ests)
+        Date0 = self.get_metadata_item('Date0')
+    #   print('Date0:',Date0)
 
+    def print_metadata(self):
+    #   super().print_metadata()
         print('type:',self.fit_type)
+
+    def get_metadata_item(self,mdname):
+        r = self.md['names'].isin([mdname])
+        return(self.md.data[r].values[0])
+
+    def get_estimate_item(self, ename):
+        r = self.ests['names'].isin([ename])
+        if (r.any() == True):
+            return(float(self.ests.est[r]))
+        else:
+            return(None)
+    
+    def get_est_or_init(self,name):
+        v = self.get_estimate_item(name) 
+        if (isNaN(v)):
+            v = self.get_initpar_item(name)
+            return(v)
+        else:
+            return(v)
+    
+    def get_initpar_item(self,pname):
+        r = self.ests['names'].isin([pname])
+        if (r.any() == True):
+            return(float(ests.init[r]))
+        else:
+            return(None)
+       
+    def plot(self,logscale=True, per_capita=False, delta_ts=False,
+             npl = 4, save = True):
+        """ 
+        """
+    
+        firstDate = mdates.date2num(cv.FirstNYTDate)
+        orderDate = mdates.date2num(cv.CAOrderDate)
+        lastDate  = mdates.date2num(cv.EndOfTime)
+    
+        date_list = pd.date_range(start=firstDate,end=lastDate)
+        date_lim = [date_list[0],date_list[len(date_list)-1]]
+        plt.rcParams['lines.linewidth'] = 1
+        plt.rcParams["scatter.marker"] = '+'
+        prefix = ''
+        if (logscale):
+            prefix = 'log '
+             
+        fig, ax = plt.subplots(npl,1,figsize=(6.5,(npl-1)*2.5))
+        if (per_capita):
+            ax[0].set_ylabel(prefix+'Cases'+' per '+str(mult))
+            ax[1].set_ylabel(prefix+'Deaths'+' per '+str(mult))
+        else:
+            ax[0].set_ylabel(prefix+'Cases')
+            ax[1].set_ylabel(prefix+'Deaths')
+        if (npl > 2):
+            ax[2].set_ylabel(r'$\beta\ (da^{-1})$')
+        if (npl > 3):
+            ax[3].set_ylabel(r'$\mu\ (da^{-1})$')
+    
+    
+        for a in range(0,len(ax)):
+            ax[a].set_xlim([firstDate,lastDate])
+            ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
+            ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+    #       if (delta_ts):
+    #           ax2.append(ax[a].twinx())
+    #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
+    
+        Date0 = self.get_metadata_item('Date0')
+        Date0 = datetime.strptime(Date0,'%Y-%m-%d')
+        pdate = []
+        for t in range(0,len(self.diag.index)):
+            pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
+    
+        if (logscale):
+            obsI = self.diag['log_obs_cases']
+            preI = self.diag['log_pred_cases']
+            obsD = self.diag['log_obs_deaths']
+            preD = self.diag['log_pred_deaths']
+            sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
+            sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
+        else:
+            obsI = np.exp(self.diag['log_obs_cases'])
+            preI = np.exp(self.diag['log_pred_cases'])
+            obsD = np.exp(self.diag['log_obs_deaths'])
+            preD = np.exp(self.diag['log_pred_deaths'])
+            sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
+            sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
+    
+    
+   #    ax[0].set_title(title)
+   #    ax[0].set_yscale(yscale)
+        ax[0].set_ylim(0.0,1.2*max(obsI))
+        ax[0].scatter(pdate,obsI)
+        plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
+   #                  #    ecol=ax[0].get_lines()[line].get_color())
+        ax[0].plot(pdate,preI,color='red')
+        tx = prop_scale(ax[0].get_xlim(), 0.05)
+        ty = prop_scale(ax[0].get_ylim(), 0.90)
+        sigstr = '%s = %.3g'%('$\sigma_I$',sigma_logC)
+        ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+    
+   #    ax[1].set_yscale(yscale)
+        ax[1].set_ylim(0.0,1.2*max(obsD))
+   #    plot_log_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
+        ax[1].scatter(pdate,obsD)
+        ax[1].plot(pdate,preD,color='red')
+        plot_error(ax[1],pdate,obsD,sigma_logD,logscale)
+        tx = prop_scale(ax[1].get_xlim(), 0.05)
+        ty = prop_scale(ax[1].get_ylim(), 0.90)
+        sigstr = '%s = %.3g'%('$\sigma_D$',sigma_logD)
+        ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+    
+        if (npl > 2):
+           ax[2].set_ylim(0.0,1.2*max(self.diag['beta']))
+           sigma_beta = np.exp(self.get_est_or_init('logsigma_beta'))
+           sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
+           tx = prop_scale(ax[2].get_xlim(), 0.05)
+           ty = prop_scale(ax[2].get_ylim(), 0.90)
+           ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+           ax[2].plot(pdate,self.diag['beta'])
+           y2_ticks = np.log(2)/(ax[2].get_yticks()+eps)
+           n = len(y2_ticks)
+           y2_tick_label = ['']*n
+           for i in range(0,len(y2_ticks)):
+              y2_tick_label[i] = '%.1f'%y2_ticks[i]
+           y2_tick_label[0] = ' >14'
+           dtax = ax[2].twinx()
+           dtax.set_yscale(ax[2].get_yscale())
+           dtax.set_ylabel('Doubling Time (da)')
+           dtax.set_yticks(ax[2].get_yticks())
+           dtax.set_yticklabels(y2_tick_label)
+
+        #  plot_error(ax[2],pdate,diag['beta'],sigma_beta)
+        #  ax[2].scatter(pdate,diag['beta'])
+
+        if (npl > 3):
+           ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
+           sigma_mu = np.exp(self.get_est_or_init('logsigma_mu'))
+           sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
+           tx = prop_scale(ax[3].get_xlim(), 0.05)
+           ty = prop_scale(ax[3].get_ylim(), 0.90)
+           ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
+           ax[3].plot(pdate,self.diag['mu'])
+           ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+    
+    #   title = self.name+' County, '+self.enclosed_by
+    #   fig.text(0.5,0.925,title ,ha='center',va='top')
+
+        if save:
+        #   plt.savefig(cv.fit_path+county.replace(' ','_',5)+'_obsVpred.png',dpi=300)
+            plt.savefig(cv.fit_path+self.fit_type+'_obsVpred.png',dpi=300)
+        plt.show(True)
+
 
 
 # ----------- end of class definitions--------------       
+
+def pretty_county(s):
+    ls = len(s)
+    pretty = s[0:(ls-2)]+', '+s[(ls-2):]
+    return(pretty.replace('_',' ',5))
+
+def make_fit_table(ext = '.RData'):
+    fit_files = glob.glob(cv.fit_path+'*'+ext)
+    print('found',len(fit_files),ext,'files in',cv.fit_path)
+
+#   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
+    md_cols = ['county','ntime','prop_zero_deaths','fn','C']
+    es_cols = ['logsigma_logP'   , 'logsigma_beta'  , 'logsigma_mu'  ,
+               'logsigma_logC','logsigma_logD', 'gamma','mbeta','mmu']
+    tt_cols = md_cols + es_cols
+    header = ['County','$n$','$p_0$','$f$','$C$',
+              '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\\mu$',
+              '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
+
+    tt = pd.DataFrame(columns=tt_cols,dtype=None)
+
+    func = pd.DataFrame(columns=['fn'])
+    gamm = pd.DataFrame(columns=['gamma'])
+    mbeta = pd.DataFrame(columns=['mbeta'])
+    mmu = pd.DataFrame(columns=['mmu'])
+    sigfigs = 3
+    for ff in fit_files:
+    #   fn = ff.replace(' ','_',5) 
+    #   pn = fit_path+fn+'.RData'
+    #   fit=pyreadr.read_r(pn)
+        print('adding fit',ff)
+        fit = Fit(ff)
+        ests  = fit.ests #['ests']
+        meta = fit.md #['meta']
+        diag = fit.diag #['diag']
+        row = pd.Series(index=tt_cols)
+        county = fit.get_metadata_item('county')  
+        row['county'] = pretty_county(county)
+        for k in range(1,len(tt_cols)):
+            n = tt_cols[k]
+            v = fit.get_est_or_init(n)
+            if ("logsigma" in n):
+                if (v != None):
+                    v = float(np.exp(v))
+            row.iloc[k] = v
+
+    #   row['N0'] = int(get_metadata('N0',meta))
+        row['C'] = fit.get_metadata_item('convergence')
+        row['ntime'] = int(fit.get_metadata_item('ntime'))
+        row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
+        tt = tt.append(row,ignore_index=True)
+        tmp = fit.get_est_or_init('loggamma')
+        tmp = np.exp(tmp)
+        tmp = float(tmp)
+        gamm = np.append(gamm,tmp)
+        func = np.append(func,float(fit.get_metadata_item('fn')))
+        beta = diag['beta']
+        mbeta = np.append(mbeta,median(beta))
+        mu = diag['mu']
+        mmu = np.append(mmu,mu.quantile(q=0.5))
+
+    tt['fn'] = func
+    tt['gamma'] = gamm
+    tt['mbeta'] = mbeta
+    tt['mmu'] = mmu
+
+    for c in range(3,len(tt.columns)):
+        for r in range(0,tt.shape[0]):
+           if (tt.iloc[r,c] != None):
+               tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
+#   tt = tt.sort_values(by='N0',ascending=False)#,inplace=True)
+
+    row = pd.Series(None,index=tt.columns)
+    row['county'] = 'Median'
+    for n in tt.columns:
+        if (n != 'county'):
+            mn = tt[n].quantile()
+            row[n] = mn
+    tt = tt.append(row,ignore_index=True)
+    print(tt)
+
+    tex = cv.fit_path+'fit_table.tex'
+    ff = open(tex, 'w')
+    ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
+#   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
+#               header=header,escape=False,#float_format='{:0.4f}'.format
+#               na_rep='',column_format='lrrrrrrrrrrr')
+    print('Fit table written to file',tex)
+
         
 def make_dow_table(mult=1000):        
     """
@@ -343,17 +636,19 @@ def plot_dow_boxes(mult=1000):
     plt.show()
   
 # --------------------------------------------------       
-#alam = Geography('Alameda','California','CA')
+#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
 #alam.get_pdate()
 #alam.print_metadata()
 #alam.get_pdate()
 #alam.print_data()
-geo = Geography('Los Angeles','California','CA')
-geo.read_nyt_data('county')
+#alam.plot_prevalence()
 print('------- here ------')
-#geo.plot_prevalence()
-tfit = geo.Fit('ADMB')
+tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
+tfit.print_metadata()
+tfit.plot()
+#make_fit_table()
+#make_fit_table('.rep')
 
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
