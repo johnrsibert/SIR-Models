@@ -49,7 +49,8 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
         ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
                 color=c)
 
-def plot_error(ax,x,y,sdy,logscale,mult=2.0):
+def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
+    # use of logscale is counterintuitive
     if (logscale):
         sdyu = np.array(y + mult*sdy)
         sdyl = np.array(y - mult*sdy)
@@ -60,7 +61,7 @@ def plot_error(ax,x,y,sdy,logscale,mult=2.0):
     xy = np.array([x,sdyu])
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
-    c = '0.5' # ax.get_lines()[-1].get_color()
+    c = ax.get_lines()[-1].get_color()
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
                             facecolor='0.9', edgecolor=c,lw=1)
     ax.add_patch(sd_region)
@@ -148,7 +149,7 @@ class Geography:
         population = int(pd.to_numeric(dat[County_rows]['population'].values))
         return(population)   
         
-    def read_nyt_data(self,gtype):
+    def read_nyt_data(self,gtype='county'):
         self.gtype = gtype
         if (gtype == 'county'):
             cspath = cv.NYT_counties
@@ -299,7 +300,8 @@ class Geography:
         #   ax[a].legend()
     
         title = 'COVID-19 Prevalence in '+self.name+' County, '+self.enclosed_by
-        fig.text(0.5,0.925,title ,ha='center',va='top')
+    #   fig.text(0.5,0.925,title ,ha='center',va='top')
+        fig.text(0.5,1.0,title ,ha='center',va='top')
         fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
                  ha='left',va='bottom', fontsize=8)
     
@@ -346,7 +348,7 @@ class Fit: #(Geography):
     #   print(self.md)
         self.ests = tfit['ests']
     #   print('ests:',self.ests)
-        Date0 = self.get_metadata_item('Date0')
+    #   Date0 = self.get_metadata_item('Date0')
     #   print('Date0:',Date0)
 
     def print_metadata(self):
@@ -396,7 +398,7 @@ class Fit: #(Geography):
         if (logscale):
             prefix = 'log '
              
-        fig, ax = plt.subplots(npl,1,figsize=(6.5,(npl-1)*2.5))
+        fig, ax = plt.subplots(npl,1,figsize=(6.5,(npl)*2.5))
         if (per_capita):
             ax[0].set_ylabel(prefix+'Cases'+' per '+str(mult))
             ax[1].set_ylabel(prefix+'Deaths'+' per '+str(mult))
@@ -424,39 +426,38 @@ class Fit: #(Geography):
         for t in range(0,len(self.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
     
+        obsI = self.diag['log_obs_cases']
+        preI = self.diag['log_pred_cases']
+        obsD = self.diag['log_obs_deaths']
+        preD = self.diag['log_pred_deaths']
+        sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
+        sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
+        sigma_beta = np.exp(self.get_est_or_init('logsigma_beta'))
+        sigma_mu = np.exp(self.get_est_or_init('logsigma_mu'))
         if (logscale):
-            obsI = self.diag['log_obs_cases']
-            preI = self.diag['log_pred_cases']
-            obsD = self.diag['log_obs_deaths']
-            preD = self.diag['log_pred_deaths']
-            sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
-            sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
+            ax[0].set_ylim(0.0,1.2*max(obsI))
+            ax[0].scatter(pdate,obsI)
+            ax[0].plot(pdate,preI,color='red')
         else:
-            obsI = np.exp(self.diag['log_obs_cases'])
-            preI = np.exp(self.diag['log_pred_cases'])
-            obsD = np.exp(self.diag['log_obs_deaths'])
-            preD = np.exp(self.diag['log_pred_deaths'])
-            sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
-            sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
-    
-    
-   #    ax[0].set_title(title)
-   #    ax[0].set_yscale(yscale)
-        ax[0].set_ylim(0.0,1.2*max(obsI))
-        ax[0].scatter(pdate,obsI)
+            ax[0].set_ylim(0.0,1.2*max(np.exp(obsI)))
+            ax[0].scatter(pdate,np.exp(obsI))
+            ax[0].plot(pdate,np.exp(preI),color='red')
         plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
    #                  #    ecol=ax[0].get_lines()[line].get_color())
-        ax[0].plot(pdate,preI,color='red')
         tx = prop_scale(ax[0].get_xlim(), 0.05)
         ty = prop_scale(ax[0].get_ylim(), 0.90)
         sigstr = '%s = %.3g'%('$\sigma_I$',sigma_logC)
         ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
-   #    ax[1].set_yscale(yscale)
-        ax[1].set_ylim(0.0,1.2*max(obsD))
-   #    plot_log_error(ax[1],pdate,diag['log_pred_deaths'],sigma_logD)
-        ax[1].scatter(pdate,obsD)
-        ax[1].plot(pdate,preD,color='red')
+        if (logscale):
+            ax[1].set_ylim(0.0,1.2*max(obsD))
+            ax[1].scatter(pdate,obsD)
+            ax[1].plot(pdate,preD,color='red')
+        else:
+            ax[1].set_ylim(0.0,1.2*max(np.exp(obsD)))
+            ax[1].scatter(pdate,np.exp(obsD))
+            ax[1].plot(pdate,np.exp(preD),color='red')
+
         plot_error(ax[1],pdate,obsD,sigma_logD,logscale)
         tx = prop_scale(ax[1].get_xlim(), 0.05)
         ty = prop_scale(ax[1].get_ylim(), 0.90)
@@ -465,36 +466,41 @@ class Fit: #(Geography):
     
         if (npl > 2):
            ax[2].set_ylim(0.0,1.2*max(self.diag['beta']))
-           sigma_beta = np.exp(self.get_est_or_init('logsigma_beta'))
            sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
            tx = prop_scale(ax[2].get_xlim(), 0.05)
            ty = prop_scale(ax[2].get_ylim(), 0.90)
            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
            ax[2].plot(pdate,self.diag['beta'])
+           plot_error(ax[2],pdate,self.diag['beta'],sigma_beta)
+           med = median(self.diag['beta'])
+           ax[2].plot(ax[2].get_xlim(),[med,med])
+
            y2_ticks = np.log(2)/(ax[2].get_yticks()+eps)
            n = len(y2_ticks)
            y2_tick_label = ['']*n
            for i in range(0,len(y2_ticks)):
               y2_tick_label[i] = '%.1f'%y2_ticks[i]
            y2_tick_label[0] = ' >14'
+           ax[2].grid(False,axis='y')
            dtax = ax[2].twinx()
            dtax.set_yscale(ax[2].get_yscale())
            dtax.set_ylabel('Doubling Time (da)')
            dtax.set_yticks(ax[2].get_yticks())
            dtax.set_yticklabels(y2_tick_label)
+           dtax.set_ylim(ax[2].get_ylim())
 
-        #  plot_error(ax[2],pdate,diag['beta'],sigma_beta)
-        #  ax[2].scatter(pdate,diag['beta'])
 
         if (npl > 3):
            ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
-           sigma_mu = np.exp(self.get_est_or_init('logsigma_mu'))
            sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
            tx = prop_scale(ax[3].get_xlim(), 0.05)
            ty = prop_scale(ax[3].get_ylim(), 0.90)
            ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
            ax[3].plot(pdate,self.diag['mu'])
+           plot_error(ax[3],pdate,self.diag['mu'],sigma_mu)
            ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+           med = median(self.diag['mu'])
+           ax[3].plot(ax[3].get_xlim(),[med,med])
     
     #   title = self.name+' County, '+self.enclosed_by
     #   fig.text(0.5,0.925,title ,ha='center',va='top')
@@ -645,13 +651,17 @@ def plot_dow_boxes(mult=1000):
 #alam.plot_prevalence()
 print('------- here ------')
 tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
-tfit.print_metadata()
+#tfit.print_metadata()
 tfit.plot()
 #make_fit_table()
 #make_fit_table('.rep')
 
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
-#test.print_metadata()
+test = Geography(name='Los Angeles',enclosed_by='California',code='CA')
+test.print_metadata()
+test.read_nyt_data()
+test.get_pdate()
 #test.print_data()
+test.plot_prevalence(yscale='log',window=[7,14])
 #plot_dow_boxes()
