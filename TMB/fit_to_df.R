@@ -7,6 +7,7 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
            log_obs_deaths = data$log_obs_deaths,
            log_pred_cases = obj$report()$logEye,
            log_pred_deaths = obj$report()$logD,
+           gamma = obj$report()$gamma,
            beta = obj$report()$beta,
            mu = obj$report()$mu
     )

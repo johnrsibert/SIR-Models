@@ -96,6 +96,7 @@ options(warn=2,verbose=FALSE)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
+print(paste("Objective function value =",opt$value))
 print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
@@ -156,9 +157,10 @@ largest_us_counties = list(
 "SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI"
 )
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="Los_AngelesCA")->fit
+#   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="New_York_CityNY")->fit
 #   do_one_run(County="Contra_CostaCA")->fit
 } else {

@@ -17,13 +17,13 @@ import pandas
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('AlamedaCA.RData')
+fit=pyreadr.read_r('Los_AngelesCA.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
 print(diag)
 print(diag['mu'])
-#mmu = diag['mu'].quantile(q=0.5)
+mmu = diag['mu'].quantile(q=0.5)
 print('median mu:',mmu)
 
 md = fit['meta']
