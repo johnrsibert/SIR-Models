@@ -15,11 +15,12 @@ NYT_home = '/home/other/nytimes-covid-19-data/'
 NYT_counties = NYT_home + 'us-counties.csv'
 NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
+
 cv_home = '/home/jsibert/Projects/SIR-Models/'
 census_data_path = cv_home+'co-est2019-pop.csv'
 large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
-dat_path = cv_home + 'tests/'
+dat_path = cv_home + 'dat/'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')

@@ -28,6 +28,9 @@ plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 import js_covid as cv
 
 eps = 1e-5
+
+# ---------------- global utility functions ---------------------------
+
 def Strptime(x):
     """
     wrapper for datetime.strptime callable by map(..)
@@ -39,6 +42,11 @@ def prop_scale(lim,prop):
     s = lim[0] + prop*(lim[1]-lim[0])
     return(s)
     
+def pretty_county(s):
+    ls = len(s)
+    pretty = s[0:(ls-2)]+', '+s[(ls-2):]
+    return(pretty.replace('_',' ',5))
+
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
     if ( (end =='l') | (end == 'b')):
@@ -74,6 +82,8 @@ def isNaN(num):
 def median(x):
     mx = x.quantile(q=0.5)
     return float(mx)
+
+# -----------  class definitions--------------       
 
 class Geography:
 
@@ -427,6 +437,7 @@ class Fit: #(Geography):
         date_lim = [date_list[0],date_list[len(date_list)-1]]
         plt.rcParams['lines.linewidth'] = 1
         plt.rcParams["scatter.marker"] = '+'
+        plt.rcParams["lines.markersize"] = 6
         prefix = ''
         if (logscale):
             prefix = 'log '
@@ -547,10 +558,6 @@ class Fit: #(Geography):
 
 # ----------- end of class definitions--------------       
 
-def pretty_county(s):
-    ls = len(s)
-    pretty = s[0:(ls-2)]+', '+s[(ls-2):]
-    return(pretty.replace('_',' ',5))
 
 def make_fit_table(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
@@ -674,6 +681,27 @@ def plot_dow_boxes(mult=1000):
     plt.savefig('days_of_week.png',dpi=300)
     plt.show()
   
+def web_update():
+#   os.system('git -C /home/other/nytimes-covid-19-data pull -v')
+    
+    BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
+    cmd = 'wget http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
+         ' -O '+cv.cv_home+BC_cases_file
+    print(cmd)
+#    os.system(cmd)
+
+# cv_home = '/home/jsibert/Projects/SIR-Models/'
+
+#   make_dat_file()
+#   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
+#   plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
+#   plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
+#   plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
+#   plot_county_dat(county_dat,County='Tompkins',State='New York',file='TompkinsNY')
+#   plot_county_dat(county_dat,County='Placer',State='California',file='PlacerCA')
+
+
+
 # --------------------------------------------------       
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
@@ -683,19 +711,18 @@ def plot_dow_boxes(mult=1000):
 #alam.print_data()
 #alam.plot_prevalence()
 print('------- here ------')
+web_update()
 #tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
 #tfit.plot()
+
 #make_fit_table()
 #make_fit_table('.rep')
 
-#hono = Geography('Honolulu','Hawaii','HI')
-#hono.read_nyt_data('county')
-test = Geography(name='Los Angeles',enclosed_by='California',code='CA')
+#test = Geography(name='Los Angeles',enclosed_by='California',code='CA')
+#test.read_nyt_data()
+#test.get_pdate()
 #test.print_metadata()
-test.read_nyt_data()
-test.get_pdate()
-test.print_metadata()
-#test.print_data()
-test.plot_prevalence(yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
+#test.plot_prevalence(yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
+
 #plot_dow_boxes()
