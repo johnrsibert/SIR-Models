@@ -50,7 +50,8 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
                 color=c)
 
 def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
-    # use of logscale is counterintuitive
+    # use of logscale is counterintuitive;
+    # indicates that the y variable is logarithmic
     if (logscale):
         sdyu = np.array(y + mult*sdy)
         sdyl = np.array(y - mult*sdy)
@@ -65,6 +66,7 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
                             facecolor='0.9', edgecolor=c,lw=1)
     ax.add_patch(sd_region)
+
 
 def isNaN(num):
     return num != num
@@ -90,6 +92,7 @@ class Geography:
         self.dat_file = cv.dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
+        self.ntime = None
         self.date = None
         self.cases = None
         self.deaths = None
@@ -176,6 +179,7 @@ class Geography:
         self.deaths = np.array(dat[County_rows]['deaths'])
         self.date   = np.array(dat[County_rows]['date'])
         self.date0 = self.date[0]
+        self.ntime = len(self.date)
         
     def write_dat_file(self):
         print(len(self.Date),'records found for',self.name,self.enclosed_by)
@@ -217,7 +221,7 @@ class Geography:
 
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
-                        window=[5,14], save = True):
+                        window=[5,14], plot_dt = False, save = True):
         """ 
         Plots cases and deaths vs calendar date 
         """
@@ -254,8 +258,6 @@ class Geography:
                 ax2[a].set_ylabel("Daily Change")
         
         if (per_capita):
-            cp_row = pops['county'] == cc
-#           pop_size = int(pops[cp_row]['population'])
             cases =  mult*self.cases/self.population + eps
             deaths =  mult*self.deaths/self.population + eps
         else :
@@ -275,10 +277,12 @@ class Geography:
                 ax2[0].plot(Date[1:],adc,linewidth=1)
                 mark_ends(ax2[0],Date[len(Date)-1],adc[len(adc)-1],
                           str(window[w])+'da','r')
+
+        if ((yscale == 'log') & (plot_dt)):
+            ax[0] = self.plot_dtslopes(ax[0])
                 
         d = ax[1].plot(Date, deaths)#,label=cc)
-        ax[1].text(Date[len(Date)-1],deaths[len(deaths)-1],' D',ha='left',va='center',
-                   fontsize=10,color=tcol)
+        mark_ends(ax[1],Date[len(Date)-1],deaths[len(deaths)-1],'D','r')
         if (delta_ts):
             delta_deaths = np.diff(deaths)
             ax2[1].bar(Date[1:],delta_deaths,alpha=0.5)
@@ -318,6 +322,35 @@ class Geography:
         if save:
             plt.savefig(self.moniker+'_prevalence.png',dpi=300)
         plt.show()
+
+
+    def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
+        """
+        Superimpose exponential growth slope lines for different doubling times
+        ax: axisis on which to draw slopes lines
+        threshold: number of cases used to start slopes
+        dt: representative doubling times in days
+        """
+        k0 = 0
+        # find frist date in shich cases exceeds threshold
+        for k in range(0, self.ntime):
+            if (self.cases[k] >= threshold):
+                k0 = k
+                break
+
+        d0 = self.pdate[k0]
+        c0 = self.cases[k0]
+        sl = np.log(2.0)/dt
+        xrange = ax.get_xlim()
+        yrange = [25,ax.get_ylim()[1]]
+        for i in range(0,len(dt)):
+            y = c0 + np.exp(sl[i]*(d0-xrange[0]))
+            ax.plot([d0,xrange[1]],[c0,y],color='black',linewidth=1)
+            c = ax.get_lines()[-1].get_color()
+            mark_ends(ax,xrange[1],y,str(dt[i])+' da','r')
+
+        return(ax)
+
 
 class Fit: #(Geography):
 
@@ -650,18 +683,19 @@ def plot_dow_boxes(mult=1000):
 #alam.print_data()
 #alam.plot_prevalence()
 print('------- here ------')
-tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-tfit.plot()
+#tfit.plot()
 #make_fit_table()
 #make_fit_table('.rep')
 
 #hono = Geography('Honolulu','Hawaii','HI')
 #hono.read_nyt_data('county')
 test = Geography(name='Los Angeles',enclosed_by='California',code='CA')
-test.print_metadata()
+#test.print_metadata()
 test.read_nyt_data()
 test.get_pdate()
+test.print_metadata()
 #test.print_data()
-test.plot_prevalence(yscale='log',window=[7,14])
+test.plot_prevalence(yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
 #plot_dow_boxes()
