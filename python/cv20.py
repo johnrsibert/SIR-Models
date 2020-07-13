@@ -152,19 +152,15 @@ class Geography:
         Bronx, and Richmond counties to be compatible with NYTimes data
         """
         
-        DC_pop = 705749
         nyc_pop = 26161672
         if (self.name == 'New York City'):
             return(nyc_pop)
-        # need additional filter for 'COUNTY' > 0
-        # to distinguish couties with names the same as their state
-        if (self.name == 'District of Columbia'): 
-            return(DC_pop)
 
         dat = pd.read_csv(cv.census_data_path,header=0)
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
-        County_rows = state_filter & county_filter
+        COUNTY_filter = (dat['COUNTY']>0)
+        County_rows = state_filter & county_filter & COUNTY_filter
         try:
             population = int(pd.to_numeric(dat[County_rows]['population'].values))
         except:
@@ -745,13 +741,13 @@ print('------- here ------')
 #make_fit_table()
 #make_fit_table('.rep')
 
-test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
-test.read_nyt_data()
-test.write_dat_file()
-test.print_metadata()
-test.plot_prevalence()#yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
+#test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
+#test.read_nyt_data()
+#test.write_dat_file()
+#test.print_metadata()
+#test.plot_prevalence()#yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
 
 #plot_dow_boxes()
 
-#web_update()
-#make_dat_files()
+web_update()
+make_dat_files()
