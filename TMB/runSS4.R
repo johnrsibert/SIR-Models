@@ -1,7 +1,10 @@
-source('plot_state.R')
-source('SIR_read_dat.R')
-source('fit_to_df.R')
-fit_path = '/home/jsibert/Projects/SIR-Models/fits/'
+SIR_path = '/home/jsibert/Projects/SIR-Models/'
+fit_path = paste(SIR_path,'fits/',sep='')
+dat_path = paste(SIR_path,'dat/',sep='')
+TMB_path = paste(SIR_path,'TMB/',sep='')
+source(paste(TMB_path,'plot_state.R',sep=''))
+source(paste(TMB_path,'SIR_read_dat.R',sep=''))
+source(paste(TMB_path,'fit_to_df.R',sep=''))
 require(TMB)
 require(gtools)
 
@@ -9,7 +12,7 @@ require(gtools)
 do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4')
 {
 cname = sub(" ","_",County)
-datfile=paste(fit_path,cname,'.dat',sep='')
+datfile=paste(dat_path,cname,'.dat',sep='')
 separator = "#############################"
 print(paste(separator,County,separator),quote=FALSE)
 print(paste(separator,County,separator),quote=FALSE)
@@ -67,10 +70,11 @@ map = list(
 print(paste("---- estimation map:",length(map),"variables"))
 print(map)
 
-cpp.name = paste(model.name,'.cpp',sep='')
+cpp.name = paste(TMB_path,model.name,'.cpp',sep='')
 
 print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
 compile(cpp.name)
+print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
@@ -156,20 +160,25 @@ largest_us_counties = list(
 "SonomaCA", "StanislausCA",
 "SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI"
 )
+
+fit_examples = list(
+"AlamedaCA","DallasTX","Miami-DadeFL","New_York_CityNY","HonoluluHI"
+)
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
-    do_one_run(County="Los_AngelesCA")->fit
-#   do_one_run(County="AlamedaCA")->fit
+#   do_one_run(County="Los_AngelesCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="New_York_CityNY")->fit
 #   do_one_run(County="Contra_CostaCA")->fit
 } else {
-   sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   for (c in 1:length(largest_us_counties))
+#  sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+   #for (c in 4:length(largest_us_counties))
+   for (c in fit_examples)
    {
-       print(paste('starting',largest_us_counties[c]))
-       do_one_run(County=largest_us_counties[c])->junk
-       print(paste('finished',largest_us_counties[c]))
+       print(paste('starting',c))
+       do_one_run(County=c)->fit
+       print(paste('finished',c,'with C =',fit$opt$converge))
    }
    sink()
 }

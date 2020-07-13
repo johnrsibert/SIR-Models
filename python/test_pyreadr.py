@@ -17,7 +17,7 @@ import pandas
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('Los_AngelesCA.RData')
+fit=pyreadr.read_r('HonoluluHI.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)

@@ -95,12 +95,17 @@ class Geography:
         self.code = kwargs.get('code')
         self.population = None
         self.source = None
-        self.moniker = self.name+self.code
-        self.moniker =  self.moniker.replace(' ','_',5) 
-        print(self.moniker)
+        if self.name is None:
+            self.moniker = None
+        else:
+            self.moniker = self.name+self.code
+            self.moniker =  self.moniker.replace(' ','_',5) 
     #   self.TMB_fit = None
     #   self.ADMB_fit = None
-        self.dat_file = cv.dat_path+self.moniker+'.dat'
+        if self.moniker is None:
+            self.dat_file = None
+        else:
+            self.dat_file = cv.dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
         self.ntime = None
@@ -121,8 +126,6 @@ class Geography:
         print('gpopulation:',self.population)
         print('gsource:',self.source)
         print('gmoniker:',self.moniker)
-    #   print(self.TMB_fit)
-    #   print(self.ADMB_fit)
         print('gdat_file:',self.dat_file)
         print('gupdated:',self.updated)
         print('gdate0:',self.date0)
@@ -370,20 +373,10 @@ class Geography:
         return(ax)
 
 
-class Fit: #(Geography):
+class Fit(Geography):
 
-#   def __init__(self,name,enclosed_by,code,fit_type='TMB'):
-#       super().__init__(name,enclosed_by,code)
-#       self.fit_type = fit_type;
-#       if (self.fit_type == 'TMB'):
-#           pn = cv.fit_path+self.moniker+'.RData'
-#           self.fit=pyreadr.read_r(pn)
-#       elif (self.fit_type == 'ADMB'):
-#           sys.exit('still working on ADMB fits')
-#       else:
-#           sys.exit(self.fit_type+' not recognised')
-
-    def __init__(self,fit_file):
+    def __init__(self,fit_file,**kwargs):
+        super().__init__(**kwargs)
         pn = fit_file #cv.fit_path+fit_file
         filename, extension = os.path.splitext(pn)
         if (extension == '.RData'):
@@ -391,19 +384,17 @@ class Fit: #(Geography):
             tfit=pyreadr.read_r(pn)
         else:
             sys.exit('class Fit  not yet implemented on '+extension+' files.')
+        head, tail = os.path.split(pn)
+        self.moniker = os.path.splitext(tail)[0]
 
-    #   print('keys',tfit.keys())
         self.diag = tfit['diag']
-    #   print(self.diag.columns)
         self.md = tfit['meta']
-    #   print(self.md)
         self.ests = tfit['ests']
-    #   print('ests:',self.ests)
     #   Date0 = self.get_metadata_item('Date0')
     #   print('Date0:',Date0)
 
     def print_metadata(self):
-    #   super().print_metadata()
+        super().print_metadata()
         print('type:',self.fit_type)
 
     def get_metadata_item(self,mdname):
@@ -450,7 +441,7 @@ class Fit: #(Geography):
         if (logscale):
             prefix = 'log '
              
-        fig, ax = plt.subplots(npl,1,figsize=(6.5,(npl)*2.5))
+        fig, ax = plt.subplots(npl,1,figsize=(10.0,(npl)*2.5))
         if (per_capita):
             ax[0].set_ylabel(prefix+'Cases'+' per '+str(mult))
             ax[1].set_ylabel(prefix+'Deaths'+' per '+str(mult))
@@ -495,7 +486,6 @@ class Fit: #(Geography):
             ax[0].scatter(pdate,np.exp(obsI))
             ax[0].plot(pdate,np.exp(preI),color='red')
         plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
-   #                  #    ecol=ax[0].get_lines()[line].get_color())
         tx = prop_scale(ax[0].get_xlim(), 0.05)
         ty = prop_scale(ax[0].get_ylim(), 0.90)
         sigstr = '%s = %.3g'%('$\sigma_I$',sigma_logC)
@@ -541,7 +531,6 @@ class Fit: #(Geography):
            dtax.set_yticklabels(y2_tick_label)
            dtax.set_ylim(ax[2].get_ylim())
 
-
         if (npl > 3):
            ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
            sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
@@ -558,13 +547,26 @@ class Fit: #(Geography):
     #   fig.text(0.5,0.925,title ,ha='center',va='top')
 
         if save:
-        #   plt.savefig(cv.fit_path+county.replace(' ','_',5)+'_obsVpred.png',dpi=300)
-            plt.savefig(cv.fit_path+self.fit_type+'_obsVpred.png',dpi=300)
-        plt.show(True)
+            gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates'
+            plt.savefig(gfile+'.png',dpi=300)
+            plt.show(False)
+            print('plot saved as',gfile)
+        else:
+            plt.show(True)
 
 
 
 # ----------- end of class definitions--------------       
+
+def make_fit_plots(ext = '.RData'):
+    fit_files = glob.glob(cv.fit_path+'*'+ext)
+    print('found',len(fit_files),ext,'files in',cv.fit_path)
+    plt.rc('figure', max_open_warning = 0)
+    for ff in fit_files:
+        fit = Fit(ff)
+        fit.print_metadata()
+        fit.plot()
+
 
 
 def make_fit_table(ext = '.RData'):
@@ -741,6 +743,8 @@ print('------- here ------')
 #make_fit_table()
 #make_fit_table('.rep')
 
+make_fit_plots()
+
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
 #test.read_nyt_data()
 #test.write_dat_file()
@@ -749,5 +753,5 @@ print('------- here ------')
 
 #plot_dow_boxes()
 
-web_update()
-make_dat_files()
+#web_update()
+#make_dat_files()
