@@ -21,6 +21,7 @@ census_data_path = cv_home+'co-est2019-pop.csv'
 large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'
+graphics_path = cv_home + 'Graphics/'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')

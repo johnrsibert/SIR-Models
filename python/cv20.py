@@ -97,6 +97,7 @@ class Geography:
         self.source = None
         self.moniker = self.name+self.code
         self.moniker =  self.moniker.replace(' ','_',5) 
+        print(self.moniker)
     #   self.TMB_fit = None
     #   self.ADMB_fit = None
         self.dat_file = cv.dat_path+self.moniker+'.dat'
@@ -151,15 +152,25 @@ class Geography:
         Bronx, and Richmond counties to be compatible with NYTimes data
         """
         
+        DC_pop = 705749
         nyc_pop = 26161672
         if (self.name == 'New York City'):
             return(nyc_pop)
+        # need additional filter for 'COUNTY' > 0
+        # to distinguish couties with names the same as their state
+        if (self.name == 'District of Columbia'): 
+            return(DC_pop)
 
         dat = pd.read_csv(cv.census_data_path,header=0)
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
         County_rows = state_filter & county_filter
-        population = int(pd.to_numeric(dat[County_rows]['population'].values))
+        try:
+            population = int(pd.to_numeric(dat[County_rows]['population'].values))
+        except:
+            print('get_county_pop() failed for:')
+            print(self.name, self.enclosed_by,self.code) 
+            population = 1
         return(population)   
         
     def read_nyt_data(self,gtype='county'):
@@ -192,17 +203,17 @@ class Geography:
         self.ntime = len(self.date)
         
     def write_dat_file(self):
-        print(len(self.Date),'records found for',self.name,self.enclosed_by)
+        print(len(self.date),'records found for',self.name,self.enclosed_by)
         O = open(self.dat_file,'w')
         O.write('# county\n %s\n'%(self.moniker))
         O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
         O.write(' %s\n'%self.updated)
         O.write('# population (N0)\n %10d\n'%self.population)
         O.write('# date zero\n %s\n'%self.date0)
-        ntime = len(self.Date)-1
+        ntime = len(self.date)-1
         O.write('# ntime\n %4d\n'%ntime)
         O.write('#%6s %5s\n'%('cases','deaths'))
-        for r in range(0,len(self.Date)):
+        for r in range(0,len(self.date)):
             O.write('%7d %6d\n'%(self.cases[r],self.deaths[r]))
 
     def dow_count(self,mult = 1000.0):
@@ -330,8 +341,9 @@ class Geography:
     #   plt.tight_layout() #pad=1.0, w_pad=1.0, h_pad=5.0)
     
         if save:
-            plt.savefig(self.moniker+'_prevalence.png',dpi=300)
-        plt.show()
+            plt.savefig(cv.graphics_path+self.moniker+'_prevalence.png',dpi=300)
+        else:
+            plt.show()
 
 
     def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
@@ -682,13 +694,28 @@ def plot_dow_boxes(mult=1000):
     plt.show()
   
 def web_update():
-#   os.system('git -C /home/other/nytimes-covid-19-data pull -v')
+    os.system('git -C /home/other/nytimes-covid-19-data pull -v')
     
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
     cmd = 'wget http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
          ' -O '+cv.cv_home+BC_cases_file
     print(cmd)
-#    os.system(cmd)
+    os.system(cmd)
+
+def make_dat_files():
+    gg = pd.read_csv(cv.cv_home+'UpdateList.csv',header=0,comment='#')
+    print(gg.columns)
+#   print(gg)
+    plt.rc('figure', max_open_warning = 0)
+    for g in range(0,len(gg)):
+        print(gg['name'][g])
+        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
+                         code=gg['code'][g])
+        tmpG.read_nyt_data('county')
+        tmpG.write_dat_file()
+        tmpG.plot_prevalence(save=True)
+
+
 
 # cv_home = '/home/jsibert/Projects/SIR-Models/'
 
@@ -711,7 +738,6 @@ def web_update():
 #alam.print_data()
 #alam.plot_prevalence()
 print('------- here ------')
-web_update()
 #tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
 #tfit.plot()
@@ -719,10 +745,13 @@ web_update()
 #make_fit_table()
 #make_fit_table('.rep')
 
-#test = Geography(name='Los Angeles',enclosed_by='California',code='CA')
-#test.read_nyt_data()
-#test.get_pdate()
-#test.print_metadata()
-#test.plot_prevalence(yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
+test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
+test.read_nyt_data()
+test.write_dat_file()
+test.print_metadata()
+test.plot_prevalence()#yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
 
 #plot_dow_boxes()
+
+#web_update()
+#make_dat_files()
