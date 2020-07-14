@@ -740,10 +740,10 @@ print('------- here ------')
 #tfit.print_metadata()
 #tfit.plot()
 
-#make_fit_table()
+make_fit_table()
 #make_fit_table('.rep')
 
-make_fit_plots()
+#make_fit_plots()
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
 #test.read_nyt_data()
