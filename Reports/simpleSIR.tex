@@ -16,19 +16,20 @@
 
 \usepackage[pdftex,bookmarks=false]{hyperref}
 \hypersetup{pdfauthor={John Sibert}
-            pdfsubject={variable infection and mortality rate estimates}
+            pdfsubject={variable transmission and mortality rate estimates}
             pdftitle={Simple SIR Statistical Model}
             pdfkeywords={COVID-19, SIR Model, random effects, TMB}
             }%
 
 \newcommand\doublespacing{\baselineskip=1.6\normalbaselineskip}
 \newcommand\singlespacing{\baselineskip=1.0\normalbaselineskip}
+\newcommand\help[1]{\color{Magenta}{\it #1 }\normalcolor}
 
-\title{Estimating short term trends in infection and mortality rates
+\title{Estimating short term trends in transmission and mortality rates
 during the Covid 19 Epidemic}
 
 \author{
-John Sibert\thanks{johnrsibert@gmail.com}\\
+John Sibert\thanks{sibert@hawaii.edu; johnrsibert@gmail.com}\\
 Joint Institute of Marine and Atmospheric Research\\
 University of Hawai`i at M\={a}noa\\
 Honolulu, HI  96822 U.S.A.\\[0.125in]
@@ -45,23 +46,24 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 
 The sudden advent of the COVID-19 pandemic provoked many political
 jurisdictions to advise people to ``shelter in place'' and to practice
-``social distancing''. If this advice has been effective it should be
-possible to detect the effects of the advice by comparing changes
-numbers of infected people and perhaps changes in the infection rates
+``social distancing''. If this advice has been effective, it should be
+possible to detect the effects of the advice by comparing changes in
+numbers of infected people and perhaps changes in transmission rates
 over time and
 between areas. The SIR models of epidemic spread divide the affected
 population into three compartments: 
-Susceptible, Infectious and Recovered.
+Susceptible, Infected and Recovered.
 SIR models are
 usually expressed as coupled ordinary differential equations,
 \begin{eqnarray}
 \label{eqn:SIR}
 \frac{dS}{dt} &=& -\beta\frac{IS}{N} - \mu S\\
 \frac{dI}{dt} &=& \hphantom{-}\beta\frac{IS}{N} - \mu I -\gamma I\\
-\frac{dR}{dt} &=&  -\mu R +\gamma I
+\frac{dR}{dt} &=&  -\mu R +\gamma I\\
+N &=& S + I + R
 \end{eqnarray}
 where $N$ is the population size, $\beta$ is the instantaneous
-infection rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
+transmission rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
 ($[t^{-1}]$),  and $\gamma$ is the instantaneous recovery rate
 ($[t^{-1}]$).  
 
@@ -72,24 +74,25 @@ data\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
 is an easily accessible and source of data. These
 data comprise daily totals of ``cases'' and ''deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
-a reasonable approximations of the Infectious compartment ($I$) in a SIR model. 
-There is simply no credible information on either the Susceptible or
+a reasonable approximations of the Infected compartment ($I$) in a SIR model. 
+There are simply no credible data on either the Susceptible or
 the Recovered compartments.
 
 \section*{Model Structure}
-I make some simplifying assumptions. (1) The entire population is
-susceptible so that $S/N = 1$. (2) Over the short term, the size of the
+I make some simplifying assumptions in the face of incomplete data: 
+(1) The entire population is susceptible so that $S/N = 1$. 
+(2) Over the short term, the size of the
 Susceptible compartment does not change, $\frac{dS}{dt} = 0$.
 (3) People who recover from a COVID-19 infection return to the Susceptible
 compartment, eliminating the Recovered compartment. 
 With these assumptions, and the addition of a ``deaths''
-compartment the simplified SIR model is
+compartment, the simplified SIR model is
 \begin{eqnarray}
 \label{eqn:sSIR}
 \frac{dI}{dt} &=&  \beta I - \mu I -\gamma I\\
 \frac{dD}{dt} &=& \mu I
 \end{eqnarray}
-and has state variables that might be fitted to available observations.
+and has state variables that might be matched to available observations.
 
 The data available during the initial stages of the COVID-19 pandemic
 contain measurement errors of various types.
@@ -123,18 +126,25 @@ random errors.
 \begin{eqnarray}
 \label{eqn:sSIRfd}
 I_t &=& I_{t-\Delta t}\big(1+\Delta t(\beta_{t-\Delta t} - \mu_{t-\Delta t}
-- \gamma)\big)e^{\eta_t}\\
+- \gamma_{t-\Delta t})\big)e^{\eta_t}\\
 D_t &=& \big(D_{t-\Delta t} + \Delta t \mu_{t-\Delta t}I_{t-\Delta
 t}\big)e^{\eta_t}
 \end{eqnarray}
-where $\eta$ is a log-normal random deviate, $\eta\sim
+where $\eta$ is a normal random deviate, $\eta\sim
 N(0,\sigma_\eta)$, representing temporal variability in the biosocial
-factors that mediate the spread of the pandemic. I have no particular
+factors that mediate the spread of the pandemic. 
+The recovery rate, $\gamma_{t-\Delta t}$, in equation
+(\ref{eqn:sSIRfd}) is computed algebraically as
+\begin{equation}
+\gamma_{t-\Delta t} = \beta_{t-\Delta t} - \mu_{t-\Delta t} +
+(1-\frac{I_t}{I_{t-\Delta t}})
+\end{equation}
+I have no particular
 justification, beyond the parsimony principle, for the assumption that
 the variance of these two processes, $\sigma_\eta$, should be the
 same.
 
-One approach to modeling time-dependent rates of infection and
+One approach to modeling time-dependent rates of transmission and
 mortality, $\beta$ and $\mu$, is to treat them as random effects
 (\cite{Skaug2006}). Random effects are appropriate if repeating a time
 series of observations would not yield the same outcome as the initial
@@ -153,9 +163,9 @@ The general form of the state-space observation model is
 x_t = O(\alpha_t) + \varepsilon_t
 \end{equation}
 where the function $O$ describes the measurement process with
-error $\varepsilon$ in observing the state.
+error $\varepsilon$ in observing the state $\alpha$.
 
-I applied different error models for cases and
+I applied separate observation error models for cases and
 deaths. The observation model for cases is a simple log-normal error
 \begin{equation}
 \log\varphi_t = \bigg(\log\frac{1}{\sqrt{2\pi\sigma^2_I}} -\Bigl(\frac{\log
@@ -164,13 +174,14 @@ I_t-\log\widehat{I}_t}{\sigma_I}\Bigr)^2\bigg)\\
 where $I$ is the observed number of cases and $\widehat{I}$ is the
 number of cases predicted by equation~\ref{eqn:sSIRfd}.
 
-The deaths time-series inevitably contains a
-substantial number of recorded zeros. 
+
 Not all those afflicted by COVID-19 have died; there are far fewer
 deaths than infections. In addition,
 the observed time series for both $I$ and $D$ begins at the first recorded
 case. The first recorded death occurs several days or weeks after the
 first recorded case. 
+Therefor the deaths time-series inevitably contains a
+substantial number of recorded zeros. 
 The observation model for deaths accommodates observed zeroes by
 assuming to be ``zero-inflated'' log normal likelihood given by
 \begin{equation}
@@ -188,7 +199,7 @@ $\widehat{D}$ is the number of deaths predicted by
 equation~\ref{eqn:sSIRfd}, 
 and $p_0$ is the proportion of observed deaths equal to zero.
 
-\cite{Sibert2017,Nielsen2014b}
+\cite{Sibert2017,Nielsen2014b,Chen2020}
 
 
 Model parameters are estimated by
@@ -207,21 +218,16 @@ $\alpha_t$ is the vector of the daily calculations of the state
 variables and random effects,
 and $\theta$ 
 is a vector of model parameters (Table~\ref{tab:allvars1}).
-The R package TMB (\cite{TMB0000} package was provisionally used to 
+The R package TMB (\cite{TMB0000} package was used to 
 estimate the parameters of the model. 
 The R and supporting C++ files are available on 
 github.\footnote{\url{https://github.com/johnrsibert/SIR-Models}}
 
-
-
 \begin{table}
-\caption{Complete list of model variables for the simple SIR model.
+\caption{List of model variables for the simple SIR model.
 There are two state variables computed from the of estimated
 parameters and random effects.
-There are one two random effects for each time step in the model
-depending on model configuration.
-There are six or seven estimated parameters depending on model
-configuration. 
+There are two random effects and five estimated variance parameters.
 }
 \label{tab:allvars1}
 \begin{center}
@@ -233,17 +239,14 @@ Variable & Definition\\
        & {\it State variables:}\\
 $I$      & Number of infected individuals or ``cases''\\
 $D$      & Number of deaths\\
-$N_0$    & Population size (not used in current models)\\
        & {\it Random effects:}\\
-$\beta_t$ & Infection rate\\
+$\beta_t$ & Transmission rate\\
 $\mu_t$   & Mortality rate\\
        & {\it Estimated parameters:}\\
-$\gamma$   & Recovery rate of infected individuals\\
-$\mu$      & Mortality rate of infected individuals\\
 $\sigma_I$ & Infectious compartment estimation standard deviation\\
 $\sigma_D$ & Deaths compartment estimation standard deviation\\
-$\sigma_\eta$ & Standard deviation of Infectious and Deaths compartments\\
-$\sigma_\beta$ & Standard deviation of infection rate random walk\\
+$\sigma_\eta$ & Standard deviation of transmission and deaths process errors\\
+$\sigma_\beta$ & Standard deviation of transmission rate random walk\\
 $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \hline
 \end{tabular}
@@ -252,16 +255,27 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 
 \section*{Results}
 
-All data are derived from the New York times github 
-site\footnote{See note \ref{ff:nyt}.}.
+%All data are derived from the New York times github 
+%site\footnote{See note \ref{ff:nyt}.}.
 % {\url{https://github.com/nytimes/covid-19-data/}}. 
-The Times amalgamates data
+
+Four more or less distinct trajectories in the evolution of the
+pandemic can be identified:
+\begin{enumerate}
+\item Effective suppression of transmission 
+(eg New York City\footnote{The Times amalgamates data
 from the 5 counties that comprise New York City into a single
-``geography'' which appears as ``New York CityNY County'' in my
-analysis. The test data consist of data from New York City, the 19
-most populous counties in the United States, plus select
-counties form California, specifically including counties in the San
-Francisco Bay Area.
+``geography'' which appears here as ``New York City County''.})
+\item Effective suppression of transmission and followed by
+uncontrolled increase in number of new cases (eg Honolulu Co. HI,
+Miami-Dade Co. FL);
+\item Slow monotonic increase in number of new cases (eg.  Alameda Co. CA);
+\item Partial suppression of transmission followed by 
+uncontrolled increase in number of new cases (eg Dallas Co. TX);
+\end{enumerate}
+
+
+\section*{Discussion}
 
 Whether the available data are sufficiently informative to enable
 estimation of the model parameters is a critical aspect of the
@@ -276,29 +290,69 @@ attributable to changes in model structure or to the increase in the
 length of the time series is unclear. This ambiguity influenced the
 development of the model.
 
-The preliminary model presented here has only one random effect
-infection rate, $\beta_t$, and the mortality rate, $\mu$, is
-considered constant over time. There are thus seven estimated
-parameters.      
-
-Results for different counties seem to fall into three general
-categories: (1) pretty good; 
-(2) good fit to cases and bad fit to deaths; 
-(3) bad fit to cases and good fit to deaths. 
-
 \clearpage
 \printbibliography[title=References]
 
 \clearpage
 
 \begin{figure}
+\caption{\label{fig:NYC}
+Example effective suppression of transmission, New York City.
+Thick blue line indicates cumulative numbers; blue bars indicate daily
+increases; thin blue and orange lines indicate 5 and 14 day moving
+averages of daily increases; vertical gray bar marks the California
+shelter in place decree.
+\help{Change ordinates}
+}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}
+\end{center}
+\end{figure}
+
+
+\begin{figure}
+\caption{\label{fig:HNL}
+Effective suppression of transmission and followed by
+uncontrolled increase in number of new cases 
+Captions as in figure \ref{fig:NYC}.
+}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/HonoluluHI_prevalence.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\caption{\label{fig:ALA}
+Slow monotonic increase in number of new cases.
+Captions as in figure \ref{fig:NYC}.
+}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/AlamedaCA_prevalence.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\caption{\label{fig:DTX}
+Partial suppression of transmission followed by 
+uncontrolled increase in number of new cases.
+Captions as in figure \ref{fig:NYC}.
+}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/DallasTX_prevalence.png}
+\end{center}
+\end{figure}
+
+\end{document}
+
+
+\begin{figure}
 \begin{center}
 \caption{\label{fig:pgf}
 Example of a ``pretty good'' fit for data from
 Miami-Dade County, Florida.
-Observed and estimated cases and fits and estimated infection rate
+Observed and estimated cases and fits and estimated transmission rate
 trend.}
-\includegraphics[width=1.00\textwidth]{../Graphics/Miami-DadeFL-2020-06-10.pdf}
+\includegraphics[height=0.40\textheight]{../Graphics/Miami-DadeFL-2020-06-10.pdf}
 \end{center}
 \end{figure}
 
@@ -308,7 +362,7 @@ trend.}
 Example of a fit with good agreement between observed and estimated
 cases, but poor agreement for observed and estimated deaths.
 Cook County, Illinois.
-Observed and estimated cases and fits and estimated infection rate
+Observed and estimated cases and fits and estimated transmission rate
 trend.}
 \includegraphics[width=1.00\textwidth]{../Graphics/CookIL-2020-06-10.pdf}
 \end{center}
@@ -320,7 +374,7 @@ trend.}
 Example of a fit with good agreement between observed and estimated
 deaths, but poor agreement for observed and estimated cases.
 Riverside County, California.
-Observed and estimated cases and fits and estimated infection rate
+Observed and estimated cases and fits and estimated transmission rate
 trend.}
 \includegraphics[width=1.00\textwidth]{../Graphics/RiversideCA-2020-06-10.pdf}
 \end{center}

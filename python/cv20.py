@@ -507,14 +507,17 @@ class Fit(Geography):
         ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
         if (npl > 2):
-           ax[2].set_ylim(0.0,1.2*max(self.diag['beta']))
+           ymin = min(self.diag['beta'])-2.5*sigma_beta
+           ax[2].set_ylim(ymin,1.2*max(self.diag['beta']))
            sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
            tx = prop_scale(ax[2].get_xlim(), 0.05)
            ty = prop_scale(ax[2].get_ylim(), 0.90)
            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
            ax[2].plot(pdate,self.diag['beta'])
            plot_error(ax[2],pdate,self.diag['beta'],sigma_beta)
+           medstr = '%s = %.3g'%('$\\tilde{\\beta}$',sigma_beta)
            med = median(self.diag['beta'])
+           ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
            ax[2].plot(ax[2].get_xlim(),[med,med])
 
            y2_ticks = np.log(2)/(ax[2].get_yticks()+eps)
@@ -532,15 +535,17 @@ class Fit(Geography):
            dtax.set_ylim(ax[2].get_ylim())
 
         if (npl > 3):
-           ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
+           ymin = min(self.diag['mu'])-2.5*sigma_mu
+           ax[3].set_ylim(ymin,1.2*max(self.diag['mu']))
            sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
            tx = prop_scale(ax[3].get_xlim(), 0.05)
            ty = prop_scale(ax[3].get_ylim(), 0.90)
-           ax[3].set_ylim(0.0,1.2*max(self.diag['mu']))
            ax[3].plot(pdate,self.diag['mu'])
            plot_error(ax[3],pdate,self.diag['mu'],sigma_mu)
            ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+           medstr = '%s = %.3g'%('$\\tilde{\\mu}$',sigma_beta)
            med = median(self.diag['mu'])
+           ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
            ax[3].plot(ax[3].get_xlim(),[med,med])
     
     #   title = self.name+' County, '+self.enclosed_by
@@ -740,10 +745,10 @@ print('------- here ------')
 #tfit.print_metadata()
 #tfit.plot()
 
-make_fit_table()
+#make_fit_table()
 #make_fit_table('.rep')
 
-#make_fit_plots()
+make_fit_plots()
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
 #test.read_nyt_data()
