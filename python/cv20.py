@@ -513,10 +513,11 @@ class Fit(Geography):
            tx = prop_scale(ax[2].get_xlim(), 0.05)
            ty = prop_scale(ax[2].get_ylim(), 0.90)
            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+           ax[2].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
            ax[2].plot(pdate,self.diag['beta'])
            plot_error(ax[2],pdate,self.diag['beta'],sigma_beta)
-           medstr = '%s = %.3g'%('$\\tilde{\\beta}$',sigma_beta)
            med = median(self.diag['beta'])
+           medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
            ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
            ax[2].plot(ax[2].get_xlim(),[med,med])
 
@@ -524,8 +525,10 @@ class Fit(Geography):
            n = len(y2_ticks)
            y2_tick_label = ['']*n
            for i in range(0,len(y2_ticks)):
-              y2_tick_label[i] = '%.1f'%y2_ticks[i]
-           y2_tick_label[0] = ' >14'
+              if (y2_ticks[i] > 7):
+                  y2_tick_label[i] = ' >14'
+              else:
+                 y2_tick_label[i] = '%.1f'%y2_ticks[i]
            ax[2].grid(False,axis='y')
            dtax = ax[2].twinx()
            dtax.set_yscale(ax[2].get_yscale())
@@ -540,11 +543,12 @@ class Fit(Geography):
            sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
            tx = prop_scale(ax[3].get_xlim(), 0.05)
            ty = prop_scale(ax[3].get_ylim(), 0.90)
+           ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
            ax[3].plot(pdate,self.diag['mu'])
            plot_error(ax[3],pdate,self.diag['mu'],sigma_mu)
            ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
-           medstr = '%s = %.3g'%('$\\tilde{\\mu}$',sigma_beta)
            med = median(self.diag['mu'])
+           medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
            ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
            ax[3].plot(ax[3].get_xlim(),[med,med])
     
@@ -569,8 +573,8 @@ def make_fit_plots(ext = '.RData'):
     plt.rc('figure', max_open_warning = 0)
     for ff in fit_files:
         fit = Fit(ff)
-        fit.print_metadata()
-        fit.plot()
+    #   fit.print_metadata()
+        fit.plot(logscale=False)
 
 
 
