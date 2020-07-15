@@ -1,4 +1,3 @@
-
 \documentclass[12pt,letterpaper]{article}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -24,6 +23,8 @@
 \newcommand\doublespacing{\baselineskip=1.6\normalbaselineskip}
 \newcommand\singlespacing{\baselineskip=1.0\normalbaselineskip}
 \newcommand\help[1]{\color{Magenta}{\it #1 }\normalcolor}
+\newcommand\EG{e.g.\ }
+\newcommand\perda{$\rm{da}^{-1}$}
 
 \title{Estimating short term trends in transmission and mortality rates
 during the Covid 19 Epidemic}
@@ -67,25 +68,29 @@ transmission rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
 ($[t^{-1}]$),  and $\gamma$ is the instantaneous recovery rate
 ($[t^{-1}]$).  
 
+%https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology
+
 Unfortunately, few data sets include data for each of
 these compartments. 
 The New York Times' ``historical'' 
 data\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
-is an easily accessible and source of data. These
-data comprise daily totals of ``cases'' and ''deaths'' for each county
+is an easily accessible source of data. These
+data comprise daily totals of ``cases'' and ``deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
 a reasonable approximations of the Infected compartment ($I$) in a SIR model. 
-There are simply no credible data on either the Susceptible or
+There are simply no credible data of comparable scope on either the Susceptible or
 the Recovered compartments.
 
 \section*{Model Structure}
 I make some simplifying assumptions in the face of incomplete data: 
 (1) The entire population is susceptible so that $S/N = 1$. 
 (2) Over the short term, the size of the
-Susceptible compartment does not change, $\frac{dS}{dt} = 0$.
+Susceptible compartment does not change, 
+$\frac{dS}{dt} = 0 = \frac{dN}{dt}$,
+eliminating the Susceptible compartment.
 (3) People who recover from a COVID-19 infection return to the Susceptible
 compartment, eliminating the Recovered compartment. 
-With these assumptions, and the addition of a ``deaths''
+With these assumptions, and with the addition of a ``deaths''
 compartment, the simplified SIR model is
 \begin{eqnarray}
 \label{eqn:sSIR}
@@ -111,7 +116,7 @@ from errors in observing features of interest
 in the system (observation model).
 (See \cite{Harvey1990}).
 
-The general form of a state-space transition model is
+The general form of a state-space process or transition model is
 \begin{equation}
 \alpha_t=T(\alpha_{t-1}) + \eta_t
 \end{equation}
@@ -120,13 +125,14 @@ the function $T$ embodies the dynamics mediating the
 development of the state at time $t$ from the state at the previous
 time with random process error, $\eta_t$.
 
-The transition model is constructed from finite difference
+The transition model for the simplified SIR model is constructed from finite difference
 approximations of equation (\ref{eqn:sSIR}) with associated log-normal
 random errors.
 \begin{eqnarray}
-\label{eqn:sSIRfd}
+\label{eqn:sSIRfdI}
 I_t &=& I_{t-\Delta t}\big(1+\Delta t(\beta_{t-\Delta t} - \mu_{t-\Delta t}
 - \gamma_{t-\Delta t})\big)e^{\eta_t}\\
+\label{eqn:sSIRfdD}
 D_t &=& \big(D_{t-\Delta t} + \Delta t \mu_{t-\Delta t}I_{t-\Delta
 t}\big)e^{\eta_t}
 \end{eqnarray}
@@ -134,14 +140,14 @@ where $\eta$ is a normal random deviate, $\eta\sim
 N(0,\sigma_\eta)$, representing temporal variability in the biosocial
 factors that mediate the spread of the pandemic. 
 The recovery rate, $\gamma_{t-\Delta t}$, in equation
-(\ref{eqn:sSIRfd}) is computed algebraically as
+(\ref{eqn:sSIRfdI}) is computed algebraically as
 \begin{equation}
 \gamma_{t-\Delta t} = \beta_{t-\Delta t} - \mu_{t-\Delta t} +
 (1-\frac{I_t}{I_{t-\Delta t}})
 \end{equation}
 I have no particular
 justification, beyond the parsimony principle, for the assumption that
-the variance of these two processes, $\sigma_\eta$, should be the
+the variance, $\sigma_\eta$, of the processes for $I$ and $D$, should be the
 same.
 
 One approach to modeling time-dependent rates of transmission and
@@ -160,7 +166,7 @@ N(0,\sigma_\mu)
 
 The general form of the state-space observation model is
 \begin{equation}
-x_t = O(\alpha_t) + \varepsilon_t
+x_t = O(\alpha_t) + \varphi_t
 \end{equation}
 where the function $O$ describes the measurement process with
 error $\varepsilon$ in observing the state $\alpha$.
@@ -168,11 +174,12 @@ error $\varepsilon$ in observing the state $\alpha$.
 I applied separate observation error models for cases and
 deaths. The observation model for cases is a simple log-normal error
 \begin{equation}
+\label{eqn:logNlike}
 \log\varphi_t = \bigg(\log\frac{1}{\sqrt{2\pi\sigma^2_I}} -\Bigl(\frac{\log
 I_t-\log\widehat{I}_t}{\sigma_I}\Bigr)^2\bigg)\\
 \end{equation}
 where $I$ is the observed number of cases and $\widehat{I}$ is the
-number of cases predicted by equation~\ref{eqn:sSIRfd}.
+number of cases predicted by equation~\ref{eqn:sSIRfdI}.
 
 
 Not all those afflicted by COVID-19 have died; there are far fewer
@@ -185,6 +192,7 @@ substantial number of recorded zeros.
 The observation model for deaths accommodates observed zeroes by
 assuming to be ``zero-inflated'' log normal likelihood given by
 \begin{equation}
+\label{eqn:ZIlogNlike}
   \log \varepsilon_t = \left\{
     \begin{array}{r@{\;:\quad}l}
        D_t > 0 &
@@ -196,10 +204,8 @@ assuming to be ``zero-inflated'' log normal likelihood given by
 \end{equation}
 where $D$ is the observed number of deaths,
 $\widehat{D}$ is the number of deaths predicted by
-equation~\ref{eqn:sSIRfd}, 
+equation~\ref{eqn:sSIRfdD}, 
 and $p_0$ is the proportion of observed deaths equal to zero.
-
-\cite{Sibert2017,Nielsen2014b,Chen2020}
 
 
 Model parameters are estimated by
@@ -221,7 +227,7 @@ is a vector of model parameters (Table~\ref{tab:allvars1}).
 The R package TMB (\cite{TMB0000} package was used to 
 estimate the parameters of the model. 
 The R and supporting C++ files are available on 
-github.\footnote{\url{https://github.com/johnrsibert/SIR-Models}}
+github.\footnote{simpleSIR4 at \url{https://github.com/johnrsibert/SIR-Models}}
 
 \begin{table}
 \caption{List of model variables for the simple SIR model.
@@ -253,6 +259,7 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \end{center}
 \end{table}
 
+\clearpage
 \section*{Results}
 
 %All data are derived from the New York times github 
@@ -262,18 +269,51 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 Four more or less distinct trajectories in the evolution of the
 pandemic can be identified:
 \begin{enumerate}
-\item Effective suppression of transmission 
-(eg New York City\footnote{The Times amalgamates data
+\item Effective and sustained suppression of transmission, 
+\EG New York City\footnote{The Times amalgamates data
 from the 5 counties that comprise New York City into a single
-``geography'' which appears here as ``New York City County''.})
+``geography'' which appears here as ``New York City County''.};
 \item Effective suppression of transmission and followed by
-uncontrolled increase in number of new cases (eg Honolulu Co. HI,
-Miami-Dade Co. FL);
-\item Slow monotonic increase in number of new cases (eg.  Alameda Co. CA);
-\item Partial suppression of transmission followed by 
-uncontrolled increase in number of new cases (eg Dallas Co. TX);
+uncontrolled increase in number of new cases, \EG Miami-Dade Co. FL
+and Honolulu Co. HI;
+\item Ineffective and incomplete suppression of transmission with
+slow monotonic increase in number of new cases, \EG Alameda Co. CA;
+\item Ineffective and incomplete suppression of transmission 
+followed by uncontrolled increase in number of new cases, \EG Dallas
+Co. TX.
 \end{enumerate}
+Prevalence histories for these five counties are shown in
+Figure~\ref{fig:prev} where the 14-day moving average of the daily
+increase in cases most clearly
+demonstrates the efficacy of control measures.
 
+Model results are shown in figures \ref{fig:NYCest}
+and \ref{fig:ests}.
+The model reproduces the observed numbers of cases and deaths almost
+exactly. \help{(With errors of approximately 1 case or death.)}
+The `+' symbols in both the Cases and Deaths graphs represent the observed
+cases ($I$) and deaths ($D$) from the data. 
+The red lines overlaying the symbols are model predictions ($\widehat{I}$)
+and ($\widehat{D}$) of in cases and deaths. 
+$\sigma_I$ and $\sigma_D$ are the estimated standard deviations for
+cases and deaths likelihood contributions, equations (\ref{eqn:logNlike}) 
+and (\ref{eqn:ZIlogNlike}).
+The shaded areas bounded by red outlines are 
+$\pm 2$ estimated standard deviations around the estimated trends.
+The solid blue lines in the $\beta$ and $\mu$ plots are the estimated
+transmission and death rate random effects.
+The shaded areas bounded by blue outlines are
+estimated random effects $\pm 2$ standard deviations of the generating
+random walk.
+The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
+medians of the two random effects.
+
+
+The estimated transition rate trajectories for the fits are very high
+at the beginning of each time series, exceeding 1\perda in Miami-Dade
+County, equivalent to a doubling time of less than one day.
+
+\cite{Sibert2017,Nielsen2014b,Chen2020}
 
 \section*{Discussion}
 
@@ -295,7 +335,68 @@ development of the model.
 
 \clearpage
 
+
 \begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+%\multicolumn{2}{c}{\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}}\\
+\multicolumn{1}{c}{New York City}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}\\
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{ Honolulu Co.  HI}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_prevalence.png}\\
+\multicolumn{1}{c}{Alameda Co. CA}&\multicolumn{1}{c}{Dallas Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/AlamedaCA_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/DallasTX_prevalence.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:prev}
+Prevalence trajectories for five US counties.
+Thick blue lines indicate cumulative numbers; blue bars indicate daily
+increases; thin blue and orange lines indicate 5 and 14 day moving
+averages of daily increases; vertical gray bar marks the California
+shelter in place order.
+\help{Change ordinates and remove annotations.}
+}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}
+\end{center}
+\caption{\label{fig:NYCest}
+Model results for New York City.
+}
+\end{figure}
+
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+%\multicolumn{1}{c}{New York City}\\
+%\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}\\
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{ Honolulu Co.  HI}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_TMB_estimates.png}\\
+\multicolumn{1}{c}{Alameda Co. CA}&\multicolumn{1}{c}{Dallas Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/AlamedaCA_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/DallasTX_TMB_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests}
+}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}
+\end{center}
 \caption{\label{fig:NYC}
 Example effective suppression of transmission, New York City.
 Thick blue line indicates cumulative numbers; blue bars indicate daily
@@ -304,82 +405,49 @@ averages of daily increases; vertical gray bar marks the California
 shelter in place decree.
 \help{Change ordinates}
 }
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}
-\end{center}
 \end{figure}
 
 
 \begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
+\end{center}
+\caption{\label{fig:MDFL}
+Effective suppression of transmission and followed by
+uncontrolled increase in number of new cases 
+Captions as in figure \ref{fig:NYC}.
+}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/HonoluluHI_prevalence.png}
+\end{center}
 \caption{\label{fig:HNL}
 Effective suppression of transmission and followed by
 uncontrolled increase in number of new cases 
 Captions as in figure \ref{fig:NYC}.
 }
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/HonoluluHI_prevalence.png}
-\end{center}
 \end{figure}
 
 \begin{figure}
-\caption{\label{fig:ALA}
-Slow monotonic increase in number of new cases.
-Captions as in figure \ref{fig:NYC}.
-}
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/AlamedaCA_prevalence.png}
 \end{center}
+\caption{\label{fig:ACA}
+Slow monotonic increase in number of new cases.
+Captions as in figure \ref{fig:NYC}.
+}
 \end{figure}
 
 \begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/DallasTX_prevalence.png}
+\end{center}
 \caption{\label{fig:DTX}
 Partial suppression of transmission followed by 
 uncontrolled increase in number of new cases.
 Captions as in figure \ref{fig:NYC}.
 }
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/DallasTX_prevalence.png}
-\end{center}
 \end{figure}
-
-\end{document}
-
-
-\begin{figure}
-\begin{center}
-\caption{\label{fig:pgf}
-Example of a ``pretty good'' fit for data from
-Miami-Dade County, Florida.
-Observed and estimated cases and fits and estimated transmission rate
-trend.}
-\includegraphics[height=0.40\textheight]{../Graphics/Miami-DadeFL-2020-06-10.pdf}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\caption{\label{fig:gcbd}
-Example of a fit with good agreement between observed and estimated
-cases, but poor agreement for observed and estimated deaths.
-Cook County, Illinois.
-Observed and estimated cases and fits and estimated transmission rate
-trend.}
-\includegraphics[width=1.00\textwidth]{../Graphics/CookIL-2020-06-10.pdf}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\caption{\label{fig:bcgd}
-Example of a fit with good agreement between observed and estimated
-deaths, but poor agreement for observed and estimated cases.
-Riverside County, California.
-Observed and estimated cases and fits and estimated transmission rate
-trend.}
-\includegraphics[width=1.00\textwidth]{../Graphics/RiversideCA-2020-06-10.pdf}
-\end{center}
-\end{figure}
-
-
-\end{document}
 
