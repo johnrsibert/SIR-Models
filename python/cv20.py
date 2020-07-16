@@ -722,6 +722,17 @@ def make_dat_files():
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True)
 
+def update_fits():
+    save_wd = os.getcwd()
+    print('save:',save_wd)
+    print(cv.TMB_path)
+    os.chdir(cv.TMB_path)
+    print('current',os.getcwd())
+    cmd = 'R CMD BATCH runSS4.R'
+    print('running',cmd)
+    os.system(cmd)
+    os.chdir(save_wd)
+    print('current',os.getcwd())
 
 
 # cv_home = '/home/jsibert/Projects/SIR-Models/'
@@ -752,6 +763,7 @@ print('------- here ------')
 #make_fit_table()
 #make_fit_table('.rep')
 
+update_fits()
 make_fit_plots()
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')

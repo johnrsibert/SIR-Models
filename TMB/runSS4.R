@@ -9,7 +9,7 @@ require(TMB)
 require(gtools)
 
 
-do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4')
+do_one_run = function(County = "Santa Clara",model.name = 'simpleSIR4',do.plot=TRUE)
 {
 cname = sub(" ","_",County)
 datfile=paste(dat_path,cname,'.dat',sep='')
@@ -36,12 +36,11 @@ init = list(
     logsigma_beta = log(0.02),
     logsigma_mu = log(0.001),
     logitmu = logit(0.025,data$mu_a,data$mu_b),
-    loggamma = log(0.001),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
     logitbeta = logit(0.25,data$beta_a,data$beta_b)
 )
-print("--initial parameter values:")
+print("--init parameter values:")
 print(init)
 
 par = list(
@@ -49,28 +48,25 @@ par = list(
     logsigma_beta = init$logsigma_beta,
     logsigma_mu = init$logsigma_mu,
     logitmu    = rep(init$logitmu,data$ntime+1),
-#   loggamma = init$loggamma,
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
     logitbeta = rep(init$logitbeta,(data$ntime+1))
 )
-print(paste("---model parameters: ", length(par)))
+print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_beta" = as.factor(1),
            "logsigma_mu" = as.factor(1),
-#          "loggamma"  = as.factor(1),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )
-#          "logitmu" = rep(as.factor(NA),data$ntime),
 
 print(paste("---- estimation map:",length(map),"variables"))
 print(map)
 
-cpp.name = paste(TMB_path,model.name,'.cpp',sep='')
+cpp.name = paste(model.name,'.cpp',sep='')
 
 print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
 compile(cpp.name)
@@ -85,9 +81,6 @@ print("obj$par (1):")
 print(obj$par)
 lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
-#lb["sigma_logD"] =  0.0
-#lb["sigma_logD"] =  0.0
-#lb["loggamma"] = -8.0
 
 print("Starting minimization-------------------------",quote=FALSE)
 options(warn=2,verbose=FALSE)
@@ -101,25 +94,30 @@ options(warn=2,verbose=FALSE)
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
 print(paste("Objective function value =",opt$value))
+print(paste("Convergence ",opt$convergence))
 print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
+
 mbeta = median(obj$report()$beta)
 print(paste("median beta:",mbeta))
 mmu = median(obj$report()$mu)
 print(paste("median mu:",mmu))
 
-plot.log.state(data,par,obj,opt,map,np=4)
-dev.file = paste(fit_path,data$county,'.pdf',sep='')
-dev.copy2pdf(file=dev.file,width=6.5,height=6)
+print(do.plot)
+if (do.plot){
+    plot.log.state(data,par,obj,opt,map,np=4)
+    dev.file = paste(fit_path,data$county,'.pdf',sep='')
+    dev.copy2pdf(file=dev.file,width=6.5,height=6)
+}
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
 save.fit(data,obj,opt,map,init,rd.file)
 
 return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 
-} # do_one_run = function((County = "Santa Clara",model.name = 'simpleSIR4')
+} # do_one_run = function(
 
 
 county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
@@ -168,16 +166,16 @@ fit_examples = list(
 nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
-    do_one_run(County="AlamedaCA")->fit
-#   do_one_run(County="New_York_CityNY")->fit
+#   do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="New_York_CityNY")->fit
 #   do_one_run(County="Contra_CostaCA")->fit
 } else {
-#  sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   #for (c in 4:length(largest_us_counties))
+   sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+#  for (c in 4:length(largest_us_counties))
    for (c in fit_examples)
    {
        print(paste('starting',c))
-       do_one_run(County=c)->fit
+       do_one_run(County=c,do.plot=FALSE)->fit
        print(paste('finished',c,'with C =',fit$opt$converge))
    }
    sink()
