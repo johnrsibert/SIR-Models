@@ -342,8 +342,13 @@ class Geography:
         #   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
     
         if save:
-            plt.savefig(cv.graphics_path+self.moniker+'_prevalence.png',dpi=300)
-            plt.show()
+            gfile = cv.graphics_path+self.moniker+'_prevalence.png'
+            plt.savefig(gfile,dpi=300)
+            plt.show(False)
+            plt.pause(3)
+            plt.close()
+            
+            print('plot saved as',gfile)
         else:
             plt.show()
 
@@ -563,6 +568,7 @@ class Fit(Geography):
             plt.savefig(gfile+'.png',dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
+            plt.close()
         else:
             plt.show(True)
 
@@ -737,20 +743,39 @@ def update_fits():
     os.chdir(save_wd)
     print('current',os.getcwd())
 
+def update_shared_plots():
+    update_list = pd.DataFrame(np.array(
+       [['District of Columbia','District of Columbia','DC'],
+        ['Honolulu','Hawaii','HI'],
+        ['Tompkins','New York','NY'],
+        ['Placer','California','CA'],
+        ['Alameda','California','CA']]),
+        columns=['name','enclosed_by','code']) 
+    gg = update_list
+    cv.graphics_path = cv.cv_home+'PlotsToShare/'
+    for g in range(0,len(gg)):
+        print(gg['name'][g])
+        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
+                         code=gg['code'][g])
+        tmpG.read_nyt_data('county')
+        tmpG.plot_prevalence(save=True)
 
-# cv_home = '/home/jsibert/Projects/SIR-Models/'
-
-#   make_dat_file()
-#   plot_county_dat(county_dat,County='Alameda',State='California',file='AlamedaCA')
-#   plot_county_dat(county_dat,County='Marin',State='California',file='MarinCA')
-#   plot_county_dat(county_dat,County='Sonoma',State='California',file='SonomaCA')
-#   plot_county_dat(county_dat,County='Honolulu',State='Hawaii',file='HonoluluHI')
-#   plot_county_dat(county_dat,County='Tompkins',State='New York',file='TompkinsNY')
-#   plot_county_dat(county_dat,County='Placer',State='California',file='PlacerCA')
-
+def update_everything():
+    web_update()
+    print('Finished web_update ...')
+    make_dat_files()
+    print('Finished make_dat_files()')
+    update_shared_plots()
+    print('Finished update_shared_plots()')
+    update_fits()
+    print('Finished update_fits()')
 
 
 # --------------------------------------------------       
+print('------- here ------')
+#update_everything()
+update_shared_plots()
+
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
 #alam.get_pdate()
@@ -758,7 +783,6 @@ def update_fits():
 #alam.get_pdate()
 #alam.print_data()
 #alam.plot_prevalence()
-print('------- here ------')
 #tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
 #tfit.plot()
@@ -772,11 +796,11 @@ print('------- here ------')
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
-test = Geography(name='New York City',enclosed_by='New York',code='NY')
-test.read_nyt_data()
+#test = Geography(name='New York City',enclosed_by='New York',code='NY')
+#test.read_nyt_data()
 #test.write_dat_file()
-test.print_metadata()
-test.plot_prevalence()#yscale='log',plot_dt=True)
+#test.print_metadata()
+#test.plot_prevalence()#yscale='log',plot_dt=True)
 
 #plot_dow_boxes()
 
