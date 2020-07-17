@@ -49,13 +49,15 @@ def pretty_county(s):
 
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
+    a = ax.get_lines()[-1].get_alpha()
+#   print('color, alpha:',c,a)
     if ( (end =='l') | (end == 'b')):
         ax.text(x,y,label+spacer,ha='right',va='center',fontsize=8,
-                color=c)
+                color=c,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
         ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
-                color=c)
+                color=c,alpha=a)
 
 def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     # use of logscale is counterintuitive;
@@ -241,9 +243,19 @@ class Geography:
 
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
-                        window=[5,14], plot_dt = False, save = True):
+                        window=[11], plot_dt = False, annotation = True,
+                        save = True):
+        
         """ 
         Plots cases and deaths vs calendar date 
+
+        scale: select linear of log scale 'linear'
+        per_capita: plot numbers per 1000 (see mult)  False
+        delta_ts: plot daily new cases True
+        window: plot moving agerage window [11]
+        plot_dt: plot initial doubling time slopes on log scale False
+        annotations: add title and acknowledgements True
+        save : save plot as file
         """
         mult = 1000
     
@@ -252,15 +264,14 @@ class Geography:
         lastDate  = mdates.date2num(cv.EndOfTime)
     
         date_list = pd.date_range(start=firstDate,end=lastDate)
-    #    date_lim = [date_list[0],date_list[len(date_list)-1]]
     
         fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
         if (per_capita):
-            ax[0].set_ylabel('Cases'+' per '+str(mult))
-            ax[1].set_ylabel('Deaths'+' per '+str(mult))
+            ax[0].set_ylabel('Daily Cases'+' per '+str(mult))
+            ax[1].set_ylabel('Daily Deaths'+' per '+str(mult))
         else:
-            ax[0].set_ylabel('Cases')
-            ax[1].set_ylabel('Deaths')
+            ax[0].set_ylabel('Daily Cases')
+            ax[1].set_ylabel('Daily Deaths')
     
     
         ax2 = []
@@ -270,12 +281,8 @@ class Geography:
             ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
             ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
             ax[a].set_yscale(yscale)
-            if (delta_ts):
-                ax2.append(ax[a].twinx())
-    
-        if (delta_ts):
-            for a in range(0,len(ax2)):
-                ax2[a].set_ylabel("Daily Change")
+            ax2.append(ax[a].twinx())
+            ax2[a].set_ylabel('Cumulative')
         
         if (per_capita):
             cases =  mult*self.cases/self.population + eps
@@ -285,31 +292,30 @@ class Geography:
             deaths =  self.deaths
         
         Date = self.get_pdate()
+
+        delta_cases = np.diff(cases)
+        ax[0].bar(Date[1:], delta_cases)
+        for w in range(0,len(window)):
+            adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
+            ax[0].plot(Date[1:],adc,linewidth=2)
+            mark_ends(ax[0],Date[len(Date)-1],adc[len(adc)-1],
+                      str(window[w])+'da','r')
         
-        c = ax[0].plot(Date, cases)#,label=cc)
-        tcol = ax[0].get_lines()[0].get_color()
-        mark_ends(ax[0],Date[len(Date)-1],cases[len(cases)-1],'C','r')
-        if (delta_ts):
-            delta_cases = np.diff(cases)
-            ax2[0].bar(Date[1:], delta_cases, alpha=0.5)
-            for w in range(0,len(window)):
-                adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
-                ax2[0].plot(Date[1:],adc,linewidth=1)
-                mark_ends(ax2[0],Date[len(Date)-1],adc[len(adc)-1],
-                          str(window[w])+'da','r')
+        ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
+        mark_ends(ax2[0],Date[len(Date)-1],cases[len(cases)-1],r'$\Sigma$C','r')
 
         if ((yscale == 'log') & (plot_dt)):
             ax[0] = self.plot_dtslopes(ax[0])
                 
-        d = ax[1].plot(Date, deaths)#,label=cc)
-        mark_ends(ax[1],Date[len(Date)-1],deaths[len(deaths)-1],'D','r')
-        if (delta_ts):
-            delta_deaths = np.diff(deaths)
-            ax2[1].bar(Date[1:],delta_deaths,alpha=0.5)
-            for w in range(0,len(window)):
-                add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
-                ax2[1].plot(Date[1:],add,linewidth=1)
-                mark_ends(ax2[1],Date[len(Date)-1],add[len(add)-1],
+        ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
+        mark_ends(ax2[1],Date[len(Date)-1],deaths[len(deaths)-1],r'$\Sigma$D','r')
+
+        delta_deaths = np.diff(deaths)
+        ax[1].bar(Date[1:],delta_deaths)
+        for w in range(0,len(window)):
+            add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
+            ax[1].plot(Date[1:],add,linewidth=2)
+            mark_ends(ax[1],Date[len(Date)-1],add[len(add)-1],
                           str(window[w])+'da','r')
     
         for a in range(0,len(ax)):
@@ -323,24 +329,21 @@ class Geography:
                         linewidth=3,alpha=0.5)
         #   ax[a].legend()
     
-        title = 'COVID-19 Prevalence in '+self.name+' County, '+self.enclosed_by
-    #   fig.text(0.5,0.925,title ,ha='center',va='top')
-        fig.text(0.5,1.0,title ,ha='center',va='top')
-        fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
-                 ha='left',va='bottom', fontsize=8)
+        if (annotation):
+            title = 'COVID-19 Prevalence in '+self.name+' County, '+ self.enclosed_by
+            fig.text(0.5,1.0,title ,ha='center',va='top')
+            fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
+                     ha='left',va='bottom', fontsize=8)
     
-        mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
-        dtime = datetime.fromtimestamp(mtime)
-        fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
-    
-    #   signature = 'Graphics by John Sibert'
-    #   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
-    
-    #   in rcParams: 
-    #   plt.tight_layout() #pad=1.0, w_pad=1.0, h_pad=5.0)
+            mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
+            dtime = datetime.fromtimestamp(mtime)
+            fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
+        #   signature = 'Graphics by John Sibert'
+        #   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
     
         if save:
             plt.savefig(cv.graphics_path+self.moniker+'_prevalence.png',dpi=300)
+            plt.show()
         else:
             plt.show()
 
@@ -760,19 +763,20 @@ print('------- here ------')
 #tfit.print_metadata()
 #tfit.plot()
 
-#make_fit_table()
-#make_fit_table('.rep')
-
-update_fits()
-make_fit_plots()
-
-#test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
-#test.read_nyt_data()
-#test.write_dat_file()
-#test.print_metadata()
-#test.plot_prevalence()#yscale='log',window=[7,14],per_capita=True) #,plot_dt=True)
-
-#plot_dow_boxes()
 
 #web_update()
 #make_dat_files()
+#update_fits()
+#make_fit_plots()
+#make_fit_table()
+#make_fit_table('.rep')
+
+#test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
+test = Geography(name='New York City',enclosed_by='New York',code='NY')
+test.read_nyt_data()
+#test.write_dat_file()
+test.print_metadata()
+test.plot_prevalence()#yscale='log',plot_dt=True)
+
+#plot_dow_boxes()
+

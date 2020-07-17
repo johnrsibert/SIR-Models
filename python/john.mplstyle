@@ -1,0 +1,56 @@
+#Author: Cameron Davidson-Pilon, replicated styles from FiveThirtyEight.com
+# See https://www.dataorigami.net/blogs/fivethirtyeight-mpl
+
+#figure.max_open_warning : 0 #20  # The maximum number of figures to open through
+ 
+lines.linewidth: 3
+lines.solid_capstyle: round
+lines.color: ff0000
+
+legend.fancybox: true
+
+axes.prop_cycle: cycler('color', ['008fd5', 'fc4f30', 'e5ae38', '6d904f', '8b8b8b', '810f7c'])
+#axes.prop_cycle : cycler(color='bgrcmyk')
+#axes.prop_cycle : cycler(color='g')
+axes.facecolor: ffffff
+axes.labelsize: large
+axes.axisbelow: true
+axes.grid: true
+axes.edgecolor: 000000
+axes.linewidth: 1.0
+axes.titlesize: x-large
+
+axes.spines.top: false
+axes.spines.right: false
+axes.spines.left: false
+axes.grid.axis: y
+
+patch.edgecolor: f0f000
+patch.linewidth: 1.5
+
+svg.fonttype: path
+
+grid.linestyle: solid
+grid.linewidth: 0.5
+grid.color: 0.75 #0c0c0c
+
+xtick.major.size: 7
+xtick.minor.size: 4
+ytick.major.size: 7
+ytick.minor.size: 4
+
+#text.usetex : True
+font.size: 12.0
+
+#savefig.edgecolor: f0f0f0
+#savefig.facecolor: f0f0f0
+savefig.edgecolor: ffffff
+savefig.facecolor: ffffff
+
+figure.subplot.left: 0.08
+figure.subplot.right: 0.95
+figure.subplot.bottom: 0.07
+figure.subplot.top: 0.99
+figure.facecolor: ffffff
+figure.frameon: false
+figure.autolayout: true
