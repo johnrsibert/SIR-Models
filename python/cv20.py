@@ -47,17 +47,28 @@ def pretty_county(s):
     pretty = s[0:(ls-2)]+', '+s[(ls-2):]
     return(pretty.replace('_',' ',5))
 
+def short_name(s):
+#   w = s.split('_')
+#   if (len(w)<2):
+#       sn = s[0:3]
+#   else:
+#       sn = w[0][0]+w[1][0:2]
+    sn = s[0]+s[-2:]
+    return(sn)  
+
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
 #   print('color, alpha:',c,a)
     if ( (end =='l') | (end == 'b')):
-        ax.text(x,y,label+spacer,ha='right',va='center',fontsize=8,
-                color=c,alpha=a)
+        mark = ax.text(x,y,label+spacer,ha='right',va='center',fontsize=8,
+                color=c) #,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
-        ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
-                color=c,alpha=a)
+        mark = ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
+                color=c) #,alpha=a)
+                      # Set the alpha value used for blendingD - 
+    mark.set_alpha(a) # not supported on all backends
 
 def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     # use of logscale is counterintuitive;
@@ -729,7 +740,7 @@ def make_dat_files():
                          code=gg['code'][g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
-        tmpG.plot_prevalence(save=True)
+        tmpG.plot_prevalence(save=True,per_capita=True)
 
 def update_fits():
     save_wd = os.getcwd()
@@ -760,6 +771,74 @@ def update_shared_plots():
         tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True)
 
+def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
+    gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
+    print(gg.columns)
+#   print(gg)
+
+    key_cols = ('key','name','code')
+    key = pd.DataFrame(columns=key_cols)
+
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    firstDate = mdates.date2num(cv.FirstNYTDate)
+    orderDate = mdates.date2num(cv.CAOrderDate)
+    lastDate  = mdates.date2num(cv.EndOfTime)
+    if (plot_dt):
+        ax.set_ylabel('New Cases'+' per '+str(mult))
+    else:
+        ax.set_ylabel('Cases'+' per '+str(mult))
+    ax.set_xlim([firstDate,lastDate])
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+    ax.xaxis.set_major_locator(plt.MultipleLocator(30))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+
+    for g in range(0,len(gg)):
+        print(gg['name'][g])
+        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
+                         code=gg['code'][g])
+        tmpG.read_nyt_data('county')
+        cases =  mult*tmpG.cases/tmpG.population + eps
+        delta_cases = np.diff(cases)
+        Date = tmpG.get_pdate()
+        if (plot_dt):
+            ax.plot(Date[1:], delta_cases, linewidth=1)#,alpha=0.75)
+        else:
+            ax.plot(Date, cases, linewidth=2)#,alpha=0.75)
+
+        sn = short_name(tmpG.moniker)
+    #   print(tmpG.name,tmpG.moniker,sn)
+        kr = pd.Series((sn,tmpG.name,tmpG.code),index=key_cols)
+        key = key.append(kr,ignore_index=True)
+
+        if (plot_dt):
+            mark_ends(ax,Date[len(Date)-1],delta_cases[len(delta_cases)-1],sn,'r')
+        else:
+            mark_ends(ax,Date[len(Date)-1],cases[len(cases)-1],sn,'r')
+
+#   Newsome's shelter in place order
+    ax.plot((orderDate,orderDate),
+    #       (ax.get_ylim()[0], ax.get_ylim()[1]),color='black',
+            (0, ax.get_ylim()[1]),color='0.5',
+            linewidth=3,alpha=0.5)
+
+#   print(key)
+    if save:
+        gfile = cv.graphics_path+'counties_per_capita.png'
+        plt.savefig(gfile,dpi=300)
+        plt.show(False)
+        print('plot saved as',gfile)
+        kfile = cv.graphics_path+'short_name_key.csv'
+        key.sort_values(by='key',ascending=True,inplace=True)
+        print(key)
+        key.to_csv(kfile,index=False)
+        print('key names saved as',kfile)
+        plt.pause(3)
+        plt.close()
+            
+    else:
+        plt.show()
+
+
 def update_everything():
     web_update()
     print('Finished web_update ...')
@@ -774,7 +853,8 @@ def update_everything():
 # --------------------------------------------------       
 print('------- here ------')
 #update_everything()
-update_shared_plots()
+#update_shared_plots()
+#make_dat_files();
 
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
@@ -800,7 +880,8 @@ update_shared_plots()
 #test.read_nyt_data()
 #test.write_dat_file()
 #test.print_metadata()
-#test.plot_prevalence()#yscale='log',plot_dt=True)
+#test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
 
 #plot_dow_boxes()
+plot_multi_per_capita(plot_dt=False,save=True)
 
