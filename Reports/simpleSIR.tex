@@ -262,36 +262,65 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \clearpage
 \section*{Results}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/counties_per_capita.png}
+\end{center}
+\caption{\label{fig:percap}
+Trends in number of cases per 1000 people in the 30 most populous US
+counties.
+The vertical gray bar mark the date of the California shelter in place order.
+}
+\end{figure}
+
 %All data are derived from the New York times github 
 %site\footnote{See note \ref{ff:nyt}.}.
 % {\url{https://github.com/nytimes/covid-19-data/}}. 
 
-Four more or less distinct trajectories in the evolution of the
-pandemic can be identified:
-\begin{enumerate}
-\item Effective and sustained suppression of transmission, 
-\EG New York City\footnote{The Times amalgamates data
-from the 5 counties that comprise New York City into a single
-``geography'' which appears here as ``New York City County''.};
-\item Effective suppression of transmission and followed by
-uncontrolled increase in number of new cases, \EG Miami-Dade Co. FL
-and Honolulu Co. HI;
-\item Ineffective and incomplete suppression of transmission with
-slow monotonic increase in number of new cases, \EG Alameda Co. CA;
-\item Ineffective and incomplete suppression of transmission 
-followed by uncontrolled increase in number of new cases, \EG Dallas
-Co. TX.
-\end{enumerate}
-Prevalence histories for these five counties are shown in
-Figure~\ref{fig:prev} where the 14-day moving average of the daily
-increase in cases most clearly
-demonstrates the efficacy of control measures.
+The trends in number of cases in the thirty largest counties in the
+United States are shown in Figure~(\ref{fig:percap}).
+These trajectories fall into two more or less distinct groups: those
+that are concave downward, \EG New York City (NYNY), and those that are
+concave upward, \EG Miami-Dade FL (MDFL).
 
-Model results are shown in figures \ref{fig:NYCest}
-and \ref{fig:ests}.
+Prevalence histories for these five counties are shown in
+Figure~\ref{fig:prev} where the 11-day moving average of the daily
+increase in cases demonstrates clearly
+the efficacy of control measures.
+
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_prevalence.png}\\
+\\
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_prevalence.png}\\
+\\
+\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Honolulu Co. HI}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_prevalence.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:prev}
+Prevalence trajectories for six US counties.
+Blue bars indicate daily increases increases in cases and deaths;
+blue lines indicate 11 day moving averages of daily increases; 
+pale blue lines indicate cumulative numbers (labeled $\Sigma C$ and
+$\Sigma D$); 
+vertical gray bar marks the California shelter in place order.
+\help{remove annotations.}
+}
+\end{figure}
+
+Model results are shown in figures \ref{fig:ests1} and \ref{fig:ests2}.
 The model reproduces the observed numbers of cases and deaths almost
-exactly. \help{(With errors of approximately 1 case or death.)}
-The `+' symbols in both the Cases and Deaths graphs represent the observed
+exactly.
+The `+' symbols in the Cases and Deaths graphs represent the observed
 cases ($I$) and deaths ($D$) from the data. 
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
 and ($\widehat{D}$) of in cases and deaths. 
@@ -300,21 +329,97 @@ cases and deaths likelihood contributions, equations (\ref{eqn:logNlike})
 and (\ref{eqn:ZIlogNlike}).
 The shaded areas bounded by red outlines are 
 $\pm 2$ estimated standard deviations around the estimated trends.
+These standard deviations are, in some cases, equivalent to an error of approximately
+one case or death.
+
 The solid blue lines in the $\beta$ and $\mu$ plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
 estimated random effects $\pm 2$ standard deviations of the generating
-random walk.
+random walks.
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
 medians of the two random effects.
 
-
-The estimated transition rate trajectories for the fits are very high
+The estimated transmission rates are very high
 at the beginning of each time series, exceeding 1\perda in Miami-Dade
 County, equivalent to a doubling time of less than one day.
 
-\cite{Sibert2017,Nielsen2014b,Chen2020}
 
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/NassauNY_TMB_estimates.png}\\
+%\includegraphics[width=0.50\textwidth]{../Graphics/PhiladelphiaPA_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests1}
+}
+\end{figure}
+
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Palm_BeachFL_TMB_estimates.png}\\
+%\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests2}
+}
+\end{figure}
+
+
+\begin{sidewaystable}
+\caption{\label{tab:sumres}
+Model results.
+Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$.
+Data updateed from https://github.com/nytimes/covid-19-data.git
+2020-07-17.
+}
+\centering
+{\small
+%%%%%%%%%%%%%%
+
+\begin{tabular}{lrrrrrrrrrrrr}
+\hline
+ County            &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
+\hline
+ Nassau, NY        & 133   &  0.0896 & -3590 &     1 &          0.183  &          0.142   &       0.00157  &       0.188  &     0.0105   &       -2.18e-08  &           0.00290 &        0.000322 \\
+ New York City, NY & 137   &  0.0942 & -2180 &    10 &          0.298  &          0.0421  &       0.00251  &       0.118  &     0.0739   &       -3.39e-08  &           0.00726 &        0.00043  \\
+ Honolulu, HI      & 132   &  0.188  & -3680 &    10 &          0.272  &          0.0236  &       0.00108  &       0.265  &     0.246    &       -6.07e-08  &           0.0179  &        8.69e-05 \\
+ Cook, IL          & 174   &  0.303  & -2770 &    10 &          0.38   &          0.022   &       0.000955 &       0.246  &     0.251    &       -2.29e-07  &           0.0278  &        0.000436 \\
+ Harris, TX        & 133   &  0.104  & -1900 &    10 &          0.241  &          0.0299  &       0.000958 &       0.282  &     0.253    &       -3.76e-08  &           0.0304  &        0.000292 \\
+ Palm Beach, FL    & 126   &  0.0787 & -3940 &     1 &          0.155  &          0.0529  &       0.00502  &       0.105  &     0.0014   &       -2.42e-08  &           0.0310  &        0.000647 \\
+ Miami-Dade, FL    & 127   &  0.125  & -1750 &     1 &          0.157  &          0.0551  &       0.000877 &       0.071  &     0.000445 &       -2e-08     &           0.0320  &        0.000638 \\
+ Tarrant, TX       & 128   &  0.0775 & -1850 &    10 &          0.273  &          0.0298  &       0.00105  &       0.263  &     0.21     &       -4.01e-08  &           0.0369  &        0.000409 \\
+ Broward, FL       & 132   &  0.0827 & -1610 &    10 &          0.208  &          0.0199  &       0.00194  &       0.254  &     0.24     &       -3.17e-08  &           0.0371  &        0.000473 \\
+ Travis, TX        & 125   &  0.111  & -2390 &    10 &          0.397  &          0.0236  &       0.0024   &       0.241  &     0.0643   &       -2.91e-08  &           0.0375  &        0.000363 \\
+ Dallas, TX        & 128   &  0.0698 & -1520 &    10 &          0.222  &          0.0222  &       0.00186  &       0.277  &     0.177    &       -2.73e-08  &           0.0382  &        0.000622 \\
+ Hillsborough, FL  & 137   &  0.181  & -1940 &    10 &          0.113  &          0.219   &       0.00477  &       0.0562 &     0.0309   &       -8.13e-08  &           0.0401  &        0.000599 \\
+ Maricopa, AZ      & 172   &  0.312  & -2040 &    10 &          0.213  &          0.0206  &       0.00164  &       0.258  &     0.213    &       -4.26e-07  &           0.0423  &        0.00164  \\
+ Bexar, TX         & 155   &  0.25   & -2370 &    10 &          0.199  &          0.0391  &       0.00103  &       0.237  &     0.246    &       -8.51e-08  &           0.0448  &        0.000363 \\
+\hline
+ Median            & 132.5 &  0.1075 & -2110 &    10 &          0.2175 &          0.02985 &       0.001605 &       0.2435 &     0.1935   &       -3.575e-08 &           0.03445 &        0.000433 \\
+\hline
+\end{tabular}
+
+%%%%%%%%%%%%%%%%
+}\end{sidewaystable}
+
+\clearpage
 \section*{Discussion}
 
 Whether the available data are sufficiently informative to enable
@@ -330,37 +435,13 @@ attributable to changes in model structure or to the increase in the
 length of the time series is unclear. This ambiguity influenced the
 development of the model.
 
+\cite{Sibert2017,Nielsen2014b,Chen2020}
+
 \clearpage
 \printbibliography[title=References]
 
+\end{document}
 \clearpage
-
-
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{ll}
-%\multicolumn{2}{c}{\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}}\\
-\multicolumn{1}{c}{New York City}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}\\
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{ Honolulu Co.  HI}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_prevalence.png}\\
-\multicolumn{1}{c}{Alameda Co. CA}&\multicolumn{1}{c}{Dallas Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/AlamedaCA_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/DallasTX_prevalence.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:prev}
-Prevalence trajectories for five US counties.
-Thick blue lines indicate cumulative numbers; blue bars indicate daily
-increases; thin blue and orange lines indicate 5 and 14 day moving
-averages of daily increases; vertical gray bar marks the California
-shelter in place order.
-\help{Change ordinates and remove annotations.}
-}
-\end{figure}
 
 \begin{figure}
 \begin{center}
@@ -375,8 +456,6 @@ Model results for New York City.
 {\scriptsize
 \begin{center}
 \begin{tabular}{ll}
-%\multicolumn{1}{c}{New York City}\\
-%\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}\\
 \multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{ Honolulu Co.  HI}\\
 \includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_TMB_estimates.png}&
 \includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_TMB_estimates.png}\\
@@ -386,12 +465,11 @@ Model results for New York City.
 \end{tabular}
 \end{center}
 }
-\caption{\label{fig:ests}
+\caption{\label{fig:notests}
 }
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\end{document}
 
 \begin{figure}
 \begin{center}

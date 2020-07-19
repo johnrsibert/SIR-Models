@@ -160,14 +160,23 @@ largest_us_counties = list(
 )
 
 fit_examples = list(
-"AlamedaCA","DallasTX","Miami-DadeFL","New_York_CityNY","HonoluluHI"
+"New_York_CityNY", "CookIL",
+"Miami-DadeFL", "BrowardFL", "Palm_BeachFL","HillsboroughFL",
+"HarrisTX",
+"DallasTX",
+"TarrantTX",
+"BexarTX",
+"TravisTX",
+"MaricopaAZ",
+"HonoluluHI"
 )
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-    do_one_run(County="New_York_CityNY")->fit
+    do_one_run(County="NassauNY")->fit
+#   do_one_run(County="New_York_CityNY")->fit
 #   do_one_run(County="Contra_CostaCA")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))

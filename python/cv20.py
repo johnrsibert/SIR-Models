@@ -23,6 +23,7 @@ from sigfig import round
 from tabulate import tabulate
 from collections import OrderedDict
 import glob
+import re
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 import js_covid as cv
@@ -48,12 +49,14 @@ def pretty_county(s):
     return(pretty.replace('_',' ',5))
 
 def short_name(s):
-#   w = s.split('_')
-#   if (len(w)<2):
-#       sn = s[0:3]
-#   else:
-#       sn = w[0][0]+w[1][0:2]
-    sn = s[0]+s[-2:]
+    """
+    Create 4 byte abbreviation for getography names
+    """
+    w = re.split(r'[ _-]',s)
+    if (len(w)<2):
+        sn = s[0:2]+s[-2:]
+    else:
+        sn = w[0][0]+w[1][0]+s[-2:]
     return(sn)  
 
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
@@ -594,35 +597,41 @@ def make_fit_plots(ext = '.RData'):
     for ff in fit_files:
         fit = Fit(ff)
     #   fit.print_metadata()
-        fit.plot(logscale=False)
+        fit.plot(logscale=True)
 
 
 
 def make_fit_table(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
     print('found',len(fit_files),ext,'files in',cv.fit_path)
+    # mtime = os.path.getmtime(cspath) cv.NYT_counties
+    #   dtime = datetime.fromtimestamp(mtime)
+    #   self.updated = str(dtime.date())
+    # updateed from https://github.com/nytimes/covid-19-data.git
 
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     es_cols = ['logsigma_logP'   , 'logsigma_beta'  , 'logsigma_mu'  ,
-               'logsigma_logC','logsigma_logD', 'gamma','mbeta','mmu']
+               'logsigma_logC','logsigma_logD', 'mgamma','mbeta','mmu']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
               '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_I$','$\sigma_D$','$\gamma$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
+              '$\sigma_I$','$\sigma_D$','$\\tilde\\gamma$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
-    gamm = pd.DataFrame(columns=['gamma'])
+    mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
     sigfigs = 3
-    for ff in fit_files:
+#   for ff in fit_files:
+    for k in range(0,len(fit_files)):
+        ff = fit_files[k]
     #   fn = ff.replace(' ','_',5) 
     #   pn = fit_path+fn+'.RData'
     #   fit=pyreadr.read_r(pn)
-        print('adding fit',ff)
+        print('adding fit',k,ff)
         fit = Fit(ff)
         ests  = fit.ests #['ests']
         meta = fit.md #['meta']
@@ -643,26 +652,25 @@ def make_fit_table(ext = '.RData'):
         row['ntime'] = int(fit.get_metadata_item('ntime'))
         row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
         tt = tt.append(row,ignore_index=True)
-        tmp = fit.get_est_or_init('loggamma')
-        tmp = np.exp(tmp)
-        tmp = float(tmp)
-        gamm = np.append(gamm,tmp)
         func = np.append(func,float(fit.get_metadata_item('fn')))
         beta = diag['beta']
         mbeta = np.append(mbeta,median(beta))
         mu = diag['mu']
         mmu = np.append(mmu,mu.quantile(q=0.5))
+        gamma = diag['gamma']
+        mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
-    tt['gamma'] = gamm
+    tt['mgamma'] = mgamma
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
+
+    tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
 
     for c in range(3,len(tt.columns)):
         for r in range(0,tt.shape[0]):
            if (tt.iloc[r,c] != None):
                tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
-#   tt = tt.sort_values(by='N0',ascending=False)#,inplace=True)
 
     row = pd.Series(None,index=tt.columns)
     row['county'] = 'Median'
@@ -671,10 +679,14 @@ def make_fit_table(ext = '.RData'):
             mn = tt[n].quantile()
             row[n] = mn
     tt = tt.append(row,ignore_index=True)
-    print(tt)
+
+    mtime = os.path.getmtime(cv.NYT_counties)
+    dtime = datetime.fromtimestamp(mtime)
 
     tex = cv.fit_path+'fit_table.tex'
     ff = open(tex, 'w')
+    ff.write('Updateed from https://github.com/nytimes/covid-19-data.git\n')
+    ff.write(str(dtime.date())+'\n')
     ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
 #   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
 #               header=header,escape=False,#float_format='{:0.4f}'.format
@@ -740,7 +752,7 @@ def make_dat_files():
                          code=gg['code'][g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
-        tmpG.plot_prevalence(save=True,per_capita=True)
+        tmpG.plot_prevalence(save=True,per_capita=False)
 
 def update_fits():
     save_wd = os.getcwd()
@@ -748,6 +760,7 @@ def update_fits():
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
+    # list of counties in runSS4.R
     cmd = 'R CMD BATCH runSS4.R'
     print('running',cmd)
     os.system(cmd)
@@ -843,11 +856,14 @@ def update_everything():
     web_update()
     print('Finished web_update ...')
     make_dat_files()
+    plot_multi_per_capita(plot_dt=False,save=True)
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
     update_fits()
     print('Finished update_fits()')
+    make_fit_table()
+    make_fit_plots()
 
 
 # --------------------------------------------------       
@@ -872,7 +888,7 @@ print('------- here ------')
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-#make_fit_table()
+make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
@@ -883,5 +899,5 @@ print('------- here ------')
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
 
 #plot_dow_boxes()
-plot_multi_per_capita(plot_dt=False,save=True)
+#plot_multi_per_capita(plot_dt=False,save=True)
 
