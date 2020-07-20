@@ -15,8 +15,6 @@ cname = sub(" ","_",County)
 datfile=paste(dat_path,cname,'.dat',sep='')
 separator = "#############################"
 print(paste(separator,County,separator),quote=FALSE)
-print(paste(separator,County,separator),quote=FALSE)
-print(paste(separator,County,separator),quote=FALSE)
 dat = read.dat.file(datfile)
 eps = 1e-8
 data=dat$data
@@ -24,10 +22,10 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
-data$beta_a = eps
-data$beta_b = 3.0
-data$mu_a = eps
-data$mu_b = 3.0
+#data$beta_a = eps
+#data$beta_b = 3.0
+#data$mu_a = eps
+#data$mu_b = 3.0
 print("-data:")
 print(data)
 
@@ -35,10 +33,10 @@ init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.02),
     logsigma_mu = log(0.001),
-    logitmu = logit(0.025,data$mu_a,data$mu_b),
+    logmu = log(0.0005),
     logsigma_logC = log(0.25),
     logsigma_logD = log(0.25),
-    logitbeta = logit(0.25,data$beta_a,data$beta_b)
+    logbeta = log(0.05)
 )
 print("--init parameter values:")
 print(init)
@@ -47,10 +45,10 @@ par = list(
     logsigma_logP = init$logsigma_logP,
     logsigma_beta = init$logsigma_beta,
     logsigma_mu = init$logsigma_mu,
-    logitmu    = rep(init$logitmu,data$ntime+1),
+    logmu    = rep(init$logmu,data$ntime+1),
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
-    logitbeta = rep(init$logitbeta,(data$ntime+1))
+    logbeta = rep(init$logbeta,(data$ntime+1))
 )
 print(paste("---initial model parameters: ", length(par)))
 print(par)
@@ -74,7 +72,7 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par,random=c("logitbeta","logitmu"), 
+obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -105,7 +103,6 @@ print(paste("median beta:",mbeta))
 mmu = median(obj$report()$mu)
 print(paste("median mu:",mmu))
 
-print(do.plot)
 if (do.plot){
     plot.log.state(data,par,obj,opt,map,np=4)
     dev.file = paste(fit_path,data$county,'.pdf',sep='')
@@ -161,7 +158,8 @@ largest_us_counties = list(
 
 fit_examples = list(
 "New_York_CityNY", "CookIL",
-"Miami-DadeFL", "BrowardFL", "Palm_BeachFL","HillsboroughFL",
+"Miami-DadeFL", "BrowardFL", 
+"Palm_BeachFL","HillsboroughFL","NassauNY",
 "HarrisTX",
 "DallasTX",
 "TarrantTX",
@@ -177,16 +175,16 @@ nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-    do_one_run(County="NassauNY")->fit
+#   do_one_run(County="NassauNY")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-#   do_one_run(County="Contra_CostaCA")->fit
+    do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
 #  for (c in 4:length(largest_us_counties))
    for (c in fit_examples)
    {
        print(paste('starting',c))
-       do_one_run(County=c,do.plot=FALSE)->fit
+       do_one_run(County=c,do.plot=TRUE)->fit
        print(paste('finished',c,'with C =',fit$opt$converge))
    }
    sink()

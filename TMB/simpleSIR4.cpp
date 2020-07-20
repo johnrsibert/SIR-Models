@@ -57,10 +57,10 @@ Type objective_function <Type>::operator()()
     DATA_VECTOR(log_obs_cases)
     DATA_VECTOR(log_obs_deaths)
     DATA_SCALAR(prop_zero_deaths)
-    DATA_SCALAR(beta_a)
-    DATA_SCALAR(beta_b)
-    DATA_SCALAR(mu_a)
-    DATA_SCALAR(mu_b)
+//  DATA_SCALAR(beta_a)
+//  DATA_SCALAR(beta_b)
+//  DATA_SCALAR(mu_a)
+//  DATA_SCALAR(mu_b)
 
 
     PARAMETER(logsigma_logP);          // SIR process error
@@ -69,16 +69,18 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_logC);          // cases observation error
     PARAMETER(logsigma_logD);          // deaths observation error
 
-    PARAMETER_VECTOR(logitbeta);      // infection rate time series
-    PARAMETER_VECTOR(logitmu);        // mortality rate of infection population
+    PARAMETER_VECTOR(logbeta);      // infection rate time series
+    PARAMETER_VECTOR(logmu);        // mortality rate of infection population
 
     vector <Type> beta(ntime+1);
     vector <Type> mu(ntime+1);
     for (int t = 0; t <=  ntime; t++)
     {
      // Type u = a + (b - a)*invlogit(stlogit_u);
-        beta[t] = beta_a + (beta_b - beta_a)*invlogit(logitbeta[t]);
-        mu[t] =   mu_a + (mu_b - mu_a)*invlogit(logitmu[t]);
+     // beta[t] = beta_a + (beta_b - beta_a)*invlogit(logitbeta[t]);
+     // mu[t] =   mu_a + (mu_b - mu_a)*invlogit(logitmu[t]);
+        beta[t] = exp(logbeta[t]);
+        mu[t] = exp(logmu[t]);
     }
 
     // state variables
@@ -122,7 +124,8 @@ Type objective_function <Type>::operator()()
          logEye(t) = log(prevEye*(1.0 + (beta(t-1) - gamma(t-1) - mu(t-1)))+eps);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
-         gamma(t) = beta(t-1)-mu(t-1) - exp(logEye(t))/prevEye + 1.0;
+     //  gamma(t) = beta(t-1)-mu(t-1) - exp(logEye(t))/prevEye + 1.0;
+         gamma(t) = 1e-8;
 
          // deaths process error
          Type prevD = exp(logD(t-1));
