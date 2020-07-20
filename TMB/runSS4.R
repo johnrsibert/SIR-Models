@@ -168,10 +168,12 @@ fit_examples = list(
 "BexarTX",
 "TravisTX",
 "MaricopaAZ",
+"PhiladelphiaPA",
+"TravisTX",
 "HonoluluHI"
 )
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
