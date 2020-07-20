@@ -471,7 +471,7 @@ class Fit(Geography):
             ax[0].set_ylabel(prefix+'Cases')
             ax[1].set_ylabel(prefix+'Deaths')
         if (npl > 2):
-            ax[2].set_ylabel(r'$\beta\ (da^{-1})$')
+            ax[2].set_ylabel(prefix+r'$\beta\ (da^{-1})$')
         if (npl > 3):
             ax[3].set_ylabel(r'$\mu\ (da^{-1})$')
     
@@ -497,7 +497,7 @@ class Fit(Geography):
         preD = self.diag['log_pred_deaths']
         sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
         sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
-        sigma_beta = np.exp(self.get_est_or_init('logsigma_beta'))
+        sigma_beta = self.get_est_or_init('logsigma_beta')
         sigma_mu = np.exp(self.get_est_or_init('logsigma_mu'))
         if (logscale):
             ax[0].set_ylim(0.0,1.2*max(obsI))
@@ -529,35 +529,40 @@ class Fit(Geography):
         ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
         if (npl > 2):
-           ymin = min(self.diag['beta'])-2.5*sigma_beta
-           ax[2].set_ylim(ymin,1.2*max(self.diag['beta']))
-           sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
-           tx = prop_scale(ax[2].get_xlim(), 0.05)
-           ty = prop_scale(ax[2].get_ylim(), 0.90)
-           ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
-           ax[2].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
-           ax[2].plot(pdate,self.diag['beta'])
-           plot_error(ax[2],pdate,self.diag['beta'],sigma_beta)
-           med = median(self.diag['beta'])
-           medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
-           ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
-           ax[2].plot(ax[2].get_xlim(),[med,med])
+            log_beta = np.log(self.diag['beta'])
+            log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
+                              -1.0596601,-1.75280728,-2.44595446,
+                              -3.13910164,-3.83224882,-4.525396  ]
+            ax[2].set_yticks(log_beta_ticks)
+            sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
+            tx = prop_scale(ax[2].get_xlim(), 0.05)
+            ty = prop_scale(ax[2].get_ylim(), 0.90)
+            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+        #   ax[2].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
+            ax[2].plot(pdate,log_beta)
+        #   plot_error(ax[2],pdate,log_beta,sigma_beta,logscale)
+            med = median(log_beta)
+            medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
+            ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
+            ax[2].plot(ax[2].get_xlim(),[med,med])
+ 
+            y2_ticks = np.log(np.log(2))-ax[2].get_yticks()
+            y2_ticks = np.exp(y2_ticks)
+            n = len(y2_ticks)
+            y2_tick_label = ['']*n
+            for i in range(0,len(y2_ticks)):
+                if (y2_ticks[i] > 32):
+                    y2_tick_label[i] = '  '
+                elif (y2_ticks[i] > 16):
+                    y2_tick_label[i] = ' >16'
+                else:
+                    y2_tick_label[i] = '%.1f'%y2_ticks[i]
 
-           y2_ticks = np.log(2)/(ax[2].get_yticks()+eps)
-           n = len(y2_ticks)
-           y2_tick_label = ['']*n
-           for i in range(0,len(y2_ticks)):
-              if (y2_ticks[i] > 7):
-                  y2_tick_label[i] = ' >14'
-              else:
-                 y2_tick_label[i] = '%.1f'%y2_ticks[i]
-           ax[2].grid(False,axis='y')
-           dtax = ax[2].twinx()
-           dtax.set_yscale(ax[2].get_yscale())
-           dtax.set_ylabel('Doubling Time (da)')
-           dtax.set_yticks(ax[2].get_yticks())
-           dtax.set_yticklabels(y2_tick_label)
-           dtax.set_ylim(ax[2].get_ylim())
+            dtax = ax[2].twinx()
+            dtax.grid(False,axis='y') # omit grid lines
+            dtax.set_ylabel('Doubling Time (da)')
+            dtax.set_yticks(ax[2].get_yticks())
+            dtax.set_yticklabels(y2_tick_label)
 
         if (npl > 3):
            ymin = min(self.diag['mu'])-2.5*sigma_mu
@@ -582,6 +587,7 @@ class Fit(Geography):
             plt.savefig(gfile+'.png',dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
+            plt.pause(3)
             plt.close()
         else:
             plt.show(True)
@@ -776,6 +782,7 @@ def update_shared_plots():
         ['Alameda','California','CA']]),
         columns=['name','enclosed_by','code']) 
     gg = update_list
+    save_path = cv.graphics_path
     cv.graphics_path = cv.cv_home+'PlotsToShare/'
     for g in range(0,len(gg)):
         print(gg['name'][g])
@@ -783,6 +790,8 @@ def update_shared_plots():
                          code=gg['code'][g])
         tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True)
+
+    cv.graphics_path = save_path
 
 def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
     gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
@@ -840,11 +849,13 @@ def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
         plt.savefig(gfile,dpi=300)
         plt.show(False)
         print('plot saved as',gfile)
+
         kfile = cv.graphics_path+'short_name_key.csv'
         key.sort_values(by='key',ascending=True,inplace=True)
         print(key)
         key.to_csv(kfile,index=False)
         print('key names saved as',kfile)
+
         plt.pause(3)
         plt.close()
             
@@ -868,7 +879,7 @@ def update_everything():
 
 # --------------------------------------------------       
 print('------- here ------')
-#update_everything()
+#pdate_everything()
 #update_shared_plots()
 #make_dat_files();
 
@@ -879,16 +890,16 @@ print('------- here ------')
 #alam.get_pdate()
 #alam.print_data()
 #alam.plot_prevalence()
-#tfit = Fit(cv.fit_path+'Los_AngelesCA.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-#tfit.plot()
+#tfit.plot(save=False)
 
 
 #web_update()
 #make_dat_files()
 #update_fits()
-#make_fit_plots()
-make_fit_table()
+make_fit_plots()
+#make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
