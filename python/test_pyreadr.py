@@ -8,6 +8,7 @@ result = pyreadr.read_r('test_data/basic/two.RData', use_objects=["df1"])
 import os
 import pyreadr
 import pandas
+import numpy as np
 
 #os.chdir('/home/other/pyreadr')
 #result = pyreadr.read_r('test_data/basic/two.RData')
@@ -17,14 +18,15 @@ import pandas
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('NassauNY.RData')
+fit=pyreadr.read_r('Miami-DadeFL.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
 print(diag)
-print(diag['mu'])
-mmu = diag['mu'].quantile(q=0.5)
-print('median mu:',mmu)
+mmu = diag['logmu'].quantile(q=0.5)
+print('median logmu:',mmu)
+mbeta = diag['logbeta'].quantile(q=0.5)
+print('median logbeta:',mmu)
 
 md = fit['meta']
 print('meta:',md)
@@ -35,8 +37,9 @@ print('meta:',md)
 #Date0 = md.data[rs]
 #print('Date0:',Date0)
 
-est = fit['ests']
-print('est:',est)
+ests = fit['ests']
+print('ests:',ests)
+print(np.exp(ests['est']))
 
 #rs = est['names'].isin(['logmu'])
 #print(rs)

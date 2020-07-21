@@ -8,8 +8,8 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
            log_pred_cases = obj$report()$logEye,
            log_pred_deaths = obj$report()$logD,
            gamma = obj$report()$gamma,
-           beta = obj$report()$beta,
-           mu = obj$report()$mu
+           logbeta = obj$report()$logbeta,
+           logmu = obj$report()$logmu
     )
 
     if (is.null(opt$value))
@@ -24,19 +24,10 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
            data = data
     ) 
 
-    est_names = names(init)
-    init = unlist(init)
-    est = vector(length=length(init))
-    est = init
-    for (n in names(opt$par))
-    {
-         est[n] = opt$par[n]
-    }
-
     ests = data.frame(stringsAsFactors = FALSE,
-                     names = est_names,
-                     init = init,
-                     est = est)
+                     names = names(opt$par),
+                     init = obj$par,
+                     est  = opt$par)
 
     like_names = c('f','betanll', 'munll', 'Pnll','cnll','dnll')
     like = vector(length=length(like_names))
@@ -61,5 +52,3 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
     print(paste('saving fit:',file))
     save(diag,meta,ests,like_comp,file=file)
 }
-
-# tnames=names(fit$obj$par)

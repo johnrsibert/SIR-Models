@@ -31,11 +31,11 @@ print(data)
 
 init = list(
     logsigma_logP = log(0.2),
-    logsigma_beta = log(0.02),
-    logsigma_mu = log(0.001),
+    logsigma_beta = log(0.7),
+    logsigma_mu = log(0.05),
     logmu = log(0.0005),
-    logsigma_logC = log(0.25),
-    logsigma_logD = log(0.25),
+    logsigma_logC = log(0.05),
+    logsigma_logD = log(0.3),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -43,8 +43,8 @@ print(init)
 
 par = list(
     logsigma_logP = init$logsigma_logP,
-    logsigma_beta = init$logsigma_beta,
-    logsigma_mu = init$logsigma_mu,
+    logsigma_logbeta = init$logsigma_beta,
+    logsigma_logmu = init$logsigma_mu,
     logmu    = rep(init$logmu,data$ntime+1),
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
@@ -55,8 +55,8 @@ print(par)
 
 map = list(
            "logsigma_logP" = as.factor(1),
-           "logsigma_beta" = as.factor(1),
-           "logsigma_mu" = as.factor(1),
+           "logsigma_logbeta" = as.factor(1),
+           "logsigma_logmu" = as.factor(1),
            "logsigma_logC" = as.factor(1),
            "logsigma_logD" = as.factor(1)
 )
@@ -98,10 +98,10 @@ print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
 
-mbeta = median(obj$report()$beta)
-print(paste("median beta:",mbeta))
-mmu = median(obj$report()$mu)
-print(paste("median mu:",mmu))
+mlogbeta = median(obj$report()$logbeta)
+print(paste("median logbeta:",mlogbeta))
+mlogmu = median(obj$report()$logmu)
+print(paste("median logmu:",mlogmu))
 
 if (do.plot){
     plot.log.state(data,par,obj,opt,map,np=4)
@@ -157,7 +157,7 @@ largest_us_counties = list(
 )
 
 fit_examples = list(
-"New_York_CityNY", "CookIL",
+"New_York_CityNY",  "CookIL",
 "Miami-DadeFL", "BrowardFL", 
 "Palm_BeachFL","HillsboroughFL","NassauNY",
 "HarrisTX",
@@ -175,9 +175,9 @@ nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-#   do_one_run(County="NassauNY")->fit
+#   do_one_run(County="CookIL")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-    do_one_run(County="BrowardFL")->fit
+    do_one_run(County="Miami-DadeFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
 #  for (c in 4:length(largest_us_counties))

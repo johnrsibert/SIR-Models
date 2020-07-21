@@ -221,7 +221,7 @@ class Geography:
         print(len(self.date),'records found for',self.name,self.enclosed_by)
         O = open(self.dat_file,'w')
         O.write('# county\n %s\n'%(self.moniker))
-        O.write('# updateed from https://github.com/nytimes/covid-19-data.git\n')
+        O.write('# updated from https://github.com/nytimes/covid-19-data.git\n')
         O.write(' %s\n'%self.updated)
         O.write('# population (N0)\n %10d\n'%self.population)
         O.write('# date zero\n %s\n'%self.date0)
@@ -497,8 +497,8 @@ class Fit(Geography):
         preD = self.diag['log_pred_deaths']
         sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
         sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
-        sigma_beta = self.get_est_or_init('logsigma_beta')
-        sigma_mu = np.exp(self.get_est_or_init('logsigma_mu'))
+        sigma_logbeta = self.get_est_or_init('logsigma_logbeta')
+        sigma_logmu = np.exp(self.get_est_or_init('logsigma_logmu'))
         if (logscale):
             ax[0].set_ylim(0.0,1.2*max(obsI))
             ax[0].scatter(pdate,obsI)
@@ -529,18 +529,18 @@ class Fit(Geography):
         ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
         if (npl > 2):
-            log_beta = np.log(self.diag['beta'])
+            log_beta = self.diag['logbeta']
             log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
                               -1.0596601,-1.75280728,-2.44595446,
                               -3.13910164,-3.83224882,-4.525396  ]
+            ax[2].set_ylim((1.2*min(log_beta_ticks),1.2*max(log_beta_ticks)))
             ax[2].set_yticks(log_beta_ticks)
-            sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_beta)
+            sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
             tx = prop_scale(ax[2].get_xlim(), 0.05)
             ty = prop_scale(ax[2].get_ylim(), 0.90)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
-        #   ax[2].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
             ax[2].plot(pdate,log_beta)
-        #   plot_error(ax[2],pdate,log_beta,sigma_beta,logscale)
+            plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale)
             med = median(log_beta)
             medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
             ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
@@ -565,19 +565,22 @@ class Fit(Geography):
             dtax.set_yticklabels(y2_tick_label)
 
         if (npl > 3):
-           ymin = min(self.diag['mu'])-2.5*sigma_mu
-           ax[3].set_ylim(ymin,1.2*max(self.diag['mu']))
-           sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_mu)
-           tx = prop_scale(ax[3].get_xlim(), 0.05)
-           ty = prop_scale(ax[3].get_ylim(), 0.90)
-           ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
-           ax[3].plot(pdate,self.diag['mu'])
-           plot_error(ax[3],pdate,self.diag['mu'],sigma_mu)
-           ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
-           med = median(self.diag['mu'])
-           medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
-           ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
-           ax[3].plot(ax[3].get_xlim(),[med,med])
+            logmu = self.diag['logmu']
+        #   ymin = min(self.diag['logmu'])-2.5*sigma_logmu
+        #   ax[3].set_ylim(ymin,1.2*max(self.diag['logmu']))
+            ax[3].set_ylim((1.2*min(logmu),1.2*max(logmu)))
+
+            sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_logmu)
+            tx = prop_scale(ax[3].get_xlim(), 0.05)
+            ty = prop_scale(ax[3].get_ylim(), 0.90)
+            ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
+            ax[3].plot(pdate,self.diag['logmu'])
+            plot_error(ax[3],pdate,logmu,sigma_logmu,logscale)
+            ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+            med = median(self.diag['logmu'])
+            medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
+            ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
+            ax[3].plot(ax[3].get_xlim(),[med,med])
     
     #   title = self.name+' County, '+self.enclosed_by
     #   fig.text(0.5,0.925,title ,ha='center',va='top')
@@ -613,11 +616,11 @@ def make_fit_table(ext = '.RData'):
     # mtime = os.path.getmtime(cspath) cv.NYT_counties
     #   dtime = datetime.fromtimestamp(mtime)
     #   self.updated = str(dtime.date())
-    # updateed from https://github.com/nytimes/covid-19-data.git
+    # updated from https://github.com/nytimes/covid-19-data.git
 
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
-    es_cols = ['logsigma_logP'   , 'logsigma_beta'  , 'logsigma_mu'  ,
+    es_cols = ['logsigma_logP'   , 'logsigma_logbeta'  , 'logsigma_logmu'  ,
                'logsigma_logC','logsigma_logD', 'mgamma','mbeta','mmu']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
@@ -659,9 +662,9 @@ def make_fit_table(ext = '.RData'):
         row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
         tt = tt.append(row,ignore_index=True)
         func = np.append(func,float(fit.get_metadata_item('fn')))
-        beta = diag['beta']
+        beta = np.exp(diag['logbeta'])
         mbeta = np.append(mbeta,median(beta))
-        mu = diag['mu']
+        mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
         gamma = diag['gamma']
         mgamma = np.append(mgamma,gamma.quantile(q=0.5))
@@ -691,7 +694,9 @@ def make_fit_table(ext = '.RData'):
 
     tex = cv.fit_path+'fit_table.tex'
     ff = open(tex, 'w')
-    ff.write('Updateed from https://github.com/nytimes/covid-19-data.git\n')
+    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with computed $\gamma$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git"
+
+    ff.write(caption_text)
     ff.write(str(dtime.date())+'\n')
     ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
 #   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
@@ -767,7 +772,7 @@ def update_fits():
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
     # list of counties in runSS4.R
-    cmd = 'R CMD BATCH runSS4.R'
+    cmd = 'R CMD BATCH simpleSIR4.R'
     print('running',cmd)
     os.system(cmd)
     os.chdir(save_wd)
@@ -898,8 +903,8 @@ print('------- here ------')
 #web_update()
 #make_dat_files()
 #update_fits()
-make_fit_plots()
-#make_fit_table()
+#make_fit_plots()
+make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
