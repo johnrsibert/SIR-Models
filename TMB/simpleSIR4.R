@@ -22,20 +22,16 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
-#data$beta_a = eps
-#data$beta_b = 3.0
-#data$mu_a = eps
-#data$mu_b = 3.0
 print("-data:")
 print(data)
 
 init = list(
     logsigma_logP = log(0.2),
     logsigma_beta = log(0.7),
-    logsigma_mu = log(0.05),
-    logmu = log(0.0005),
-    logsigma_logC = log(0.05),
-    logsigma_logD = log(0.3),
+    logsigma_mu = log(2.0),
+    logmu = log(0.00005),
+    logsigma_logC = log(0.005),
+    logsigma_logD = log(0.005),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -81,12 +77,9 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-options(warn=2,verbose=FALSE)
-#obj$control=list(eval.max=500,iter.max=10)
-#opt = nlminb(obj$par,obj$fn,obj$gr,
-#    control=list('trace'=1,'abs.tol'=1e-3,'rel.tol'=1e-3))
+#opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
- opt = optim(obj$par,obj$fn,obj$gr)
+ opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
 
 print("Done minimization-----------------------------",quote=FALSE)
@@ -157,7 +150,7 @@ largest_us_counties = list(
 )
 
 fit_examples = list(
-"New_York_CityNY",  "CookIL",
+"New_York_CityNY",
 "Miami-DadeFL", "BrowardFL", 
 "Palm_BeachFL","HillsboroughFL","NassauNY",
 "HarrisTX",
@@ -168,16 +161,17 @@ fit_examples = list(
 "MaricopaAZ",
 "PhiladelphiaPA",
 "TravisTX",
-"HonoluluHI"
+"HonoluluHI",
+"CookIL"
 )
                        
 nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-#   do_one_run(County="CookIL")->fit
+    do_one_run(County="MaricopaAZ")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-    do_one_run(County="Miami-DadeFL")->fit
+#   do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
 #  for (c in 4:length(largest_us_counties))

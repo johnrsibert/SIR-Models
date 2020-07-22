@@ -57,7 +57,7 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
 
     ylim=c(0.0,max(dat$log_obs_cases,obj$report()$logEye))
     poplim = ylim
-    plot(tt,dat$log_obs_cases,ylab='log cases,',ylim=ylim, pch=point.symb)
+    plot(tt,dat$log_obs_cases,ylab='ln cases,',ylim=ylim, pch=point.symb)
     lines(tt,obj$report()$logEye,col='red')
     err = exp(get.error(par,opt,map,'logsigma_logC'))
     logspace.plot.error(tt,obj$report()$logEye,err)
@@ -68,7 +68,7 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
 
     ylim = 1.2*range(obj$report()$logbeta)
     print(ylim)
-    plot(tt,obj$report()$logbeta,ylab='log beta',ylim=ylim, pch=point.symb)
+    plot(tt,obj$report()$logbeta,ylab='ln beta',ylim=ylim, pch=point.symb)
     err = exp(get.error(par,opt,map,'logsigma_logbeta'))
     logspace.plot.error(tt,obj$report()$logbeta,err)
     gmlogbeta = median(obj$report()$logbeta)
@@ -78,7 +78,7 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
     text(ttext,ytext,note,col=note.color,pos=4)
  
     ylim=poplim #c(0.0,max(dat$log_obs_deaths,obj$report()$logD))
-    plot(tt,dat$log_obs_deaths,ylab='log deaths',ylim=ylim, pch=point.symb)
+    plot(tt,dat$log_obs_deaths,ylab='ln deaths',ylim=ylim, pch=point.symb)
     lines(tt,obj$report()$logD,col='red')
     err = exp(get.error(par,opt,map,'logsigma_logD'))
     logspace.plot.error(tt,obj$report()$logD,err)
@@ -89,7 +89,7 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
     if (np > 3)
     {
         ylim = 1.2*range(obj$report()$logmu)
-        plot(tt,obj$report()$logmu,ylab='log mu',ylim=ylim, pch=point.symb)
+        plot(tt,obj$report()$logmu,ylab='ln mu',ylim=ylim, pch=point.symb)
         err = exp(get.error(par,opt,map,'logsigma_logmu'))
         logspace.plot.error(tt,obj$report()$logmu,err)
         gmlogmu = median(obj$report()$logmu)
@@ -116,12 +116,12 @@ plot.state=function(dat,oo,mod.par,np = 5)
 
     tt = seq(0,(length(dat$obs_cases)-1))
 
-    plot(tt,log(dat$obs_cases),ylab='log cases,',
+    plot(tt,log(dat$obs_cases),ylab='ln cases,',
             ylim=c(0.0,max(log(dat$obs_cases),log(oo$report()$Eye))))
     lines(tt,log(oo$report()$Eye),col='red')
     plot.error(tt,log(oo$report()$Eye),mod.par$logsigma_C)
 
-    plot(tt,log(dat$obs_deaths),ylab='log deaths',
+    plot(tt,log(dat$obs_deaths),ylab='ln deaths',
             ylim=c(0.0,max(dat$obs_deaths,oo$report()$D)))
     lines(tt,log(oo$report()$D),col='red')
     plot.error(tt,log(oo$report()$D),mod.par$logsigma_D)

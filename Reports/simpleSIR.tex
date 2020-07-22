@@ -277,16 +277,20 @@ The vertical gray bar mark the date of the California shelter in place order.
 %site\footnote{See note \ref{ff:nyt}.}.
 % {\url{https://github.com/nytimes/covid-19-data/}}. 
 
-The trends in number of cases in the thirty largest counties in the
+Trends in the per-capita number of cases in the thirty largest counties in the
 United States are shown in Figure~(\ref{fig:percap}).
 These trajectories fall into two more or less distinct groups: those
-that are concave downward, \EG New York City (NYNY), and those that are
-concave upward, \EG Miami-Dade FL (MDFL).
+that are concave downward, \EG Nassau Co. NY (NaNY), and those that are
+concave upward, \EG Miami-Dade Co. FL (MDFL).
 
-Prevalence histories for these five counties are shown in
+
+Prevalence histories for six counties are shown in
 Figure~\ref{fig:prev} where the 11-day moving average of the daily
 increase in cases demonstrates clearly
 the efficacy of control measures.
+All of these trends show extreme day to day variability in numbers of
+both cases and deaths. The variability is most notable in the deaths
+time series for smaller counties.
 
 \begin{figure}
 {\scriptsize
@@ -302,22 +306,25 @@ the efficacy of control measures.
 \\
 \multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Honolulu Co. HI}\\
 \includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_prevalence.png}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_prevalence.png}\\
 \end{tabular}
 \end{center}
 }
 \caption{\label{fig:prev}
 Prevalence trajectories for six US counties.
 Blue bars indicate daily increases increases in cases and deaths;
-blue lines indicate 11 day moving averages of daily increases; 
+dark blue lines indicate 11 day moving averages of daily increases
+(labeled ``11da''); 
 pale blue lines indicate cumulative numbers (labeled $\Sigma C$ and
 $\Sigma D$); 
-vertical gray bar marks the California shelter in place order.
+vertical gray bar marks the March 19, 2020 California shelter in place order.
 \help{remove annotations.}
 }
 \end{figure}
 
-Model results are shown in figures \ref{fig:ests1} and \ref{fig:ests2}.
+Model diagnostic plots are shown in figures \ref{fig:ests1} and
+\ref{fig:ests2} for convex downward and convex upward trajectories
+respectively.
 The model reproduces the observed numbers of cases and deaths almost
 exactly.
 The `+' symbols in the Cases and Deaths graphs represent the observed
@@ -360,6 +367,7 @@ County, equivalent to a doubling time of less than one day.
 \end{center}
 }
 \caption{\label{fig:ests1}
+Model diagnostics for concave downward counties.
 }
 \end{figure}
 
@@ -378,6 +386,7 @@ County, equivalent to a doubling time of less than one day.
 \end{center}
 }
 \caption{\label{fig:ests2}
+Model diagnostics for concave upward counties.
 }
 \end{figure}
 
@@ -385,8 +394,7 @@ County, equivalent to a doubling time of less than one day.
 \begin{sidewaystable}
 \caption{\label{tab:sumres}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$.
-Data updated 2020-07-20 from https://github.com/nytimes/covid-19-data.git2020-07-20
-Model results.
+Data updated 2020-07-22 from https://github.com/nytimes/covid-19-data.git2020-07-22
 }
 \centering
 {\small
@@ -397,26 +405,26 @@ Model results.
 \hline
  County            &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
 \hline
- Nassau, NY        &   136 &  0.0876 &  -883 &     1 &          0.204  &           0.658  &          4.89  &     0.000282 &     1.88e-06 &            1e-08 &           0.00434 &        0.000201 \\
- New York City, NY &   140 &  0.0922 &  -794 &    10 &          0.21   &           1.19   &          1.12  &     3.95e-07 &     0.00112  &            1e-08 &           0.00592 &        0.000365 \\
- Cook, IL          &   177 &  0.298  &  -947 &     1 &          0.119  &           5.48   &          1.1   &     3.85e-08 &     2.73e-06 &            1e-08 &           0.0106  &        0.00031  \\
- Honolulu, HI      &   135 &  0.184  & -1370 &     1 &          0.147  &           1.35   &        977     &     0.00105  &     3.48e-06 &            1e-08 &           0.0106  &        1.46e-13 \\
- Philadelphia, PA  &   131 &  0.114  &  -588 &     0 &          0.168  &           1.03   &          1.95  &     0.00264  &     0.00479  &            1e-08 &           0.0119  &        0.000322 \\
- Bexar, TX         &   158 &  0.245  &  -674 &     1 &          0.12   &           4.9    &          2.29  &     3.62e-07 &     0.00228  &            1e-08 &           0.0293  &        8.99e-05 \\
- Harris, TX        &   136 &  0.102  &  -369 &     0 &          0.118  &           0.266  &          0.901 &     0.168    &     0.0228   &            1e-08 &           0.031   &        0.000289 \\
- Palm Beach, FL    &   129 &  0.0769 &  -417 &     1 &          0.144  &           0.339  &          1.38  &     0.0881   &     0.00614  &            1e-08 &           0.0312  &        0.000681 \\
- Tarrant, TX       &   131 &  0.0758 &  -556 &     1 &          0.147  &           1.26   &          1.39  &     0.0104   &     0.00336  &            1e-08 &           0.0315  &        0.000294 \\
- Miami-Dade, FL    &   130 &  0.122  &  -606 &    10 &          0.153  &           0.63   &          0.94  &     1.62e-05 &     0.00734  &            1e-08 &           0.0335  &        0.000492 \\
- Miami-Dade, FL    &   130 &  0.122  &  -411 &     1 &          0.147  &           0.735  &          0.544 &     0.00334  &     0.296    &            1e-08 &           0.0335  &        0.000602 \\
- Hillsborough, FL  &   140 &  0.177  &  -548 &     1 &          0.114  &           1.04   &          1.68  &     0.00689  &     0.011    &            1e-08 &           0.0353  &        0.000312 \\
- Travis, TX        &   128 &  0.109  &  -341 &     1 &          0.122  &           0.248  &          1.79  &     0.189    &     0.00682  &            1e-08 &           0.0363  &        0.000227 \\
- Maricopa, AZ      &   175 &  0.307  &  -839 &     1 &          0.109  &           3.33   &          2.24  &     7.48e-07 &     0.00161  &            1e-08 &           0.0369  &        0.00031  \\
- Dallas, TX        &   131 &  0.0682 &  -439 &     1 &          0.137  &           0.305  &          1.2   &     0.0807   &     0.00945  &            1e-08 &           0.0378  &        0.000414 \\
- Broward, FL       &   135 &  0.0809 &  -500 &     0 &          0.137  &           0.231  &          1.68  &     0.0806   &     0.00287  &            1e-08 &           0.0384  &        0.000275 \\
-\hline
- Median            &   135 &  0.1115 &  -572 &     1 &          0.1405 &           0.8825 &          1.535 &     0.00299  &     0.004075 &            1e-08 &           0.03135 &        0.00031  \\
+ Nassau, NY        &   138 &  0.0863 &  -957 &    10 &           0.161 &            0.593 &          1.77  &     7.15e-05 &     0.00109  &        -9.45e-09 &           0.00349 &        0.000211 \\
+ New York City, NY &   142 &  0.0909 &  -834 &     0 &           0.196 &            1.06  &          1.02  &     0.000523 &     0.000493 &        -2.73e-08 &           0.00583 &        0.000278 \\
+ Cook, IL          &   179 &  0.294  &  -990 &    10 &           0.118 &            3.46  &          1.02  &     4.21e-08 &     6.33e-05 &        -2.24e-07 &           0.00926 &        0.0003   \\
+ Honolulu, HI      &   137 &  0.181  & -1290 &     1 &           0.106 &            8.7   &         21.2   &     0.00372  &     3.41e-06 &        -5.51e-08 &           0.0109  &        4.39e-11 \\
+ Philadelphia, PA  &   133 &  0.112  &  -608 &     0 &           0.167 &            1.02  &          1.97  &     0.00279  &     0.00452  &        -3.1e-08  &           0.0117  &        0.0003   \\
+ Bexar, TX         &   160 &  0.242  &  -833 &     1 &           0.166 &            6.49  &          6.72  &     1.51e-08 &     9.81e-06 &        -7.18e-08 &           0.0283  &        2.73e-07 \\
+ Tarrant, TX       &   133 &  0.0746 &  -570 &     0 &           0.146 &            1.25  &          1.37  &     0.0102   &     0.0034   &        -3.78e-08 &           0.0307  &        0.000285 \\
+ Palm Beach, FL    &   131 &  0.0758 &  -428 &     0 &           0.143 &            0.34  &          1.36  &     0.0874   &     0.00615  &        -1.16e-08 &           0.0308  &        0.000658 \\
+ Harris, TX        &   138 &  0.101  &  -380 &     0 &           0.117 &            0.265 &          0.895 &     0.167    &     0.0225   &        -2.15e-08 &           0.0308  &        0.000278 \\
+ Miami-Dade, FL    &   132 &  0.12   &  -622 &    10 &           0.162 &            0.66  &          0.912 &     6.28e-06 &     0.00809  &        -9.54e-09 &           0.0327  &        0.00047  \\
+ Hillsborough, FL  &   142 &  0.175  &  -595 &     1 &           0.145 &            1.65  &         48.2   &     7.61e-05 &     2.29e-07 &        -7.24e-08 &           0.0355  &        4.64e-05 \\
+ Travis, TX        &   130 &  0.107  &  -361 &    10 &           0.11  &            0.25  &          6.75  &     0.228    &     0.000131 &        -1.68e-08 &           0.0358  &        0.000303 \\
+ Maricopa, AZ      &   177 &  0.303  &  -878 &     1 &           0.118 &            2.02  &          1.59  &     4.12e-07 &     0.00114  &        -4.2e-07  &           0.0367  &        0.000321 \\
+ Dallas, TX        &   133 &  0.0672 &  -452 &     1 &           0.136 &            0.305 &          1.19  &     0.0801   &     0.00954  &        -1.04e-08 &           0.0371  &        0.000405 \\
+ Broward, FL       &   137 &  0.0797 &  -511 &     0 &           0.136 &            0.231 &          1.65  &     0.08     &     0.003    &        -2.03e-08 &           0.038   &        0.000277 \\
+ Median            &   137 &  0.107  &  -608 &     1 &           0.143 &            1.02  &          1.59  &     0.00279  &     0.00114  &        -2.73e-08 &           0.0308  &        0.000285 \\
 \hline
 \end{tabular}
+
+
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
 
@@ -442,6 +450,18 @@ development of the model.
 \printbibliography[title=References]
 
 \end{document}
+
+
+%An integer code. 0 indicates successful completion (which is always the case for "SANN" and "Brent"). Possible error codes are
+%
+%1
+%
+    %indicates that the iteration limit maxit had been reached.
+%10
+%
+    %indicates degeneracy of the Nelder--Mead simplex.
+%
+
 \clearpage
 
 \begin{figure}

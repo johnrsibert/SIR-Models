@@ -9,6 +9,7 @@ import os
 import pyreadr
 import pandas
 import numpy as np
+import js_covid as cv
 
 #os.chdir('/home/other/pyreadr')
 #result = pyreadr.read_r('test_data/basic/two.RData')
@@ -18,7 +19,7 @@ import numpy as np
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('Miami-DadeFL.RData')
+fit=pyreadr.read_r('HonoluluHI.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)

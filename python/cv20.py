@@ -461,7 +461,7 @@ class Fit(Geography):
         plt.rcParams["lines.markersize"] = 6
         prefix = ''
         if (logscale):
-            prefix = 'log '
+            prefix = 'ln '
              
         fig, ax = plt.subplots(npl,1,figsize=(10.0,(npl)*2.5))
         if (per_capita):
@@ -473,7 +473,7 @@ class Fit(Geography):
         if (npl > 2):
             ax[2].set_ylabel(prefix+r'$\beta\ (da^{-1})$')
         if (npl > 3):
-            ax[3].set_ylabel(r'$\mu\ (da^{-1})$')
+            ax[3].set_ylabel(prefix+r'$\mu\ (da^{-1})$')
     
     
         for a in range(0,len(ax)):
@@ -551,12 +551,11 @@ class Fit(Geography):
             n = len(y2_ticks)
             y2_tick_label = ['']*n
             for i in range(0,len(y2_ticks)):
-                if (y2_ticks[i] > 32):
-                    y2_tick_label[i] = '  '
-                elif (y2_ticks[i] > 16):
-                    y2_tick_label[i] = ' >16'
-                else:
-                    y2_tick_label[i] = '%.1f'%y2_ticks[i]
+                y2_tick_label[i] = '%.1f'%y2_ticks[i]
+            #   elif (y2_ticks[i] > 16):
+            #       y2_tick_label[i] = ' >16'
+            #   else:
+            #       y2_tick_label[i] = '%.1f'%y2_ticks[i]
 
             dtax = ax[2].twinx()
             dtax.grid(False,axis='y') # omit grid lines
@@ -783,7 +782,7 @@ def update_shared_plots():
        [['District of Columbia','District of Columbia','DC'],
         ['Honolulu','Hawaii','HI'],
         ['Tompkins','New York','NY'],
-        ['Placer','California','CA'],
+        ['Plumas','California','CA'],
         ['Alameda','California','CA']]),
         columns=['name','enclosed_by','code']) 
     gg = update_list
@@ -871,11 +870,13 @@ def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
 def update_everything():
     web_update()
     print('Finished web_update ...')
+    os.system('rm -v '+ cv.dat_path + '*.dat')
     make_dat_files()
     plot_multi_per_capita(plot_dt=False,save=True)
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
+    os.system('rm -v' + cv.fit_path + '*.RData')
     update_fits()
     print('Finished update_fits()')
     make_fit_table()
@@ -885,7 +886,7 @@ def update_everything():
 # --------------------------------------------------       
 print('------- here ------')
 #pdate_everything()
-#update_shared_plots()
+update_shared_plots()
 #make_dat_files();
 
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
@@ -900,11 +901,12 @@ print('------- here ------')
 #tfit.plot(save=False)
 
 
+#update_everything()
 #web_update()
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-make_fit_table()
+#make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')

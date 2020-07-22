@@ -128,8 +128,8 @@ Type objective_function <Type>::operator()()
                          exp(logmu(t-1))))+eps);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
-     //  gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
-         gamma(t) = 1e-8;
+         gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
+     //  gamma(t) = 1e-8;
 
          // deaths process error
          Type prevD = exp(logD(t-1));
