@@ -24,10 +24,27 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
            data = data
     ) 
 
+    tinit = vector(length=length(map),mode='numeric')
+    test = vector(length=length(map),mode='numeric')
+    for (n in 1:length(map))
+    {
+        nn = names(map)[n]
+        tinit[n] = unlist(init)[nn] 
+        if (is.na(map[nn]))
+        {
+            test[n] = unlist(init)[nn] 
+        }
+        else
+        {
+            test[n] = opt$par[nn]
+        }   
+    }
+
     ests = data.frame(stringsAsFactors = FALSE,
-                     names = names(opt$par),
-                     init = obj$par,
-                     est  = opt$par)
+                     names = names(unlist(map)),
+                     init = tinit,
+                     est  = test
+    )
 
     like_names = c('f','betanll', 'munll', 'Pnll','cnll','dnll')
     like = vector(length=length(like_names))

@@ -27,11 +27,11 @@ print(data)
 
 init = list(
     logsigma_logP = log(0.2),
-    logsigma_beta = log(0.7),
-    logsigma_mu = log(2.0),
+    logsigma_logbeta = log(0.7),
+    logsigma_logmu = log(2.0),
     logmu = log(0.00005),
-    logsigma_logC = log(0.005),
-    logsigma_logD = log(0.005),
+    logsigma_logC = log(1.0),
+    logsigma_logD = log(0.5),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -39,8 +39,8 @@ print(init)
 
 par = list(
     logsigma_logP = init$logsigma_logP,
-    logsigma_logbeta = init$logsigma_beta,
-    logsigma_logmu = init$logsigma_mu,
+    logsigma_logbeta = init$logsigma_logbeta,
+    logsigma_logmu = init$logsigma_logmu,
     logmu    = rep(init$logmu,data$ntime+1),
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(1),
-           "logsigma_logD" = as.factor(1)
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -77,9 +77,9 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-#opt = nlminb(obj$par,obj$fn,obj$gr)
+ opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
- opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
+#opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
 
 print("Done minimization-----------------------------",quote=FALSE)

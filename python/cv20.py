@@ -533,7 +533,9 @@ class Fit(Geography):
             log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
                               -1.0596601,-1.75280728,-2.44595446,
                               -3.13910164,-3.83224882,-4.525396  ]
-            ax[2].set_ylim((1.2*min(log_beta_ticks),1.2*max(log_beta_ticks)))
+            print(min(log_beta_ticks),max(log_beta_ticks))
+            print(0.8*min(log_beta_ticks),1.2*max(log_beta_ticks))
+            ax[2].set_ylim((0.8*min(log_beta_ticks),1.2*max(log_beta_ticks)))
             ax[2].set_yticks(log_beta_ticks)
             sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
             tx = prop_scale(ax[2].get_xlim(), 0.05)
@@ -567,7 +569,9 @@ class Fit(Geography):
             logmu = self.diag['logmu']
         #   ymin = min(self.diag['logmu'])-2.5*sigma_logmu
         #   ax[3].set_ylim(ymin,1.2*max(self.diag['logmu']))
-            ax[3].set_ylim((1.2*min(logmu),1.2*max(logmu)))
+        #   print(min(logmu),max(logmu))
+        #   print(1.2*min(logmu),0.8*max(logmu))
+            ax[3].set_ylim((1.2*min(logmu),0.8*max(logmu)))
 
             sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_logmu)
             tx = prop_scale(ax[3].get_xlim(), 0.05)
@@ -886,7 +890,7 @@ def update_everything():
 # --------------------------------------------------       
 print('------- here ------')
 #pdate_everything()
-update_shared_plots()
+#update_shared_plots()
 #make_dat_files();
 
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
@@ -905,8 +909,8 @@ update_shared_plots()
 #web_update()
 #make_dat_files()
 #update_fits()
-#make_fit_plots()
-#make_fit_table()
+make_fit_plots()
+make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')

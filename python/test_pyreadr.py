@@ -19,7 +19,7 @@ import js_covid as cv
 os.chdir('/home/jsibert/Projects/SIR-Models/fits')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('HonoluluHI.RData')
+fit=pyreadr.read_r('MaricopaAZ.RData')
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
@@ -37,6 +37,9 @@ print('meta:',md)
 #print(rs)
 #Date0 = md.data[rs]
 #print('Date0:',Date0)
+
+like = fit['like_comp']
+print(like)
 
 ests = fit['ests']
 print('ests:',ests)
