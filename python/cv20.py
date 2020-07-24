@@ -481,9 +481,6 @@ class Fit(Geography):
             ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
             ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
-    #       if (delta_ts):
-    #           ax2.append(ax[a].twinx())
-    #   ax[1].xaxis.set_minor_locator(plt.MultipleLocator(1))
     
         Date0 = self.get_metadata_item('Date0')
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
@@ -533,10 +530,10 @@ class Fit(Geography):
             log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
                               -1.0596601,-1.75280728,-2.44595446,
                               -3.13910164,-3.83224882,-4.525396  ]
-            print(min(log_beta_ticks),max(log_beta_ticks))
-            print(0.8*min(log_beta_ticks),1.2*max(log_beta_ticks))
-            ax[2].set_ylim((0.8*min(log_beta_ticks),1.2*max(log_beta_ticks)))
-            ax[2].set_yticks(log_beta_ticks)
+        #   print(min(log_beta_ticks),max(log_beta_ticks))
+        #   print(0.8*min(log_beta_ticks),1.2*max(log_beta_ticks))
+        #   ax[2].set_ylim((0.8*min(log_beta_ticks),1.2*max(log_beta_ticks)))
+        #   ax[2].set_yticks(log_beta_ticks)
             sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
             tx = prop_scale(ax[2].get_xlim(), 0.05)
             ty = prop_scale(ax[2].get_ylim(), 0.90)
@@ -547,23 +544,29 @@ class Fit(Geography):
             medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
             ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
             ax[2].plot(ax[2].get_xlim(),[med,med])
- 
-            y2_ticks = np.log(np.log(2))-ax[2].get_yticks()
-            y2_ticks = np.exp(y2_ticks)
-            n = len(y2_ticks)
-            y2_tick_label = ['']*n
-            for i in range(0,len(y2_ticks)):
-                y2_tick_label[i] = '%.1f'%y2_ticks[i]
-            #   elif (y2_ticks[i] > 16):
-            #       y2_tick_label[i] = ' >16'
-            #   else:
-            #       y2_tick_label[i] = '%.1f'%y2_ticks[i]
 
+        #   finagle doubling time axis at same scale as beta
             dtax = ax[2].twinx()
+            dtax.set_ylim(ax[2].get_ylim())
             dtax.grid(False,axis='y') # omit grid lines
             dtax.set_ylabel('Doubling Time (da)')
-            dtax.set_yticks(ax[2].get_yticks())
-            dtax.set_yticklabels(y2_tick_label)
+        #   render now to get the tick positions and labels
+            fig.show()
+            fig.canvas.draw()
+            y2_ticks = dtax.get_yticks()
+            labels = dtax.get_yticklabels()
+            for i in range(0,len(y2_ticks)):
+                y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
+                if (y2_ticks[i] < 100.0):
+                   labels[i] = '%.2g'%y2_ticks[i]
+                elif(y2_ticks[i] < 1000.0):
+                   labels[i] = ' >100'
+                else:
+                   labels[i] = ''
+                  
+            dtax.set_yticklabels(labels)
+        #   fig.show()
+        #   fig.canvas.draw()
 
         if (npl > 3):
             logmu = self.diag['logmu']
@@ -585,15 +588,15 @@ class Fit(Geography):
             ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
             ax[3].plot(ax[3].get_xlim(),[med,med])
     
-    #   title = self.name+' County, '+self.enclosed_by
-    #   fig.text(0.5,0.925,title ,ha='center',va='top')
+        title = self.moniker #self.name+' County, '+self.enclosed_by
+        fig.text(0.5,0.95,title ,ha='center',va='bottom')
 
         if save:
             gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates'
-            plt.savefig(gfile+'.png',dpi=300)
+            fig.savefig(gfile+'.png')#,dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
-            plt.pause(3)
+            plt.pause(2)
             plt.close()
         else:
             plt.show(True)
@@ -901,16 +904,16 @@ print('------- here ------')
 #alam.print_data()
 #alam.plot_prevalence()
 #tfit = Fit(cv.fit_path+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
-#tfit.print_metadata()
 #tfit.plot(save=False)
+#tfit.print_metadata()
 
 
 #update_everything()
 #web_update()
 #make_dat_files()
 #update_fits()
-make_fit_plots()
-make_fit_table()
+#make_fit_plots()
+#make_fit_table()
 #make_fit_table('.rep')
 
 #test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')

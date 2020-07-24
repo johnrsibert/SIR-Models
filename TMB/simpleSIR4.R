@@ -30,8 +30,8 @@ init = list(
     logsigma_logbeta = log(0.7),
     logsigma_logmu = log(2.0),
     logmu = log(0.00005),
-    logsigma_logC = log(1.0),
-    logsigma_logD = log(0.5),
+    logsigma_logC = log(0.25),
+    logsigma_logD = log(0.25),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -169,7 +169,7 @@ nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-    do_one_run(County="MaricopaAZ")->fit
+    do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="New_York_CityNY")->fit
 #   do_one_run(County="BrowardFL")->fit
 } else {
