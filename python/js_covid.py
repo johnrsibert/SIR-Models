@@ -26,4 +26,4 @@ TMB_path = cv_home + 'TMB/'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-07-31','%Y-%m-%d')
+EndOfTime = datetime.strptime('2020-08-15','%Y-%m-%d')

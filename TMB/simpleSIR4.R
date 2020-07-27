@@ -27,11 +27,11 @@ print(data)
 
 init = list(
     logsigma_logP = log(0.2),
-    logsigma_logbeta = log(0.7),
-    logsigma_logmu = log(2.0),
+    logsigma_logbeta = 0.4, #log(0.7),
+    logsigma_logmu = 0.2, #log(2.0),
     logmu = log(0.00005),
-    logsigma_logC = log(0.25),
-    logsigma_logD = log(0.25),
+    logsigma_logC = log(log(1.5)),
+    logsigma_logD = log(log(1.25)),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -129,24 +129,40 @@ big_county_list = list(
                        "Stanislaus","Sonoma","Marin")
 
 largest_us_counties = list(
-"AlamedaCA", "BexarTX",
-"BrowardFL", "ClarkNV", 
+"AlamedaCA",
+"BexarTX",
+"BrowardFL",
+"ClarkNV",
 "Contra_CostaCA",
-"CookIL", "DallasTX", "FresnoCA", "HarrisTX", "KernCA",
-"KingWA", 
-"Los_AngelesCA", 
-"MaricopaAZ", "MarinCA", 
+"CookIL",
+"DallasTX",
+"FranklinOH",
+"HarrisTX",
+"HennepinMN",
+"HillsboroughFL",
+"KingWA",
+"Los_AngelesCA",
+"MaricopaAZ",
 "Miami-DadeFL",
-"New_York_CityNY", 
-"OrangeCA", "RiversideCA", "SacramentoCA",
-"San_BernardinoCA", 
-"San_DiegoCA", 
-"San_FranciscoCA", 
-"San_JoaquinCA",
+"MiddlesexMA",
+"NassauNY",
+"New_York_CityNY",
+"OaklandMI",
+"OrangeCA",
+"OrangeFL",
+"Palm_BeachFL",
+"PhiladelphiaPA",
+"RiversideCA",
+"SacramentoCA",
+"San_BernardinoCA",
+"San_DiegoCA",
+"San_FranciscoCA",
 "San_MateoCA",
-"Santa_ClaraCA", 
-"SonomaCA", "StanislausCA",
-"SuffolkMA", "TarrantTX", "VenturaCA", "WayneMI"
+"Santa_ClaraCA",
+"TarrantTX",
+"TompkinsNY",
+"TravisTX",
+"WayneMI"
 )
 
 fit_examples = list(
@@ -162,20 +178,21 @@ fit_examples = list(
 "PhiladelphiaPA",
 "TravisTX",
 "HonoluluHI",
-"CookIL"
+"CookIL",
+"AlamedaCA"
 )
                        
 nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
-    do_one_run(County="HonoluluHI")->fit
+#   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="New_York_CityNY")->fit
-#   do_one_run(County="BrowardFL")->fit
+    do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-#  for (c in 4:length(largest_us_counties))
-   for (c in fit_examples)
+   for (c in largest_us_counties)
+#  for (c in fit_examples)
    {
        print(paste('starting',c))
        do_one_run(County=c,do.plot=TRUE)->fit

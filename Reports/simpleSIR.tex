@@ -285,11 +285,10 @@ concave upward, \EG Miami-Dade Co. FL (MDFL).
 
 
 Prevalence histories for six counties are shown in
-Figure~\ref{fig:prev} where the 11-day moving average of the daily
-increase in cases demonstrates clearly
-the efficacy of control measures.
-All of these trends show extreme day to day variability in numbers of
-both cases and deaths. The variability is most notable in the deaths
+Figure~\ref{fig:prev} where the 11-day moving averages of the daily
+increases in cases and deaths indicate the general trends.
+All of the histories show extreme day to day variability.
+Variability is most notable in the deaths
 time series for smaller counties.
 
 \begin{figure}
@@ -304,7 +303,7 @@ time series for smaller counties.
 \includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
 \includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_prevalence.png}\\
 \\
-\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Honolulu Co. HI}\\
+\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
 \includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
 \includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_prevalence.png}\\
 \end{tabular}
@@ -357,12 +356,12 @@ County, equivalent to a doubling time of less than one day.
 \begin{center}
 \begin{tabular}{ll}
 \multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_TMB_estimates.png}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/New_York_CityNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/CookIL_TMB_estimates.png}\\
 \\
 \multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/NassauNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/PhiladelphiaPA_TMB_estimates.png}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/PhiladelphiaPA_TMB_estimates.png}\\
 \end{tabular}
 \end{center}
 }
@@ -376,12 +375,12 @@ Model diagnostics for concave downward counties.
 \begin{center}
 \begin{tabular}{ll}
 \multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_TMB_estimates.png}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/MaricopaAZ_TMB_estimates.png}\\
 \\
 \multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Palm_BeachFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_TMB_estimates.png}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Palm_BeachFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/TravisTX_TMB_estimates.png}\\
 \end{tabular}
 \end{center}
 }
@@ -392,9 +391,11 @@ Model diagnostics for concave upward counties.
 
 
 \begin{sidewaystable}
-\caption{\label{tab:sumres}
-Model results. Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$.
-Data updated 2020-07-22 from https://github.com/nytimes/covid-19-data.git2020-07-22
+\caption{\label{tab:uncons}
+Model results. Estimating $\beta$ and $\mu$ trends as random effects
+with computed $\gamma$
+Data updated 2020-07-22 from
+https://github.com/nytimes/covid-19-data.git.
 }
 \centering
 {\small
@@ -405,22 +406,64 @@ Data updated 2020-07-22 from https://github.com/nytimes/covid-19-data.git2020-07
 \hline
  County            &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
 \hline
- Nassau, NY        &   138 &  0.0863 &  -957 &    10 &           0.161 &            0.593 &          1.77  &     7.15e-05 &     0.00109  &        -9.45e-09 &           0.00349 &        0.000211 \\
- New York City, NY &   142 &  0.0909 &  -834 &     0 &           0.196 &            1.06  &          1.02  &     0.000523 &     0.000493 &        -2.73e-08 &           0.00583 &        0.000278 \\
- Cook, IL          &   179 &  0.294  &  -990 &    10 &           0.118 &            3.46  &          1.02  &     4.21e-08 &     6.33e-05 &        -2.24e-07 &           0.00926 &        0.0003   \\
- Honolulu, HI      &   137 &  0.181  & -1290 &     1 &           0.106 &            8.7   &         21.2   &     0.00372  &     3.41e-06 &        -5.51e-08 &           0.0109  &        4.39e-11 \\
- Philadelphia, PA  &   133 &  0.112  &  -608 &     0 &           0.167 &            1.02  &          1.97  &     0.00279  &     0.00452  &        -3.1e-08  &           0.0117  &        0.0003   \\
- Bexar, TX         &   160 &  0.242  &  -833 &     1 &           0.166 &            6.49  &          6.72  &     1.51e-08 &     9.81e-06 &        -7.18e-08 &           0.0283  &        2.73e-07 \\
- Tarrant, TX       &   133 &  0.0746 &  -570 &     0 &           0.146 &            1.25  &          1.37  &     0.0102   &     0.0034   &        -3.78e-08 &           0.0307  &        0.000285 \\
- Palm Beach, FL    &   131 &  0.0758 &  -428 &     0 &           0.143 &            0.34  &          1.36  &     0.0874   &     0.00615  &        -1.16e-08 &           0.0308  &        0.000658 \\
- Harris, TX        &   138 &  0.101  &  -380 &     0 &           0.117 &            0.265 &          0.895 &     0.167    &     0.0225   &        -2.15e-08 &           0.0308  &        0.000278 \\
- Miami-Dade, FL    &   132 &  0.12   &  -622 &    10 &           0.162 &            0.66  &          0.912 &     6.28e-06 &     0.00809  &        -9.54e-09 &           0.0327  &        0.00047  \\
- Hillsborough, FL  &   142 &  0.175  &  -595 &     1 &           0.145 &            1.65  &         48.2   &     7.61e-05 &     2.29e-07 &        -7.24e-08 &           0.0355  &        4.64e-05 \\
- Travis, TX        &   130 &  0.107  &  -361 &    10 &           0.11  &            0.25  &          6.75  &     0.228    &     0.000131 &        -1.68e-08 &           0.0358  &        0.000303 \\
- Maricopa, AZ      &   177 &  0.303  &  -878 &     1 &           0.118 &            2.02  &          1.59  &     4.12e-07 &     0.00114  &        -4.2e-07  &           0.0367  &        0.000321 \\
- Dallas, TX        &   133 &  0.0672 &  -452 &     1 &           0.136 &            0.305 &          1.19  &     0.0801   &     0.00954  &        -1.04e-08 &           0.0371  &        0.000405 \\
- Broward, FL       &   137 &  0.0797 &  -511 &     0 &           0.136 &            0.231 &          1.65  &     0.08     &     0.003    &        -2.03e-08 &           0.038   &        0.000277 \\
- Median            &   137 &  0.107  &  -608 &     1 &           0.143 &            1.02  &          1.59  &     0.00279  &     0.00114  &        -2.73e-08 &           0.0308  &        0.000285 \\
+ Nassau, NY        &   138 &  0.0863 &  -945 &     1 &           0.193 &            0.557 &          3.37  &     9.77e-05 &     2.42e-05 &        -9.45e-09 &           0.0035  &        0.000171 \\
+ New York City, NY &   142 &  0.0909 &  -834 &     0 &           0.196 &            1.06  &          1.02  &     0.000522 &     0.000493 &        -2.73e-08 &           0.00583 &        0.000278 \\
+ Cook, IL          &   179 &  0.294  &  -978 &     1 &           0.136 &            3.09  &          0.854 &     9.24e-08 &     0.000126 &        -2.24e-07 &           0.00926 &        0.000299 \\
+ Honolulu, HI      &   137 &  0.181  & -1470 &    10 &           0.149 &            2.94  &         14.6   &     0.000346 &     2.68e-07 &        -5.51e-08 &           0.0108  &        2.24e-12 \\
+ Philadelphia, PA  &   133 &  0.112  &  -608 &     1 &           0.167 &            1.02  &          1.98  &     0.00279  &     0.00452  &        -3.1e-08  &           0.0117  &        0.0003   \\
+ Bexar, TX         &   160 &  0.242  &  -650 &    10 &           0.123 &            2.58  &          7.21  &     0.00236  &     1.76e-05 &        -7.18e-08 &           0.028   &        4.64e-07 \\
+ Tarrant, TX       &   133 &  0.0746 &  -570 &     1 &           0.146 &            1.23  &          1.36  &     0.0102   &     0.00327  &        -3.78e-08 &           0.0305  &        0.000279 \\
+ Palm Beach, FL    &   131 &  0.0758 &  -428 &     1 &           0.143 &            0.339 &          1.36  &     0.0873   &     0.00614  &        -1.17e-08 &           0.0308  &        0.000658 \\
+ Harris, TX        &   138 &  0.101  &  -380 &     1 &           0.117 &            0.266 &          0.894 &     0.167    &     0.0226   &        -2.15e-08 &           0.0308  &        0.000278 \\
+ Miami-Dade, FL    &   132 &  0.12   &  -618 &     1 &           0.159 &            0.606 &          0.995 &     0.000848 &     0.00583  &        -9.54e-09 &           0.0328  &        0.000493 \\
+ Hillsborough, FL  &   142 &  0.175  &  -722 &     1 &           0.119 &            3.69  &         11.7   &     1.78e-07 &     4.86e-08 &        -7.24e-08 &           0.0355  &        4.64e-05 \\
+ Travis, TX        &   130 &  0.107  &  -350 &     0 &           0.122 &            0.244 &          1.71  &     0.188    &     0.00726  &        -1.6e-08  &           0.0358  &        0.000243 \\
+ Maricopa, AZ      &   177 &  0.303  &  -885 &     1 &           0.118 &            2.13  &          2.33  &     3.62e-07 &     0.000867 &        -4.2e-07  &           0.0367  &        0.000321 \\
+ Dallas, TX        &   133 &  0.0672 &  -452 &     1 &           0.136 &            0.3   &          1.19  &     0.0798   &     0.00953  &        -1.04e-08 &           0.0371  &        0.000405 \\
+ Broward, FL       &   137 &  0.0797 &  -511 &     0 &           0.136 &            0.231 &          1.66  &     0.0799   &     0.00289  &        -2.03e-08 &           0.038   &        0.000275 \\
+\hline
+ Median            &   137 &  0.107  &  -618 &     1 &           0.136 &            1.02  &          1.66  &     0.00236  &     0.00289  &        -2.73e-08 &           0.0308  &        0.000278 \\
+\hline
+\end{tabular}
+
+
+%%%%%%%%%%%%%%%%
+}\end{sidewaystable}
+
+\begin{sidewaystable}
+\caption{\label{tab:cons}
+Model results. Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$
+and constraints on  $\sigma_I$ and $\sigma_D$. 
+Data updated 2020-07-22 from
+https://github.com/nytimes/covid-19-data.git.
+}
+\centering
+{\small
+%%%%%%%%%%%%%% :r ../fits/fit_table.tex
+
+
+\begin{tabular}{lrrrrrrrrrrrr}
+\hline
+ County            &   $n$ &   $p_0$ &    $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
+\hline
+ Nassau, NY        & 143   &  0.0833 & -170   &     0 &         0.139   &           0.23   &         0.26   &        0.405 &        0.223 &       -1.4e-08   &           0.00468 &       0.000341  \\
+ New York City, NY & 147   &  0.0878 & -137   &     0 &         0.158   &           0.211  &         0.202  &        0.405 &        0.223 &       -2.22e-08  &           0.00712 &       0.000592  \\
+ Philadelphia, PA  & 138   &  0.108  & -187   &     0 &         0.123   &           0.179  &         0.17   &        0.405 &        0.223 &       -2.36e-08  &           0.0127  &       0.0011    \\
+ Honolulu, HI      & 142   &  0.175  & -329   &     0 &         0.068   &           0.193  &         0.242  &        0.405 &        0.223 &       -4.87e-08  &           0.0197  &       0.000274  \\
+ Alameda, CA       & 147   &  0.149  & -312   &     0 &         0.079   &           0.118  &         0.14   &        0.405 &        0.223 &       -3.54e-08  &           0.0239  &       0.000581  \\
+ Tarrant, TX       & 138   &  0.0719 & -254   &     0 &         0.0948  &           0.123  &         0.264  &        0.405 &        0.223 &       -3.12e-08  &           0.0301  &       0.000557  \\
+ Palm Beach, FL    & 136   &  0.073  & -218   &     0 &         0.111   &           0.161  &         0.146  &        0.405 &        0.223 &       -1.77e-08  &           0.0303  &       0.0011    \\
+ Cook, IL          & 184   &  0.286  & -284   &     0 &         0.098   &           0.197  &         0.145  &        0.405 &        0.223 &       -2.19e-07  &           0.0305  &       0.00186   \\
+ Dallas, TX        & 138   &  0.0647 & -229   &     0 &         0.106   &           0.148  &         0.162  &        0.405 &        0.223 &       -1.74e-08  &           0.0309  &       0.000615  \\
+ Harris, TX        & 143   &  0.0972 & -243   &     0 &         0.0987  &           0.149  &         0.159  &        0.405 &        0.223 &       -2.93e-08  &           0.0319  &       0.000414  \\
+ Travis, TX        & 135   &  0.103  & -229   &     0 &         0.098   &           0.16   &         0.141  &        0.405 &        0.223 &       -2.02e-08  &           0.035   &       0.000492  \\
+ Miami-Dade, FL    & 137   &  0.116  & -170   &     0 &         0.132   &           0.197  &         0.147  &        0.405 &        0.223 &       -1.25e-08  &           0.0356  &       0.000683  \\
+ Broward, FL       & 142   &  0.0769 & -242   &     0 &         0.105   &           0.166  &         0.128  &        0.405 &        0.223 &       -2.26e-08  &           0.0375  &       0.000619  \\
+ Hillsborough, FL  & 147   &  0.169  & -303   &     0 &         0.0781  &           0.159  &         0.126  &        0.405 &        0.223 &       -6.51e-08  &           0.0424  &       0.000886  \\
+ Maricopa, AZ      & 182   &  0.295  & -314   &     0 &         0.085   &           0.202  &         0.0985 &        0.405 &        0.223 &       -3.74e-07  &           0.0426  &       0.00198   \\
+ Bexar, TX         & 165   &  0.235  & -351   &     0 &         0.0663  &           0.139  &         0.204  &        0.405 &        0.223 &       -8.07e-08  &           0.0508  &       0.000552  \\
+\hline
+ Median            & 142.5 &  0.1055 & -242.5 &     0 &         0.09835 &           0.1635 &         0.153  &        0.405 &        0.223 &       -2.645e-08 &           0.0307  &       0.0006035 \\
 \hline
 \end{tabular}
 

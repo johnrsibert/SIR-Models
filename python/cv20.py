@@ -214,7 +214,7 @@ class Geography:
         self.cases  = np.array(dat[County_rows]['cases'])
         self.deaths = np.array(dat[County_rows]['deaths'])
         self.date   = np.array(dat[County_rows]['date'])
-        self.date0 = self.date[0]
+   #    self.date0 = self.date[0]
         self.ntime = len(self.date)
         
     def write_dat_file(self):
@@ -366,6 +366,15 @@ class Geography:
         else:
             plt.show()
 
+    def make_date_axis(self,ax):
+        firstDate = mdates.date2num(cv.FirstNYTDate)
+        orderDate = mdates.date2num(cv.CAOrderDate)
+        lastDate  = mdates.date2num(cv.EndOfTime)
+        ax.set_xlim([firstDate,lastDate])
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+        ax.xaxis.set_major_locator(plt.MultipleLocator(30))
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+
 
     def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
         """
@@ -394,6 +403,26 @@ class Geography:
 
         return(ax)
 
+    def plot_per_capita_curvature(self,mult = 1000,save=False):
+        pc_cases = self.cases/self.population * mult
+        
+        fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+        self.make_date_axis(ax)
+        
+        grad = np.gradient(pc_cases)
+    #   d1 = np.diff(pc_cases)
+    #   print(len(d1))
+    #   grad = np.diff(d1)
+    #   print(len(grad))
+
+    #   ax.plot(self.get_pdate()[2:],grad)
+        ax.plot(self.get_pdate(),grad)
+        print(min(grad),max(grad))
+
+        plt.show()
+
+
+
 
 class Fit(Geography):
 
@@ -412,6 +441,7 @@ class Fit(Geography):
         self.diag = tfit['diag']
         self.md = tfit['meta']
         self.ests = tfit['ests']
+        self.date0 = self.get_metadata_item('Date0')
     #   Date0 = self.get_metadata_item('Date0')
     #   print('Date0:',Date0)
 
@@ -463,7 +493,7 @@ class Fit(Geography):
         if (logscale):
             prefix = 'ln '
              
-        fig, ax = plt.subplots(npl,1,figsize=(10.0,(npl)*2.5))
+        fig, ax = plt.subplots(npl,1,figsize=(9.0,(npl)*3.0))
         if (per_capita):
             ax[0].set_ylabel(prefix+'Cases'+' per '+str(mult))
             ax[1].set_ylabel(prefix+'Deaths'+' per '+str(mult))
@@ -527,46 +557,58 @@ class Fit(Geography):
     
         if (npl > 2):
             log_beta = self.diag['logbeta']
-            log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
-                              -1.0596601,-1.75280728,-2.44595446,
-                              -3.13910164,-3.83224882,-4.525396  ]
+        #   log_beta_ticks = [ 1.01978144,0.32663426,-0.36651292,
+        #                     -1.0596601,-1.75280728,-2.44595446,
+        #                     -3.13910164,-3.83224882,-4.525396  ]
         #   print(min(log_beta_ticks),max(log_beta_ticks))
         #   print(0.8*min(log_beta_ticks),1.2*max(log_beta_ticks))
-        #   ax[2].set_ylim((0.8*min(log_beta_ticks),1.2*max(log_beta_ticks)))
+        #   ax[2].set_ylim((1.2*min(log_beta)),1.2*max(log_beta))
         #   ax[2].set_yticks(log_beta_ticks)
             sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
             tx = prop_scale(ax[2].get_xlim(), 0.05)
             ty = prop_scale(ax[2].get_ylim(), 0.90)
-            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
             ax[2].plot(pdate,log_beta)
             plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale)
-            med = median(log_beta)
+            ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
+
+            med = median(np.exp(log_beta))
+            logmed = np.log(med)
             medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
-            ax[2].text(ax[2].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
-            ax[2].plot(ax[2].get_xlim(),[med,med])
+            ax[2].text(ax[2].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
+            ax[2].plot(ax[2].get_xlim(),[logmed,logmed])
+
+        #   increase frequcncy of tick marks
+            start, end = ax[2].get_ylim()
+            dtick = (end - start)/5
+            print(start,end,dtick)
+            ax[2].set_yticks(np.arange(start, end, dtick))
+
 
         #   finagle doubling time axis at same scale as beta
-            dtax = ax[2].twinx()
-            dtax.set_ylim(ax[2].get_ylim())
-            dtax.grid(False,axis='y') # omit grid lines
-            dtax.set_ylabel('Doubling Time (da)')
-        #   render now to get the tick positions and labels
-            fig.show()
-            fig.canvas.draw()
-            y2_ticks = dtax.get_yticks()
-            labels = dtax.get_yticklabels()
-            for i in range(0,len(y2_ticks)):
-                y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
-                if (y2_ticks[i] < 100.0):
-                   labels[i] = '%.2g'%y2_ticks[i]
-                elif(y2_ticks[i] < 1000.0):
-                   labels[i] = ' >100'
-                else:
-                   labels[i] = ''
-                  
-            dtax.set_yticklabels(labels)
-        #   fig.show()
-        #   fig.canvas.draw()
+            add_doubling_time = False
+            if (add_doubling_time):
+                dtax = ax[2].twinx()
+                dtax.set_ylim(ax[2].get_ylim())
+                dtax.grid(False,axis='y') # omit grid lines
+                dtax.set_ylabel('Doubling Time (da)')
+            #   render now to get the tick positions and labels
+                fig.show()
+                fig.canvas.draw()
+                y2_ticks = dtax.get_yticks()
+                labels = dtax.get_yticklabels()
+                for i in range(0,len(y2_ticks)):
+                    y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
+                    if (y2_ticks[i] < 100.0):
+                       labels[i] = '%.2g'%y2_ticks[i]
+                    elif(y2_ticks[i] < 1000.0):
+                       labels[i] = '>100'
+                    else:
+                       labels[i] = ''
+                      
+                dtax.tick_params(length=0)
+                dtax.set_yticklabels(labels)
+            #   fig.show()
+            #   fig.canvas.draw()
 
         if (npl > 3):
             logmu = self.diag['logmu']
@@ -583,10 +625,12 @@ class Fit(Geography):
             ax[3].plot(pdate,self.diag['logmu'])
             plot_error(ax[3],pdate,logmu,sigma_logmu,logscale)
             ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
-            med = median(self.diag['logmu'])
+
+            med = median(np.exp(self.diag['logmu']))
+            logmed = np.log(med)
             medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
-            ax[3].text(ax[3].get_xlim()[0],med,medstr,ha='left',va='bottom',fontsize=10)
-            ax[3].plot(ax[3].get_xlim(),[med,med])
+            ax[3].text(ax[3].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
+            ax[3].plot(ax[3].get_xlim(),[logmed,logmed])
     
         title = self.moniker #self.name+' County, '+self.enclosed_by
         fig.text(0.5,0.95,title ,ha='center',va='bottom')
@@ -604,6 +648,42 @@ class Fit(Geography):
 
 
 # ----------- end of class definitions--------------       
+
+def make_beta_plots(ext = '.RData',save=False):
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    fit_files = glob.glob(cv.fit_path+'*'+ext)
+    for i,ff in enumerate(fit_files):
+        print(i,ff)
+        fit = Fit(ff)
+        if (i == 0):
+            fit.make_date_axis(ax)
+            ax.set_ylabel(r'ln $\beta\ (da^{-1})$')
+       
+        fit.read_nyt_data()
+        pdate = []
+        Date0 = datetime.strptime(fit.date0,'%Y-%m-%d')
+        for t in range(0,len(fit.diag.index)):
+            pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
+
+        logbeta =fit.diag['logbeta']
+        ax.plot(pdate,logbeta)
+        sn = short_name(fit.moniker)
+        mark_ends(ax,pdate[len(pdate)-1],logbeta[len(logbeta)-1],sn,'r')
+        show_medians = False
+        if (show_medians):
+            med = median(np.exp(logbeta))
+            logmed = np.log(med)
+            ax.plot(ax.get_xlim(),[logmed,logmed],linewidth=1,
+                    color=ax.get_lines()[-1].get_color())
+
+
+    if save:
+        gfile = cv.graphics_path+'logbeta_summary'
+        fig.savefig(gfile+'.png',dpi=300)
+        print('plot saved as',gfile)
+        plt.show(True)
+    else:
+        plt.show(True)
 
 def make_fit_plots(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
@@ -700,7 +780,7 @@ def make_fit_table(ext = '.RData'):
 
     tex = cv.fit_path+'fit_table.tex'
     ff = open(tex, 'w')
-    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with computed $\gamma$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git"
+    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with computed $\gamma$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git."
 
     ff.write(caption_text)
     ff.write(str(dtime.date())+'\n')
@@ -903,7 +983,7 @@ print('------- here ------')
 #alam.get_pdate()
 #alam.print_data()
 #alam.plot_prevalence()
-#tfit = Fit(cv.fit_path+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.plot(save=False)
 #tfit.print_metadata()
 
@@ -916,12 +996,15 @@ print('------- here ------')
 #make_fit_table()
 #make_fit_table('.rep')
 
-#test = Geography(name='District of Columbia',enclosed_by='District of Columbia',code='DC')
+#test = Geography(name='Nassau',enclosed_by='New York',code='NY')
+#test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')
 #test = Geography(name='New York City',enclosed_by='New York',code='NY')
 #test.read_nyt_data()
 #test.write_dat_file()
 #test.print_metadata()
+#test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
+make_beta_plots(save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
