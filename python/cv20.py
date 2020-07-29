@@ -99,6 +99,14 @@ def median(x):
     mx = x.quantile(q=0.5)
     return float(mx)
 
+def add_order_date(ax):
+#   Newsome's shelter in place order
+    orderDate = mdates.date2num(cv.CAOrderDate)
+    ax.plot((orderDate,orderDate),
+            (ax.get_ylim()[0], ax.get_ylim()[1]),
+    #       (0, ax.get_ylim()[1]),
+            color='0.5', linewidth=3,alpha=0.5)
+
 # -----------  class definitions--------------       
 
 class Geography:
@@ -258,7 +266,7 @@ class Geography:
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[11], plot_dt = False, annotation = True,
-                        save = True):
+                        signature = False, save = True):
         
         """ 
         Plots cases and deaths vs calendar date 
@@ -352,8 +360,11 @@ class Geography:
             mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
             dtime = datetime.fromtimestamp(mtime)
             fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
-        #   signature = 'Graphics by John Sibert'
-        #   fig.text(1.0,0.025,signature+' ', ha='right',va='bottom', fontsize=8,alpha=0.1)
+
+        if (signature):
+            by_line = 'Graphics by John Sibert'
+            fig.text(0.025,0.500,by_line+' ', ha='left',va='top', fontsize=8,alpha=0.25)#,color='red')
+            fig.text(1.0,0.025,by_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
     
         if save:
             gfile = cv.graphics_path+self.moniker+'_prevalence.png'
@@ -365,14 +376,7 @@ class Geography:
             print('plot saved as',gfile)
         else:
             plt.show()
-    def add_order_date(self,ax):
-    #   Newsome's shelter in place order
-        orderDate = mdates.date2num(cv.CAOrderDate)
 
-    ax.plot((orderDate,orderDate),
-    #       (ax.get_ylim()[0], ax.get_ylim()[1]),color='black',
-            (0, ax.get_ylim()[1]),color='0.5',
-            linewidth=3,alpha=0.5)
 
     def make_date_axis(self,ax):
         firstDate = mdates.date2num(cv.FirstNYTDate)
@@ -657,7 +661,7 @@ class Fit(Geography):
 # ----------- end of class definitions--------------       
 
 def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False, 
-                    save=False):
+                    show_order_date = True, save=False):
     print(yvarname)
     if (yvarname == 'logbeta'):
         ylabel =r'$\ln \beta\ (da^{-1})$'
@@ -683,8 +687,10 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False,
         for t in range(0,len(fit.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
-    #   logbeta =fit.diag['logbeta']
         yvar = fit.diag[yvarname]
+        if (yvarname == 'gamma'):
+            print(yvarname)
+            print(min(yvar),max(yvar))
         ax.plot(pdate,yvar)
         sn = short_name(fit.moniker)
         mark_ends(ax,pdate[len(pdate)-1],yvar[len(yvar)-1],sn,'r')
@@ -694,6 +700,8 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False,
             ax.plot(ax.get_xlim(),[logmed,logmed],linewidth=1,
                     color=ax.get_lines()[-1].get_color())
 
+    if (show_order_date):
+        add_order_date(ax)
 
     if save:
         gfile = cv.graphics_path+yvarname+'_summary'
@@ -994,13 +1002,13 @@ print('------- here ------')
 #update_shared_plots()
 #make_dat_files();
 
-#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
-#alam.read_nyt_data('county')
+alam = Geography(name='Alameda',enclosed_by='California',code='CA')
+alam.read_nyt_data('county')
 #alam.get_pdate()
 #alam.print_metadata()
-#alam.get_pdate()
 #alam.print_data()
-#alam.plot_prevalence()
+alam.plot_prevalence(save=False,signature=False)
+
 #tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.plot(save=False)
 #tfit.print_metadata()
@@ -1022,8 +1030,9 @@ print('------- here ------')
 #test.print_metadata()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
-make_rate_plots('logbeta',save=True)
-make_rate_plots('logmu',save=True)
+#make_rate_plots('logbeta',save=True)
+#make_rate_plots('logmu',save=True)
+#make_rate_plots('gamma',save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)

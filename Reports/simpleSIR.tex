@@ -38,11 +38,30 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 \date{\today}
 }
 
+\pagestyle{headings}
+\markright{John Sibert \hfil Simple SIR COVID-19 \hfil \today}
+
 \begin{document}
 
 \maketitle
 
 \doublespacing
+
+\begin{abstract}
+
+\centerline{\help{Write me}}
+
+{\parindent=0truein
+
+TO DO:
+
+Rationalize examples
+
+Implement alternate ordinate scale
+
+Make linear plots of I and D?
+}
+\end{abstract}
 
 \section*{Introduction}
 
@@ -70,6 +89,7 @@ transmission rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
 ($[t^{-1}]$).  
 
 %https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology
+\cite{Chen2020,Roques2020}
 
 Unfortunately, few data sets include data for each of
 these compartments. 
@@ -231,10 +251,12 @@ The R and supporting C++ files are available on
 github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 
 \begin{table}
-\caption{List of model variables for the simple SIR model.
+\caption{List of model variables for the simple SIR model, \SSm.
 There are two state variables computed from the of estimated
 parameters and random effects.
 There are two random effects and five estimated variance parameters.
+All models variables are represented in the TMB C++ module as their
+natural logarithms.
 }
 \label{tab:allvars1}
 \begin{center}
@@ -244,11 +266,11 @@ Variable & Definition\\
 \hline
 \hline
        & {\it State variables:}\\
-$I$      & Number of infected individuals or ``cases''\\
+$I$      & Number of infected individuals\\
 $D$      & Number of deaths\\
        & {\it Random effects:}\\
-$\beta_t$ & Transmission rate\\
-$\mu_t$   & Mortality rate\\
+$\beta_t$ & Transmission rate; log-normal random walk\\
+$\mu_t$   & Mortality rate; log-normal random walk\\
        & {\it Estimated parameters:}\\
 $\sigma_I$ & Infectious compartment estimation standard deviation\\
 $\sigma_D$ & Deaths compartment estimation standard deviation\\
@@ -260,7 +282,7 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \end{center}
 \end{table}
 
-\clearpage
+%\clearpage
 \section*{Results}
 
 \begin{figure}
@@ -270,7 +292,7 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \caption{\label{fig:percap}
 Trends in number of cases per 1000 people in the 30 most populous US
 counties.
-The vertical gray bar mark the date of the California shelter in place order.
+The vertical gray bar mark the March 19, 2020 California shelter in place order.
 }
 \end{figure}
 
@@ -284,19 +306,15 @@ These trajectories fall into two more or less distinct groups: those
 that are concave downward, \EG Nassau Co. NY (NaNY), and those that are
 concave upward, \EG Miami-Dade Co. FL (MDFL).
 
-Prevalence histories for six counties are shown in
-Figure~\ref{fig:prev} where the 11-day moving averages of the daily
-increases in cases and deaths indicate general trends.
-All of the histories show extreme day to day variability.
-Variability is most notable in the deaths
-time series, particularly for smaller counties.
 
 \begin{figure}
 {\scriptsize
 \begin{center}
-\includegraphics[width=0.75\textwidth]{../Graphics/NassauNY_prevalence.png}
-\par
-\includegraphics[width=0.75\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
+\includegraphics[width=0.80\textwidth]{../Graphics/NassauNY_prevalence.png}
+ 
+\vspace{0.25truein}
+
+\includegraphics[width=0.80\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
 \end{center}
 }
 \caption{\label{fig:prev}
@@ -311,20 +329,24 @@ vertical gray bar marks the March 19, 2020 California shelter in place order.
 }
 \end{figure}
 
+Prevalence histories for six counties are shown in
+Figure~\ref{fig:prev} where the 11-day moving averages of the daily
+increases in cases and deaths indicate general trends.
+All of the histories show extreme day to day variability.
+Variability is most notable in the deaths
+time series, particularly for smaller counties.
+
 This model, \SSm , estimates two random effects and five
 parameters, Table~\ref{tab:allvars1}.
 In principle, all random effects and parameters are estimated
 simultaneously.
-In practice, the capability of the model 
-depends both on the data as well as parameters to be
-estimated. 
-
-Performance of the estimation model (simpleSIR4) depends on
+Performance of the estimation model depends on
 model configuration. When all parameters and random effects are
-estimated, the numerical algrithm fails converge for some counties,
-Table~\ref{tab:uncons}. The column `C' in the table
-indicate the convergence status of attempts to fit several county
-trajectories using the relatively robust Nelder-Mead algorithm.
+estimated, the numerical algorithm fails converge for some counties,
+see Table~\ref{tab:uncons}. Column `C' in the table
+indicates the convergence status of attempts to fit several county
+trajectories using the relatively robust Nelder-Mead function
+minimization algorithm (\cite{Baudin2010}).
 Convergence is signaled by values of C equal to
 zero.\footnote{According to the R documentation for the {\tt optim}
 function: An integer code. ‘0’
@@ -335,30 +357,35 @@ indicates successful completion.  Possible error codes are
 }
 
 
-Unconstrained model diagnostic plots are shown in figures \ref{fig:ests1U} and
-\ref{fig:ests2U} for convex downward and convex upward trajectories
-respectively.
-The `+' symbols in the Cases and Deaths graphs represent the observed
-cases ($I$) and deaths ($D$) from the data. 
+Diagnostic plots for the unconstrained model are shown in figures~\ref{fig:ests1U}
+and~ \ref{fig:ests2U} for convex downward and convex upward trajectories
+respectively. \label{pp:diagexpl}
+Diagnostics are plotted on logarithmic scales to illustrate the
+lognormal likelihood functions used in the observation model,
+equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}), and to
+illustrate trends in estimated rates that are near zero.
+The blue `+' symbols represent the observed cases ($I$) and deaths ($D$).
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
 and ($\widehat{D}$) of cases and deaths. 
 $\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
-cases and deaths in the observation model, equations (\ref{eqn:logNlike}) 
-and (\ref{eqn:ZIlogNlike}).
+cases and deaths in the observation model.
 The shaded areas bounded by red outlines are 
 $\pm 2$ estimated standard deviations around the estimated trends.
 The model reproduces the observed numbers of cases and deaths almost
-exactly with extremely low estimated values of $\sigma_I$ and $\sigma_D$.
+exactly with extremely low estimates of $\sigma_I$ and $\sigma_D$.
 
 The solid blue lines in the $\beta$ and $\mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
 estimated random effects $\pm 2$ standard deviations of the generating
 random walks.
+\help{Omit these? 
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
-medians of the two random effects.
+medians of the two random effects.}
+The extreme variability in the data is reflected in the extreme
+variability of the estimated trends in transmission and mortality rates.
 
-The \SSm\ code can be run with $\sigma_I$ and $\sigma_D$ fixed a
+The \SSm\ model can be configured with $\sigma_I$ and $\sigma_D$ fixed at
 constant values. The results are shown in Table~\ref{tab:cons}. 
 The algorithm converges to a solution in all cases, and converges
 rapidly using gradient methods.
@@ -366,14 +393,19 @@ Constrained model diagnostic plots
 values are shown in figures \ref{fig:ests1} and
 \ref{fig:ests2} for convex downward and convex upward trajectories
 respectively.
+Estimated cases and deaths agree well with observation throughout the
+time series.
 
-The estimated transmission rates are very high
-at the beginning of time series for each county, Figure~\ref{fig:xrates}.
-Doubling times  ranged from less than one day to around 5 days
-through March 2020. Beginning in April, doubling times in some counties
-increased to more than 3 weeks in some counties.
-Counties with estimated $\ln~ \beta \le 5$ correspond roughly to those
-counties with concave downward prevalence trajectories.
+Figure~\ref{fig:xrates} compares estimated transmission rate among
+counties.
+Transmission rates increased rapidly at the beginning of the pandemic
+exceeding  $-1$ in early March, an instantaneous transmission rate equivalent to a 
+doubling time of less than one day.
+Beginning in April, transmission rates fell substantially, and doubling times
+increased to longer than 3 weeks in some counties.
+Counties with estimated $\ln~ \beta \le 5$ at the of May
+correspond roughly to those counties with concave downward prevalence
+trajectories.
 
 
 \begin{figure}
@@ -389,10 +421,53 @@ $t_2 = \frac{\ln 2}{\exp(\ln \beta)}$
 }
 \end{figure}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary.png}\\
+\end{center}
+\caption{\label{fig:drates}
+Estimated natural logarithms of the mortality rate for several US counties using the
+constrained \SSm\ model.
+exp(-8) = 0.00033
+\help{Remove ToNY, Tompkins Co NY}
+}
+\end{figure}
 
-\clearpage
 \section*{Discussion}
 
+Nonlinear statistical models with multiple estimated parameters rely
+on numerical methods to estimate parameters by searching for minima
+(hopefully finding only one) in the negative of the likelihood
+function. The parameter values at the minima are considered to be
+maximum likelihood estimators. Failure to find well defined minima is
+usually a cause for concern. The minimization algorithms applied to
+unconstrained \SSm\ do not reliably converge to a solution. The
+standard deviations in the observation model are components of the
+likelihood, and the algorithm therefore pushes these parameters toward zero.
+Since the estimated parameters in \SSm\ are represented as logarithms,
+they cannot take values $\le$ zero. Restricting the values of
+$\sigma_I$ and $\sigma_D$ to small, but non-zero, constants allows the
+algorithm to estimate the other parameters.
+
+The trends in estimated transmission rate Figure~\ref{fig:xrates} seem
+reasonable. The extremely high transmission rates in March agree well
+with doubling times reported in newspaper articles at the time.
+The steady decline of transmission rates after shelter-in-place advice is 
+also consistent with casual observation.
+The incubation time of the COVID-19 virus is usually assumed to be
+about 14 days.
+The trends in Figure~\ref{fig:xrates} in conjunction with the
+empirical prevalence trends suggest that sustainable containment of
+the pandemic does not occur unless the instantaneous transmission rate
+is forced below $0.018 da^{-1}$, that is, unless the doubling time is greater
+than 35 days, approximately twice the incubation period.
+
+\help{
+Upward bump in transmission rates consistent with observed increases
+in cases in July.
+
+
+Omit:
 Whether the available data are sufficiently informative to enable
 estimation of the model parameters is a critical aspect of the
 evaluation of any statistical model.
@@ -404,9 +479,10 @@ model improve conveniently during the model development period,
 but whether the improvement is
 attributable to changes in model structure or to the increase in the
 length of the time series is unclear. This ambiguity influenced the
-development of the model.
+development of the model.}
 
-\cite{Sibert2017,Nielsen2014b,Chen2020,Baudin2010}
+\cite{Sibert2017,Nielsen2014b}
+
 
 \clearpage
 
@@ -467,6 +543,7 @@ https://github.com/nytimes/covid-19-data.git.
 }
 \caption{\label{fig:ests1U}
 Unconstrained model diagnostics for concave downward counties.
+See page \pageref{pp:diagexpl}for explanation of plots.
 }
 \end{figure}
 
