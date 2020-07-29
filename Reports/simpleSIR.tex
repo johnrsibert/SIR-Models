@@ -25,6 +25,7 @@
 \newcommand\help[1]{\color{Magenta}{\it #1 }\normalcolor}
 \newcommand\EG{e.g.\ }
 \newcommand\perda{$\rm{da}^{-1}$}
+\newcommand\SSm{{\tt simpleSIR4}}
 
 \title{Estimating short term trends in transmission and mortality rates
 during the Covid 19 Epidemic}
@@ -227,7 +228,7 @@ is a vector of model parameters (Table~\ref{tab:allvars1}).
 The R package TMB (\cite{TMB0000} package was used to 
 estimate the parameters of the model. 
 The R and supporting C++ files are available on 
-github.\footnote{simpleSIR4 at \url{https://github.com/johnrsibert/SIR-Models}}
+github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 
 \begin{table}
 \caption{List of model variables for the simple SIR model.
@@ -283,30 +284,19 @@ These trajectories fall into two more or less distinct groups: those
 that are concave downward, \EG Nassau Co. NY (NaNY), and those that are
 concave upward, \EG Miami-Dade Co. FL (MDFL).
 
-
 Prevalence histories for six counties are shown in
 Figure~\ref{fig:prev} where the 11-day moving averages of the daily
-increases in cases and deaths indicate the general trends.
+increases in cases and deaths indicate general trends.
 All of the histories show extreme day to day variability.
 Variability is most notable in the deaths
-time series for smaller counties.
+time series, particularly for smaller counties.
 
 \begin{figure}
 {\scriptsize
 \begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_prevalence.png}\\
-\\
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_prevalence.png}\\
-\\
-\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_prevalence.png}\\
-\end{tabular}
+\includegraphics[width=0.75\textwidth]{../Graphics/NassauNY_prevalence.png}
+\par
+\includegraphics[width=0.75\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
 \end{center}
 }
 \caption{\label{fig:prev}
@@ -321,24 +311,46 @@ vertical gray bar marks the March 19, 2020 California shelter in place order.
 }
 \end{figure}
 
-Model diagnostic plots are shown in figures \ref{fig:ests1} and
-\ref{fig:ests2} for convex downward and convex upward trajectories
+This model, \SSm , estimates two random effects and five
+parameters, Table~\ref{tab:allvars1}.
+In principle, all random effects and parameters are estimated
+simultaneously.
+In practice, the capability of the model 
+depends both on the data as well as parameters to be
+estimated. 
+
+Performance of the estimation model (simpleSIR4) depends on
+model configuration. When all parameters and random effects are
+estimated, the numerical algrithm fails converge for some counties,
+Table~\ref{tab:uncons}. The column `C' in the table
+indicate the convergence status of attempts to fit several county
+trajectories using the relatively robust Nelder-Mead algorithm.
+Convergence is signaled by values of C equal to
+zero.\footnote{According to the R documentation for the {\tt optim}
+function: An integer code. ‘0’
+indicates successful completion.  Possible error codes are
+          ‘1’ indicates that the iteration limit ‘maxit’ had been
+              reached.
+          ‘10’ indicates degeneracy of the Nelder-Mead simplex.
+}
+
+
+Unconstrained model diagnostic plots are shown in figures \ref{fig:ests1U} and
+\ref{fig:ests2U} for convex downward and convex upward trajectories
 respectively.
-The model reproduces the observed numbers of cases and deaths almost
-exactly.
 The `+' symbols in the Cases and Deaths graphs represent the observed
 cases ($I$) and deaths ($D$) from the data. 
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
-and ($\widehat{D}$) of in cases and deaths. 
-$\sigma_I$ and $\sigma_D$ are the estimated standard deviations for
-cases and deaths likelihood contributions, equations (\ref{eqn:logNlike}) 
+and ($\widehat{D}$) of cases and deaths. 
+$\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
+cases and deaths in the observation model, equations (\ref{eqn:logNlike}) 
 and (\ref{eqn:ZIlogNlike}).
 The shaded areas bounded by red outlines are 
 $\pm 2$ estimated standard deviations around the estimated trends.
-These standard deviations are, in some cases, equivalent to an error of approximately
-one case or death.
+The model reproduces the observed numbers of cases and deaths almost
+exactly with extremely low estimated values of $\sigma_I$ and $\sigma_D$.
 
-The solid blue lines in the $\beta$ and $\mu$ plots are the estimated
+The solid blue lines in the $\beta$ and $\mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
 estimated random effects $\pm 2$ standard deviations of the generating
@@ -346,49 +358,57 @@ random walks.
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
 medians of the two random effects.
 
+The \SSm\ code can be run with $\sigma_I$ and $\sigma_D$ fixed a
+constant values. The results are shown in Table~\ref{tab:cons}. 
+The algorithm converges to a solution in all cases, and converges
+rapidly using gradient methods.
+Constrained model diagnostic plots
+values are shown in figures \ref{fig:ests1} and
+\ref{fig:ests2} for convex downward and convex upward trajectories
+respectively.
+
 The estimated transmission rates are very high
-at the beginning of each time series, exceeding 1\perda in Miami-Dade
-County, equivalent to a doubling time of less than one day.
+at the beginning of time series for each county, Figure~\ref{fig:xrates}.
+Doubling times  ranged from less than one day to around 5 days
+through March 2020. Beginning in April, doubling times in some counties
+increased to more than 3 weeks in some counties.
+Counties with estimated $\ln~ \beta \le 5$ correspond roughly to those
+counties with concave downward prevalence trajectories.
 
 
 \begin{figure}
-{\scriptsize
 \begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/New_York_CityNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/CookIL_TMB_estimates.png}\\
-\\
-\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/PhiladelphiaPA_TMB_estimates.png}\\
-\end{tabular}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.png}\\
 \end{center}
-}
-\caption{\label{fig:ests1}
-Model diagnostics for concave downward counties.
+\caption{\label{fig:xrates}
+Estimated natural logarithms of the transmission rate for several US counties using the
+constrained \SSm\ model.
+Values of $\ln \beta > -2$ indicate doubling times ($t_2$) less than 5 days;
+$\ln~ \beta < -4$ indicate doubling times greater than 35 days.
+$t_2 = \frac{\ln 2}{\exp(\ln \beta)}$
 }
 \end{figure}
 
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/MaricopaAZ_TMB_estimates.png}\\
-\\
-\multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Palm_BeachFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/TravisTX_TMB_estimates.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:ests2}
-Model diagnostics for concave upward counties.
-}
-\end{figure}
 
+\clearpage
+\section*{Discussion}
+
+Whether the available data are sufficiently informative to enable
+estimation of the model parameters is a critical aspect of the
+evaluation of any statistical model.
+The speed at which the COVID-19 pandemic spread during the first
+quarter of
+2020 means that the length of the time series doubled during
+the development of this model. The capability of the
+model improve conveniently during the model development period,
+but whether the improvement is
+attributable to changes in model structure or to the increase in the
+length of the time series is unclear. This ambiguity influenced the
+development of the model.
+
+\cite{Sibert2017,Nielsen2014b,Chen2020,Baudin2010}
+
+\clearpage
 
 \begin{sidewaystable}
 \caption{\label{tab:uncons}
@@ -429,6 +449,46 @@ https://github.com/nytimes/covid-19-data.git.
 
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
+
+
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/New_York_CityNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/CookIL_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/NassauNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/PhiladelphiaPA_TMB_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests1U}
+Unconstrained model diagnostics for concave downward counties.
+}
+\end{figure}
+
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/Miami-DadeFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/MaricopaAZ_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/Palm_BeachFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/TravisTX_TMB_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests2U}
+Unconstrained model diagnostics for concave upward counties.
+}
+\end{figure}
+
 
 \begin{sidewaystable}
 \caption{\label{tab:cons}
@@ -471,23 +531,43 @@ https://github.com/nytimes/covid-19-data.git.
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
 
-\clearpage
-\section*{Discussion}
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/New_York_CityNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/CookIL_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/PhiladelphiaPA_TMB_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests1}
+Model diagnostics for concave downward counties.
+}
+\end{figure}
 
-Whether the available data are sufficiently informative to enable
-estimation of the model parameters is a critical aspect of the
-evaluation of any statistical model.
-The speed at which the COVID-19 pandemic spread during the first
-quarter of
-2020 means that the length of the time series doubled during
-the development of this model. The capability of the
-model improve conveniently during the model development period,
-but whether the improvement is
-attributable to changes in model structure or to the increase in the
-length of the time series is unclear. This ambiguity influenced the
-development of the model.
-
-\cite{Sibert2017,Nielsen2014b,Chen2020}
+\begin{figure}
+{\scriptsize
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/MaricopaAZ_TMB_estimates.png}\\
+\\
+\multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/Palm_BeachFL_TMB_estimates.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/TravisTX_TMB_estimates.png}\\
+\end{tabular}
+\end{center}
+}
+\caption{\label{fig:ests2}
+Model diagnostics for concave upward counties.
+}
+\end{figure}
 
 \clearpage
 \printbibliography[title=References]
@@ -505,91 +585,34 @@ development of the model.
     %indicates degeneracy of the Nelder--Mead simplex.
 %
 
-\clearpage
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_TMB_estimates.png}
-\end{center}
-\caption{\label{fig:NYCest}
-Model results for New York City.
-}
-\end{figure}
 
 \begin{figure}
 {\scriptsize
 \begin{center}
 \begin{tabular}{ll}
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{ Honolulu Co.  HI}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/HonoluluHI_TMB_estimates.png}\\
-\multicolumn{1}{c}{Alameda Co. CA}&\multicolumn{1}{c}{Dallas Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/AlamedaCA_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/DallasTX_TMB_estimates.png}\\
+\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_prevalence.png}\\
+\\
+\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_prevalence.png}\\
+\\
+\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
+\includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
+\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_prevalence.png}\\
 \end{tabular}
 \end{center}
 }
-\caption{\label{fig:notests}
-}
-\end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/New_York_CityNY_prevalence.png}
-\end{center}
-\caption{\label{fig:NYC}
-Example effective suppression of transmission, New York City.
-Thick blue line indicates cumulative numbers; blue bars indicate daily
-increases; thin blue and orange lines indicate 5 and 14 day moving
-averages of daily increases; vertical gray bar marks the California
-shelter in place decree.
-\help{Change ordinates}
-}
-\end{figure}
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
-\end{center}
-\caption{\label{fig:MDFL}
-Effective suppression of transmission and followed by
-uncontrolled increase in number of new cases 
-Captions as in figure \ref{fig:NYC}.
-}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/HonoluluHI_prevalence.png}
-\end{center}
-\caption{\label{fig:HNL}
-Effective suppression of transmission and followed by
-uncontrolled increase in number of new cases 
-Captions as in figure \ref{fig:NYC}.
-}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/AlamedaCA_prevalence.png}
-\end{center}
-\caption{\label{fig:ACA}
-Slow monotonic increase in number of new cases.
-Captions as in figure \ref{fig:NYC}.
-}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/DallasTX_prevalence.png}
-\end{center}
-\caption{\label{fig:DTX}
-Partial suppression of transmission followed by 
-uncontrolled increase in number of new cases.
-Captions as in figure \ref{fig:NYC}.
+\caption{\label{fig:prev}
+Prevalence trajectories for six US counties.
+Blue bars indicate daily increases increases in cases and deaths;
+dark blue lines indicate 11 day moving averages of daily increases
+(labeled ``11da''); 
+pale blue lines indicate cumulative numbers (labeled $\Sigma C$ and
+$\Sigma D$); 
+vertical gray bar marks the March 19, 2020 California shelter in place order.
+\help{remove annotations.}
 }
 \end{figure}
 

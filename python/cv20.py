@@ -365,10 +365,17 @@ class Geography:
             print('plot saved as',gfile)
         else:
             plt.show()
+    def add_order_date(self,ax):
+    #   Newsome's shelter in place order
+        orderDate = mdates.date2num(cv.CAOrderDate)
+
+    ax.plot((orderDate,orderDate),
+    #       (ax.get_ylim()[0], ax.get_ylim()[1]),color='black',
+            (0, ax.get_ylim()[1]),color='0.5',
+            linewidth=3,alpha=0.5)
 
     def make_date_axis(self,ax):
         firstDate = mdates.date2num(cv.FirstNYTDate)
-        orderDate = mdates.date2num(cv.CAOrderDate)
         lastDate  = mdates.date2num(cv.EndOfTime)
         ax.set_xlim([firstDate,lastDate])
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
@@ -649,15 +656,26 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
-def make_beta_plots(ext = '.RData',save=False):
+def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False, 
+                    save=False):
+    print(yvarname)
+    if (yvarname == 'logbeta'):
+        ylabel =r'$\ln \beta\ (da^{-1})$'
+    elif (yvarname == 'logmu'):
+        ylabel =r'$\ln \mu\ (da^{-1})$'
+    elif (yvarname == 'gamma'):
+        ylabel =r'$\gamma\ (da^{-1})$'
+    else:
+        sys.exit('Unknown yvarname '+yvarname)
+
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    fit_files = glob.glob(cv.fit_path+'*'+ext)
+    fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
     for i,ff in enumerate(fit_files):
         print(i,ff)
         fit = Fit(ff)
         if (i == 0):
             fit.make_date_axis(ax)
-            ax.set_ylabel(r'ln $\beta\ (da^{-1})$')
+            ax.set_ylabel(ylabel)
        
         fit.read_nyt_data()
         pdate = []
@@ -665,20 +683,20 @@ def make_beta_plots(ext = '.RData',save=False):
         for t in range(0,len(fit.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
-        logbeta =fit.diag['logbeta']
-        ax.plot(pdate,logbeta)
+    #   logbeta =fit.diag['logbeta']
+        yvar = fit.diag[yvarname]
+        ax.plot(pdate,yvar)
         sn = short_name(fit.moniker)
-        mark_ends(ax,pdate[len(pdate)-1],logbeta[len(logbeta)-1],sn,'r')
-        show_medians = False
+        mark_ends(ax,pdate[len(pdate)-1],yvar[len(yvar)-1],sn,'r')
         if (show_medians):
-            med = median(np.exp(logbeta))
+            med = median(np.exp(yvar))
             logmed = np.log(med)
             ax.plot(ax.get_xlim(),[logmed,logmed],linewidth=1,
                     color=ax.get_lines()[-1].get_color())
 
 
     if save:
-        gfile = cv.graphics_path+'logbeta_summary'
+        gfile = cv.graphics_path+yvarname+'_summary'
         fig.savefig(gfile+'.png',dpi=300)
         print('plot saved as',gfile)
         plt.show(True)
@@ -1004,7 +1022,8 @@ print('------- here ------')
 #test.print_metadata()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
-make_beta_plots(save=True)
+make_rate_plots('logbeta',save=True)
+make_rate_plots('logmu',save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)

@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(1),
+           "logsigma_logD" = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -77,9 +77,9 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
- opt = nlminb(obj$par,obj$fn,obj$gr)
+#opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-#opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
+opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
 
 print("Done minimization-----------------------------",quote=FALSE)
@@ -118,7 +118,7 @@ CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
                        "San_Mateo", "Santa_Clara", "Sonoma")
 
 big_county_list = list(
-                      #"New_York_City",
+                       "New_York_City",
                        "Los_Angeles","San_Diego",
                        "Orange", "Riverside",
                        "San_Bernardino","Santa_Clara",
@@ -191,8 +191,8 @@ if (nrun < 2) {
     do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   for (c in largest_us_counties)
-#  for (c in fit_examples)
+#  for (c in largest_us_counties)
+   for (c in fit_examples)
    {
        print(paste('starting',c))
        do_one_run(County=c,do.plot=TRUE)->fit
