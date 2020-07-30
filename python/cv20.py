@@ -352,7 +352,7 @@ class Geography:
         #   ax[a].legend()
     
         if (annotation):
-            title = 'COVID-19 Prevalence in '+self.name+' County, '+ self.enclosed_by
+            title = 'Covid-19 Prevalence in '+self.name+' County, '+ self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
             fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
                      ha='left',va='bottom', fontsize=8)
@@ -660,8 +660,9 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
-def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False, 
-                    show_order_date = True, save=False):
+def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
+                    fit_files = [], show_medians = False, 
+                    add_doubling_time = False, show_order_date = True, save=False):
     print(yvarname)
     if (yvarname == 'logbeta'):
         ylabel =r'$\ln \beta\ (da^{-1})$'
@@ -673,7 +674,11 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False,
         sys.exit('Unknown yvarname '+yvarname)
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
+    if (len(fit_files) < 1):
+        fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
+    else:
+        for i,ff in enumerate(fit_files):
+            fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
     for i,ff in enumerate(fit_files):
         print(i,ff)
         fit = Fit(ff)
@@ -703,9 +708,37 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', show_medians = False,
     if (show_order_date):
         add_order_date(ax)
 
+#   finagle doubling time axis at same scale as beta
+    if (add_doubling_time):
+        dtax = ax.twinx()
+        dtax.set_ylim(ax.get_ylim())
+        dtax.grid(False,axis='y') # omit grid lines
+        dtax.set_ylabel('Doubling Time (da)')
+    #   render now to get the tick positions and labels
+        fig.show()
+        fig.canvas.draw()
+        y2_ticks = dtax.get_yticks()
+        labels = dtax.get_yticklabels()
+        for i in range(0,len(y2_ticks)):
+            y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
+        #   labels[i] = '%.1f'%y2_ticks[i]
+            labels[i] = round(float(y2_ticks[i]),2)
+
+        #   if (y2_ticks[i] < 100.0):
+        #      labels[i] = '%.2g'%y2_ticks[i]
+        #   elif(y2_ticks[i] < 1000.0):
+        #      labels[i] = '>100'
+        #   else:
+        #      labels[i] = ''
+              
+        dtax.tick_params(length=0)
+        dtax.set_yticklabels(labels)
+    #   fig.show()
+    #   fig.canvas.draw()
+
     if save:
-        gfile = cv.graphics_path+yvarname+'_summary'
-        fig.savefig(gfile+'.png',dpi=300)
+        gfile = cv.graphics_path+yvarname+'_summary'+str(len(fit_files))
+        fig.savefig(gfile+'.png')#,dpi=300)
         print('plot saved as',gfile)
         plt.show(True)
     else:
@@ -1002,12 +1035,12 @@ print('------- here ------')
 #update_shared_plots()
 #make_dat_files();
 
-alam = Geography(name='Alameda',enclosed_by='California',code='CA')
-alam.read_nyt_data('county')
+#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
+#alam.read_nyt_data('county')
+#alam.plot_prevalence(save=False,signature=False)
 #alam.get_pdate()
 #alam.print_metadata()
 #alam.print_data()
-alam.plot_prevalence(save=False,signature=False)
 
 #tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.plot(save=False)
@@ -1030,9 +1063,10 @@ alam.plot_prevalence(save=False,signature=False)
 #test.print_metadata()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
-#make_rate_plots('logbeta',save=True)
-#make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL'])
+make_rate_plots('logbeta',add_doubling_time = True,save=True)
+make_rate_plots('logmu',save=True)
+make_rate_plots('gamma',save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
