@@ -4,6 +4,9 @@
 \usepackage[figurewithin=section,tablewithin=section]{caption}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
+%\usepackage{epsfig}
+%\usepackage{epstopdf}
+\usepackage[outdir=./]{epstopdf}
 \usepackage{longtable}
 \usepackage{rotating}
 \usepackage{booktabs}
@@ -17,7 +20,7 @@
 \hypersetup{pdfauthor={John Sibert}
             pdfsubject={variable transmission and mortality rate estimates}
             pdftitle={Simple SIR Statistical Model}
-            pdfkeywords={COVID-19, SIR Model, random effects, TMB}
+            pdfkeywords={Covid-19, SIR Model, random effects, TMB}
             }%
 
 \newcommand\doublespacing{\baselineskip=1.6\normalbaselineskip}
@@ -27,8 +30,8 @@
 \newcommand\perda{$\rm{da}^{-1}$}
 \newcommand\SSm{{\tt simpleSIR4}}
 
-\title{Estimating short term trends in transmission and mortality rates
-during the Covid 19 Epidemic}
+\title{Estimating trends in transmission and mortality rates
+during the Covid-19 pandemic}
 
 \author{
 John Sibert\thanks{sibert@hawaii.edu; johnrsibert@gmail.com}\\
@@ -39,7 +42,7 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 }
 
 \pagestyle{headings}
-\markright{John Sibert \hfil Simple SIR COVID-19 \hfil \today}
+\markright{John Sibert \hfil Simple SIR Covid-19 \hfil \today}
 
 \begin{document}
 
@@ -65,15 +68,16 @@ Make linear plots of I and D?
 
 \section*{Introduction}
 
-The sudden advent of the COVID-19 pandemic provoked many political
+The sudden advent of the Covid-19 pandemic provoked many political
 jurisdictions to advise people to ``shelter in place'' and to practice
 ``social distancing''. If this advice has been effective, it should be
 possible to detect the effects of the advice by comparing changes in
-numbers of infected people and perhaps changes in transmission rates
-over time and
-between areas. The SIR models of epidemic spread divide the affected
-population into three compartments: 
-Susceptible, Infected and Recovered.
+transmission rates over time and between areas. 
+The SIR models are often applied to the spread of epidemics and have
+certainly been applied to the current Covid-19 pandemic
+(\cite{Chen2020,Roques2020}).
+These models divide the affected the effected population into three compartments: 
+susceptible (S), Infected (I) and Recovered (R).
 SIR models are
 usually expressed as coupled ordinary differential equations,
 \begin{eqnarray}
@@ -84,19 +88,18 @@ usually expressed as coupled ordinary differential equations,
 N &=& S + I + R
 \end{eqnarray}
 where $N$ is the population size, $\beta$ is the instantaneous
-transmission rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
-($[t^{-1}]$),  and $\gamma$ is the instantaneous recovery rate
-($[t^{-1}]$).  
+rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
+($[t^{-1}]$),
+and $\gamma$ is the instantaneous recovery rate ($[t^{-1}]$).  
 
 %https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology
-\cite{Chen2020,Roques2020}
 
 Unfortunately, few data sets include data for each of
 these compartments. 
 The New York Times' ``historical'' 
-data\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
-is an easily accessible source of data. These
-data comprise daily totals of ``cases'' and ``deaths'' for each county
+data set\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
+is easily accessible source of data and frequently updated. This data
+set comprise daily totals of ``cases'' and ``deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
 a reasonable approximations of the Infected compartment ($I$) in a SIR model. 
 There are simply no credible data of comparable scope on either the Susceptible or
@@ -109,26 +112,27 @@ I make some simplifying assumptions in the face of incomplete data:
 Susceptible compartment does not change, 
 $\frac{dS}{dt} = 0 = \frac{dN}{dt}$,
 eliminating the Susceptible compartment.
-(3) People who recover from a COVID-19 infection return to the Susceptible
+(3) People who recover from a Covid-19 infection return to the Susceptible
 compartment, eliminating the Recovered compartment. 
 With these assumptions, and with the addition of a ``deaths''
 compartment, the simplified SIR model is
 \begin{eqnarray}
-\label{eqn:sSIR}
+\label{eqn:sSIRI}
 \frac{dI}{dt} &=&  \beta I - \mu I -\gamma I\\
+\label{eqn:sSIRD}
 \frac{dD}{dt} &=& \mu I
 \end{eqnarray}
 and has state variables that might be matched to available observations.
 
-The data available during the initial stages of the COVID-19 pandemic
+The data available during the initial stages of the Covid-19 pandemic
 contain measurement errors of various types.
 Definitions and methods of detecting and reporting the numbers of
-infected persons vary between political jurisdictions (or
-``geographies'' in the parlance of the New York Times) and may also
-change with time.
-Comparable uncertainties also occur in reporting of deaths caused
-by COVID-19 infection.
-There is additional variability in the biosocial
+infected persons and numbers of deaths attributable to Covid-19 have
+evolved since January of 2020, are continuing to change, and can be
+expected to change in the future.
+Reporting protocols also vary between political jurisdictions (or
+``geographies'' in the parlance of the New York Times).
+Finally, there is additional variability in the biosocial
 processes that mediate disease transmission.
 
 State-space models separate variability in the biosocial
@@ -139,15 +143,17 @@ in the system (observation model).
 
 The general form of a state-space process or transition model is
 \begin{equation}
-\alpha_t=T(\alpha_{t-1}) + \eta_t
+\alpha_t=T(\alpha_{t-1}) + \Theta_t
 \end{equation}
 where $\alpha_t$ is the state at time $t$ and 
 the function $T$ embodies the dynamics mediating the
 development of the state at time $t$ from the state at the previous
-time with random process error, $\eta_t$.
+time with random process error, $\Theta_t$.
 
-The transition model for the simplified SIR model is constructed from finite difference
-approximations of equation (\ref{eqn:sSIR}) with associated log-normal
+The transition model for the simplified SIR model is constructed from
+the explicit finite difference
+approximations of equations~(\ref{eqn:sSIRI}) and~(\ref{eqn:sSIRD}) 
+with associated log-normal
 random errors.
 \begin{eqnarray}
 \label{eqn:sSIRfdI}
@@ -184,13 +190,16 @@ N(0,\sigma_\beta)\\
 \log\mu_t &=& \log\mu_{t-\Delta t}+\varrho;\quad \varrho\sim
 N(0,\sigma_\mu)
 \end{eqnarray}
+A similar approacth has been used in fisheries stock assessment models
+to estimate time-dependent fishing induced mortalitty
+(\cite{Sibert2017,Nielsen2014b}).
 
 The general form of the state-space observation model is
 \begin{equation}
-x_t = O(\alpha_t) + \varphi_t
+x_t = O(\alpha_t) + \Omega_t
 \end{equation}
 where the function $O$ describes the measurement process with
-error $\varepsilon$ in observing the state $\alpha$.
+error $\Omega$ in observing the state $\alpha$.
 
 I applied separate observation error models for cases and
 deaths. The observation model for cases is a simple log-normal error
@@ -203,13 +212,13 @@ where $I$ is the observed number of cases and $\widehat{I}$ is the
 number of cases predicted by equation~\ref{eqn:sSIRfdI}.
 
 
-Not all those afflicted by COVID-19 have died; there are far fewer
+Not all those afflicted by Covid-19 have died; there are far fewer
 deaths than infections. In addition,
 the observed time series for both $I$ and $D$ begins at the first recorded
-case. The first recorded death occurs several days or weeks after the
-first recorded case. 
-Therefor the deaths time-series inevitably contains a
-substantial number of recorded zeros. 
+case, i.e. at time $t=0, I_t \ge 1$. The first recorded death occurs
+several days or weeks after the first recorded case.
+Therefore the deaths time-series inevitably contains a
+substantial number of initial recorded zeros. 
 The observation model for deaths accommodates observed zeroes by
 assuming to be ``zero-inflated'' log normal likelihood given by
 \begin{equation}
@@ -227,28 +236,6 @@ where $D$ is the observed number of deaths,
 $\widehat{D}$ is the number of deaths predicted by
 equation~\ref{eqn:sSIRfdD}, 
 and $p_0$ is the proportion of observed deaths equal to zero.
-
-
-Model parameters are estimated by
-maximizing the joint likelihood of the process errors, observation
-errors, and random effects.
-\begin{equation}
-\label{eqn:likelihood}
-L(\theta,\alpha,x)=
-\prod^m_{t=2}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Sigma_\eta\big)\big]\cdot
-\prod^m_{t=1}\big[\phi\big(x_t-O(\alpha_t),
-\Sigma_\varepsilon\big)\big]
-\end{equation}
-where $m$ is the number of days elapsed since the first recorded case,
-$x_t$ is the vector of daily observations of cases and deaths,
-$\alpha_t$ is the vector of the daily calculations of the state
-variables and random effects,
-and $\theta$ 
-is a vector of model parameters (Table~\ref{tab:allvars1}).
-The R package TMB (\cite{TMB0000} package was used to 
-estimate the parameters of the model. 
-The R and supporting C++ files are available on 
-github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 
 \begin{table}
 \caption{List of model variables for the simple SIR model, \SSm.
@@ -281,6 +268,27 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \end{tabular}
 \end{center}
 \end{table}
+
+Model parameters are estimated by
+maximizing the joint likelihood of the process errors, observation
+errors, and random effects.
+\begin{equation}
+\label{eqn:likelihood}
+L(\theta,\alpha,x)=
+\prod^m_{t=2}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Sigma_\eta\big)\big]\cdot
+\prod^m_{t=1}\big[\phi\big(x_t-O(\alpha_t),
+\Sigma_\varepsilon\big)\big]
+\end{equation}
+where $m$ is the number of days elapsed since the first recorded case,
+$x_t$ is the vector of daily observations of cases and deaths,
+$\alpha_t$ is the vector of the daily calculations of the state
+variables and random effects,
+and $\theta$ 
+is a vector of model parameters (Table~\ref{tab:allvars1}).
+The R package TMB (\cite{TMB0000}) was used to 
+estimate the parameters of the model. 
+The R and supporting C++ files are available on 
+github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 
 %\clearpage
 \section*{Results}
@@ -410,7 +418,7 @@ trajectories.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.png}\\
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary34.eps}\\
 \end{center}
 \caption{\label{fig:xrates}
 Estimated natural logarithms of the transmission rate for several US counties using the
@@ -423,7 +431,7 @@ $t_2 = \frac{\ln 2}{\exp(\ln \beta)}$
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary.png}\\
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary34.png}\\
 \end{center}
 \caption{\label{fig:drates}
 Estimated natural logarithms of the mortality rate for several US counties using the
@@ -454,7 +462,7 @@ reasonable. The extremely high transmission rates in March agree well
 with doubling times reported in newspaper articles at the time.
 The steady decline of transmission rates after shelter-in-place advice is 
 also consistent with casual observation.
-The incubation time of the COVID-19 virus is usually assumed to be
+The incubation time of the Covid-19 virus is usually assumed to be
 about 14 days.
 The trends in Figure~\ref{fig:xrates} in conjunction with the
 empirical prevalence trends suggest that sustainable containment of
@@ -471,7 +479,7 @@ Omit:
 Whether the available data are sufficiently informative to enable
 estimation of the model parameters is a critical aspect of the
 evaluation of any statistical model.
-The speed at which the COVID-19 pandemic spread during the first
+The speed at which the Covid-19 pandemic spread during the first
 quarter of
 2020 means that the length of the time series doubled during
 the development of this model. The capability of the

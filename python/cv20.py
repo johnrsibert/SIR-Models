@@ -222,7 +222,7 @@ class Geography:
         self.cases  = np.array(dat[County_rows]['cases'])
         self.deaths = np.array(dat[County_rows]['deaths'])
         self.date   = np.array(dat[County_rows]['date'])
-   #    self.date0 = self.date[0]
+        self.date0 = self.date[0]
         self.ntime = len(self.date)
         
     def write_dat_file(self):
@@ -363,7 +363,7 @@ class Geography:
 
         if (signature):
             by_line = 'Graphics by John Sibert'
-            fig.text(0.025,0.500,by_line+' ', ha='left',va='top', fontsize=8,alpha=0.25)#,color='red')
+        #   fig.text(0.025,0.500,by_line+' ', ha='left',va='top', fontsize=8,alpha=0.25)#,color='red')
             fig.text(1.0,0.025,by_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
     
         if save:
@@ -686,7 +686,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             fit.make_date_axis(ax)
             ax.set_ylabel(ylabel)
        
-        fit.read_nyt_data()
+    #   fit.read_nyt_data()
         pdate = []
         Date0 = datetime.strptime(fit.date0,'%Y-%m-%d')
         for t in range(0,len(fit.diag.index)):
@@ -738,7 +738,8 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
     if save:
         gfile = cv.graphics_path+yvarname+'_summary'+str(len(fit_files))
-        fig.savefig(gfile+'.png')#,dpi=300)
+    #   fig.savefig(gfile+'.eps')#,dpi=300)
+        fig.savefig(gfile)
         print('plot saved as',gfile)
         plt.show(True)
     else:
@@ -898,7 +899,8 @@ def web_update():
     os.system(cmd)
 
 def make_dat_files():
-    gg = pd.read_csv(cv.cv_home+'UpdateList.csv',header=0,comment='#')
+#   gg = pd.read_csv(cv.cv_home+'UpdateList.csv',header=0,comment='#')
+    gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
     print(gg.columns)
 #   print(gg)
     plt.rc('figure', max_open_warning = 0)
@@ -928,18 +930,22 @@ def update_shared_plots():
        [['District of Columbia','District of Columbia','DC'],
         ['Honolulu','Hawaii','HI'],
         ['Tompkins','New York','NY'],
+        ['Multnomah','Oregon','OR'],
         ['Plumas','California','CA'],
+        ['Sonoma','California','CA'],
+        ['Marin','California','CA'],
         ['Alameda','California','CA']]),
         columns=['name','enclosed_by','code']) 
     gg = update_list
     save_path = cv.graphics_path
     cv.graphics_path = cv.cv_home+'PlotsToShare/'
+    plt.rc('figure', max_open_warning = 0)
     for g in range(0,len(gg)):
         print(gg['name'][g])
         tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
                          code=gg['code'][g])
         tmpG.read_nyt_data('county')
-        tmpG.plot_prevalence(save=True)
+        tmpG.plot_prevalence(signature = True, save=True)
 
     cv.graphics_path = save_path
 
@@ -995,8 +1001,8 @@ def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
 
 #   print(key)
     if save:
-        gfile = cv.graphics_path+'counties_per_capita.png'
-        plt.savefig(gfile,dpi=300)
+        gfile = cv.graphics_path+'counties_per_capita.eps'
+        plt.savefig(gfile) #,dpi=300)
         plt.show(False)
         print('plot saved as',gfile)
 
@@ -1031,9 +1037,6 @@ def update_everything():
 
 # --------------------------------------------------       
 print('------- here ------')
-#pdate_everything()
-#update_shared_plots()
-#make_dat_files();
 
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
@@ -1043,16 +1046,21 @@ print('------- here ------')
 #alam.print_data()
 
 #tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
-#tfit.plot(save=False)
 #tfit.print_metadata()
+#tfit.plot(save=False)
 
 
 #update_everything()
 #web_update()
+#update_shared_plots()
 #make_dat_files()
 #update_fits()
+plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
+#make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL']) #,'HonoluluHI'])
+#make_rate_plots('logmu',save=True)
 #make_fit_table('.rep')
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
@@ -1063,10 +1071,10 @@ print('------- here ------')
 #test.print_metadata()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL'])
-make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logmu',save=True)
-make_rate_plots('gamma',save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
+#make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#make_rate_plots('logmu',save=True)
+#make_rate_plots('gamma',save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)

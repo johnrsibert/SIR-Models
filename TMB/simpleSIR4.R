@@ -30,8 +30,8 @@ init = list(
     logsigma_logbeta = 0.4, #log(0.7),
     logsigma_logmu = 0.2, #log(2.0),
     logmu = log(0.00005),
-    logsigma_logC = log(log(1.5)),
-    logsigma_logD = log(log(1.25)),
+    logsigma_logC = log(log(1.25)),
+    logsigma_logD = log(log(1.1)),
     logbeta = log(0.05)
 )
 print("--init parameter values:")
@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(1),
-           "logsigma_logD" = as.factor(1)
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -187,16 +187,25 @@ if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
-#   do_one_run(County="New_York_CityNY")->fit
-    do_one_run(County="BrowardFL")->fit
+    do_one_run(County="NassauNY")->fit
+#   do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
 #  for (c in largest_us_counties)
-   for (c in fit_examples)
+#  for (c in fit_examples)
+   dp =paste(dat_path,'*.dat',sep='')
+   print(paste('globbing',dp))
+   cc = Sys.glob(dp)
+#  print(cc)
+   for (c in cc)
    {
-       print(paste('starting',c))
+       County = sub("\\.dat","",c)
+   #   print(dirname(County))
+   #   print(basename(County))
+       c = basename(County)
+       print(paste("starting",c))
        do_one_run(County=c,do.plot=TRUE)->fit
-       print(paste('finished',c,'with C =',fit$opt$converge))
+   #   print(paste('finished',c,'with C =',fit$opt$converge))
    }
    sink()
 }
