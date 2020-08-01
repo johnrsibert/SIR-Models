@@ -918,8 +918,8 @@ def update_fits():
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
-    # list of counties in runSS4.R
-    cmd = 'R CMD BATCH simpleSIR4.R'
+    # globs s list of counties in runSS4.R
+    cmd = 'Rscript --verbose simpleSIR4.R'
     print('running',cmd)
     os.system(cmd)
     os.chdir(save_wd)
@@ -1054,8 +1054,8 @@ print('------- here ------')
 #web_update()
 #update_shared_plots()
 #make_dat_files()
-#update_fits()
-plot_multi_per_capita(plot_dt=False,save=True)
+update_fits()
+#plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)

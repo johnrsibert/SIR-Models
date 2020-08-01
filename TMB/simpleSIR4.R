@@ -97,9 +97,11 @@ mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
 
 if (do.plot){
+    x11()
     plot.log.state(data,par,obj,opt,map,np=4)
     dev.file = paste(fit_path,data$county,'.pdf',sep='')
     dev.copy2pdf(file=dev.file,width=6.5,height=6)
+    dev.off()
 }
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
@@ -191,21 +193,16 @@ if (nrun < 2) {
 #   do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-#  for (c in largest_us_counties)
-#  for (c in fit_examples)
    dp =paste(dat_path,'*.dat',sep='')
+   print(dp)
    print(paste('globbing',dp))
    cc = Sys.glob(dp)
-#  print(cc)
    for (c in cc)
    {
        County = sub("\\.dat","",c)
-   #   print(dirname(County))
-   #   print(basename(County))
        c = basename(County)
        print(paste("starting",c))
        do_one_run(County=c,do.plot=TRUE)->fit
-   #   print(paste('finished',c,'with C =',fit$opt$converge))
    }
    sink()
 }
