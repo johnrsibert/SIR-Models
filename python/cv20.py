@@ -369,6 +369,7 @@ class Geography:
         if save:
             gfile = cv.graphics_path+self.moniker+'_prevalence.png'
             plt.savefig(gfile,dpi=300)
+        #   plt.savefig('fig.png',bbox_inches='tight')
             plt.show(False)
             plt.pause(3)
             plt.close()
@@ -901,9 +902,13 @@ def web_update():
 def make_dat_files():
 #   gg = pd.read_csv(cv.cv_home+'UpdateList.csv',header=0,comment='#')
     gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
-    print(gg.columns)
-#   print(gg)
-    plt.rc('figure', max_open_warning = 0)
+    names = gg.columns
+    gg = np.append(gg,np.array([
+                                ['Honolulu','Hawaii','HI'],
+                                ['Multnomah','Oregon','OR']
+                               ]),axis=0)
+    gg = pd.DataFrame(gg,columns=names)
+#   plt.rc('figure', max_open_warning = 0)
     for g in range(0,len(gg)):
         print(gg['name'][g])
         tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
@@ -929,8 +934,8 @@ def update_shared_plots():
     update_list = pd.DataFrame(np.array(
        [['District of Columbia','District of Columbia','DC'],
         ['Honolulu','Hawaii','HI'],
-        ['Tompkins','New York','NY'],
         ['Multnomah','Oregon','OR'],
+        ['Tompkins','New York','NY'],
         ['Plumas','California','CA'],
         ['Sonoma','California','CA'],
         ['Marin','California','CA'],
@@ -1031,8 +1036,16 @@ def update_everything():
     os.system('rm -v' + cv.fit_path + '*.RData')
     update_fits()
     print('Finished update_fits()')
-    make_fit_table()
     make_fit_plots()
+    print('Finished fit_plots')
+    make_fit_table()
+    make_fit_table()
+    make_rate_plots('logbeta',add_doubling_time = True,save=True)
+    make_rate_plots('logbeta',add_doubling_time = True,save=True,
+                    fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
+    make_rate_plots('logmu',save=True)
+    print('Finished rate_plots')
+    print('Finished Everything!')
 
 
 # --------------------------------------------------       
@@ -1054,12 +1067,12 @@ print('------- here ------')
 #web_update()
 #update_shared_plots()
 #make_dat_files()
-update_fits()
-#plot_multi_per_capita(plot_dt=False,save=True)
+#update_fits()
+plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL']) #,'HonoluluHI'])
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logmu',save=True)
 #make_fit_table('.rep')
 
