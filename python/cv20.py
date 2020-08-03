@@ -285,8 +285,6 @@ class Geography:
         orderDate = mdates.date2num(cv.CAOrderDate)
         lastDate  = mdates.date2num(cv.EndOfTime)
     
-        date_list = pd.date_range(start=firstDate,end=lastDate)
-    
         fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
         if (per_capita):
             ax[0].set_ylabel('Daily Cases'+' per '+str(mult))
@@ -298,10 +296,12 @@ class Geography:
     
         ax2 = []
         for a in range(0,len(ax)):
-            ax[a].set_xlim([firstDate,lastDate])
-            ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-            ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
-            ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+            self.make_date_axis(ax[a])
+        #   ax[a].set_xlim([firstDate,lastDate])
+        #   ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+        #   ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
+        #   ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+
             ax[a].set_yscale(yscale)
             ax2.append(ax[a].twinx())
             ax2[a].set_ylabel('Cumulative')
@@ -313,10 +313,16 @@ class Geography:
             cases  =  self.cases
             deaths =  self.deaths
         
+        nn = self.ntime-1
+
         Date = self.get_pdate()
 
         delta_cases = np.diff(cases)
         ax[0].bar(Date[1:], delta_cases)
+   #    DD = Date[1:len(Date)]
+   #    ax[0].bar(DD, delta_cases)
+        aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
+        ax[0].plot((aug1,aug1),ax[0].get_ylim(),color='black',linewidth=1)
         for w in range(0,len(window)):
             adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
             ax[0].plot(Date[1:],adc,linewidth=2)
@@ -362,7 +368,7 @@ class Geography:
             fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
 
         if (signature):
-            by_line = 'Graphics by John Sibert'
+            by_line = 'Graphics by John Sibert (https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare) '
         #   fig.text(0.025,0.500,by_line+' ', ha='left',va='top', fontsize=8,alpha=0.25)#,color='red')
             fig.text(1.0,0.025,by_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
     
@@ -384,8 +390,8 @@ class Geography:
         lastDate  = mdates.date2num(cv.EndOfTime)
         ax.set_xlim([firstDate,lastDate])
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-        ax.xaxis.set_major_locator(plt.MultipleLocator(30))
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_minor_locator(mdates.DayLocator())
 
 
     def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
@@ -519,10 +525,11 @@ class Fit(Geography):
     
     
         for a in range(0,len(ax)):
-            ax[a].set_xlim([firstDate,lastDate])
-            ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-            ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
-            ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
+            self.make_date_axis(ax[a])
+        #   ax[a].set_xlim([firstDate,lastDate])
+        #   ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        #   ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
+        #   ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
     
         Date0 = self.get_metadata_item('Date0')
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
@@ -1068,9 +1075,9 @@ def update_everything():
 # --------------------------------------------------       
 print('------- here ------')
 
-#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
-#alam.read_nyt_data('county')
-#alam.plot_prevalence(save=False,signature=False)
+alam = Geography(name='Alameda',enclosed_by='California',code='CA')
+alam.read_nyt_data('county')
+alam.plot_prevalence(save=False,signature=True)
 #alam.get_pdate()
 #alam.print_metadata()
 #alam.print_data()
@@ -1080,7 +1087,7 @@ print('------- here ------')
 #tfit.plot(save=False)
 
 
-update_everything()
+#update_everything()
 #web_update()
 #update_shared_plots()
 #make_dat_files()
