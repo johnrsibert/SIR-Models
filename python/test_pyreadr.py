@@ -16,7 +16,7 @@ import js_covid as cv
 #print(result.keys())
 #print(result)
 #print('df1:',result['df1'])
-os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
+os.chdir('/home/jsibert/Projects/SIR-Models/fits/constrainID/')
 
 print('----------'+os.getcwd())
 fit=pyreadr.read_r('AlamedaCA.RData')

@@ -661,6 +661,30 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
+def get_mu_atD1(ext='.RData',fit_files = []):
+    if (len(fit_files) < 1):
+        fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
+    else:
+        for i,ff in enumerate(fit_files):
+            fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
+
+    mud_cols = ['moniker','t','logmu','mu']
+    tmp = np.empty(shape=(len(fit_files),4),dtype=object)
+    for i,ff in enumerate(fit_files):
+        moniker = os.path.splitext(os.path.basename(ff))[0]
+        fit = Fit(ff)
+        muD1 = -1.0
+        obs_deaths = fit.diag['obs_deaths']
+        for t in range(0,len(fit.diag.index)):
+            if (muD1 < 0.0) and (obs_deaths[t] > 0.0):
+                muD1 = np.exp(fit.diag['logmu'][t])
+                tmp[i] = (moniker,t,fit.diag['logmu'][t],muD1)
+
+    mud = pd.DataFrame(tmp,columns=mud_cols)
+    mud = mud.sort_values(by='logmu',ascending=False)
+    print(mud)
+    mud.to_csv(cv.fit_path+'mud.csv',index=False)
+
 def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
                     fit_files = [], show_medians = False, 
                     add_doubling_time = False, show_order_date = True, save=False):
@@ -676,8 +700,10 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
     if (len(fit_files) < 1):
+        suffix = '_g'
         fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
     else:
+        suffix = ''
         for i,ff in enumerate(fit_files):
             fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
     for i,ff in enumerate(fit_files):
@@ -711,13 +737,14 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
 #   finagle doubling time axis at same scale as beta
     if (add_doubling_time):
+        yticks = np.arange(-7,1,1)
+        ax.set_yticks(yticks)
         dtax = ax.twinx()
         dtax.set_ylim(ax.get_ylim())
         dtax.grid(False,axis='y') # omit grid lines
         dtax.set_ylabel('Doubling Time (da)')
     #   render now to get the tick positions and labels
-        fig.show()
-        fig.canvas.draw()
+    #   fig.canvas.draw()
         y2_ticks = dtax.get_yticks()
         labels = dtax.get_yticklabels()
         for i in range(0,len(y2_ticks)):
@@ -725,21 +752,11 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         #   labels[i] = '%.1f'%y2_ticks[i]
             labels[i] = round(float(y2_ticks[i]),2)
 
-        #   if (y2_ticks[i] < 100.0):
-        #      labels[i] = '%.2g'%y2_ticks[i]
-        #   elif(y2_ticks[i] < 1000.0):
-        #      labels[i] = '>100'
-        #   else:
-        #      labels[i] = ''
-              
         dtax.tick_params(length=0)
         dtax.set_yticklabels(labels)
-    #   fig.show()
-    #   fig.canvas.draw()
 
     if save:
-        gfile = cv.graphics_path+yvarname+'_summary'+str(len(fit_files))
-    #   fig.savefig(gfile+'.eps')#,dpi=300)
+        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.eps'
         fig.savefig(gfile)
         print('plot saved as',gfile)
         plt.show(True)
@@ -1063,7 +1080,7 @@ print('------- here ------')
 #tfit.plot(save=False)
 
 
-#update_everything()
+update_everything()
 #web_update()
 #update_shared_plots()
 #make_dat_files()
@@ -1091,4 +1108,5 @@ print('------- here ------')
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
+#get_mu_atD1()
 
