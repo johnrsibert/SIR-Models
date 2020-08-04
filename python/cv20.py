@@ -297,10 +297,6 @@ class Geography:
         ax2 = []
         for a in range(0,len(ax)):
             self.make_date_axis(ax[a])
-        #   ax[a].set_xlim([firstDate,lastDate])
-        #   ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-        #   ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
-        #   ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
 
             ax[a].set_yscale(yscale)
             ax2.append(ax[a].twinx())
@@ -319,10 +315,10 @@ class Geography:
 
         delta_cases = np.diff(cases)
         ax[0].bar(Date[1:], delta_cases)
-   #    DD = Date[1:len(Date)]
-   #    ax[0].bar(DD, delta_cases)
-        aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
-        ax[0].plot((aug1,aug1),ax[0].get_ylim(),color='black',linewidth=1)
+
+ #      aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
+ #      ax[0].plot((aug1,aug1),ax[0].get_ylim(),color='black',linewidth=1)
+
         for w in range(0,len(window)):
             adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
             ax[0].plot(Date[1:],adc,linewidth=2)
@@ -460,6 +456,7 @@ class Fit(Geography):
         self.md = tfit['meta']
         self.ests = tfit['ests']
         self.date0 = self.get_metadata_item('Date0')
+        self.ntime = int(self.get_metadata_item('ntime'))
     #   Date0 = self.get_metadata_item('Date0')
     #   print('Date0:',Date0)
 
@@ -670,10 +667,10 @@ class Fit(Geography):
 
 def get_mu_atD1(ext='.RData',fit_files = []):
     if (len(fit_files) < 1):
-        fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
+        fit_files = glob.glob(cv.fit_path+'*'+ext)
     else:
         for i,ff in enumerate(fit_files):
-            fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
+            fit_files[i] = cv.fit_path+fit_files[i]+ext
 
     mud_cols = ['moniker','t','logmu','mu']
     tmp = np.empty(shape=(len(fit_files),4),dtype=object)
@@ -691,6 +688,9 @@ def get_mu_atD1(ext='.RData',fit_files = []):
     mud = mud.sort_values(by='logmu',ascending=False)
     print(mud)
     mud.to_csv(cv.fit_path+'mud.csv',index=False)
+#   fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+#   ax.hist(mud['logmu'],density=True,bins=3)
+#   plt.show(True)
 
 def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
                     fit_files = [], show_medians = False, 
@@ -708,11 +708,13 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
     if (len(fit_files) < 1):
         suffix = '_g'
-        fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
+        fit_files = glob.glob(cv.fit_path+'*'+ext)
+    #   fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
     else:
         suffix = ''
         for i,ff in enumerate(fit_files):
-            fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
+            fit_files[i] = cv.fit_path+fit_files[i]+ext
+        #   fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
     for i,ff in enumerate(fit_files):
         print(i,ff)
         fit = Fit(ff)
@@ -726,11 +728,17 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         for t in range(0,len(fit.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
+    #   pdate = fit.get_pdate()
+
         yvar = fit.diag[yvarname]
         if (yvarname == 'gamma'):
             print(yvarname)
             print(min(yvar),max(yvar))
         ax.plot(pdate,yvar)
+
+    #   aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
+    #   ax.plot((aug1,aug1),ax.get_ylim(),color='black',linewidth=1)
+
         sn = short_name(fit.moniker)
         mark_ends(ax,pdate[len(pdate)-1],yvar[len(yvar)-1],sn,'r')
         if (show_medians):
@@ -1075,9 +1083,9 @@ def update_everything():
 # --------------------------------------------------       
 print('------- here ------')
 
-alam = Geography(name='Alameda',enclosed_by='California',code='CA')
-alam.read_nyt_data('county')
-alam.plot_prevalence(save=False,signature=True)
+#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
+#alam.read_nyt_data('county')
+#alam.plot_prevalence(save=False,signature=True)
 #alam.get_pdate()
 #alam.print_metadata()
 #alam.print_data()
@@ -1096,7 +1104,7 @@ alam.plot_prevalence(save=False,signature=True)
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logmu',save=True)
 #make_fit_table('.rep')
 
@@ -1111,9 +1119,9 @@ alam.plot_prevalence(save=False,signature=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
+make_rate_plots('gamma',save=True)
 
 #plot_dow_boxes()
-#plot_multi_per_capita(plot_dt=False,save=True)
+plot_multi_per_capita(plot_dt=False,save=True)
 #get_mu_atD1()
 

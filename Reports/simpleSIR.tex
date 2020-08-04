@@ -297,7 +297,7 @@ github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/counties_per_capita.eps}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/counties_per_capita.eps}
 \end{center}
 \caption{\label{fig:percap}
 Trends in number of cases per 1000 people in the 30 most populous US
@@ -326,11 +326,11 @@ successful control.
 \begin{figure}
 {\scriptsize
 \begin{center}
-\includegraphics[width=0.80\textwidth]{../Graphics/NassauNY_prevalence.png}
+\includegraphics[width=0.80\textwidth]{../Graphics/constrainID/NassauNY_prevalence.png}
  
 \vspace{0.25truein}
 
-\includegraphics[width=0.80\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}
+\includegraphics[width=0.80\textwidth]{../Graphics/constrainID/Miami-DadeFL_prevalence.png}
 \end{center}
 }
 \caption{\label{fig:prev}
@@ -385,7 +385,7 @@ rapidly using gradient methods.
 Diagnostic plots of model estimates for Nasssau County, NY, 
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See~\ref{pp:diagexpl} for explanation of figure.
+See~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
@@ -397,17 +397,17 @@ See~\ref{pp:diagexpl} for explanation of figure.
 Diagnostic plots of model estimates for Miami-Dade County,FL,
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See~\ref{pp:diagexpl} for explanation of figure.
+See~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
 Diagnostics are plotted
 (figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
-on logarithmic scales to illustrate the
+on logarithmic scales to both illustrate the
 lognormal likelihood functions used in the observation model,
 equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}), and to
-illustrate trends in estimated transmission and mortality rate that
-are near zero.
+illustrate trends in estimated transmission and mortality rates close
+to zero.
 \label{pp:diagexpl} 
 The blue `+' symbols represent the observed cases ($I$) and deaths ($D$).
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
@@ -416,7 +416,8 @@ $\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
 logarithms of cases and deaths in the observation model.
 The shaded areas bounded by red outlines are 
 $\pm 2$ estimated standard deviations around the estimated trends.
-The solid blue lines in the $\beta$ and $\mu$ diagnostic plots are the estimated
+The solid blue lines in the transmission rate $\ln \beta$ and
+mortality rate $\ln \mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
 estimated random effects $\pm 2$ standard deviations of the generating
@@ -430,6 +431,7 @@ for convex downward and convex upward trajectories
 respectively.
 Estimated cases and deaths agree well with observation throughout the
 time series.
+
 Figure~\ref{fig:xrates} compares estimated transmission rate among
 counties.
 Transmission rates increased rapidly at the beginning of the pandemic
@@ -437,13 +439,22 @@ exceeding  1\perda\ ($\ln \beta \approx 0$) in early March,
 an instantaneous transmission rate
 equivalent to a doubling time of less than one day.
 Beginning in April, transmission rates fell substantially, and doubling times
-increased to longer than 3 weeks in some counties.
+increased to longer than 20 days in some counties.
 Counties with estimated transmission rates less than 0.007\perda\ 
-(or $\ln \beta \le 5$)
-at the of May
+(or $\ln \beta \le 5$) at the end of May
 correspond roughly to those counties with concave downward prevalence
 trajectories.
+Figure~\ref{fig:xrates2} is a simplified presentation of estimated
+transmission rate between counties that compare a county with sustainable
+suppression of transmission (Nassau Co, NY) with two counties that
+have suffered a resurgence of cases (Honolulu, HI and Miami-Dade Co.
+FL). 
 
+Figure~\ref{fig:drates} compares estimated mortality rate among
+counties. Initial mortality rates were around 
+0.01\perda\ ($\ln \mu \approx 4.6$) at the beginning of
+the pandemic but fell steadily to less than 
+0.001\perda\ ($\ln \mu \approx -6.9$) in July.
 
 \begin{figure}
 \begin{center}
@@ -451,6 +462,18 @@ trajectories.
 \end{center}
 \caption{\label{fig:xrates}
 Estimated natural logarithms of the transmission rate for several US
+counties using the constrained \SSm\ model.
+Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
+are shown on the right-hand ordinate.
+}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.eps}\\
+\end{center}
+\caption{\label{fig:xrates2}
+Estimated natural logarithms of the transmission rate for three US
 counties using the constrained \SSm\ model.
 Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
