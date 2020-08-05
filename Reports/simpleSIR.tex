@@ -16,7 +16,6 @@
 
 \bibliography{/home/jsibert/Projects/MyBibtex.bib,/home/jsibert/MendeleyBibTex/library.bib}
 
-
 \usepackage[pdftex,bookmarks=false]{hyperref}
 \hypersetup{pdfauthor={John Sibert}
             pdfsubject={variable transmission and mortality rate estimates}
@@ -33,8 +32,8 @@
 \newcommand\slI{$\sigma_{\ln I}$\ }
 \newcommand\slD{$\sigma_{\ln D}$}
 
-\title{Estimating trends in transmission and mortality rates
-during the Covid-19 pandemic}
+\title{Trends in transmission and mortality rates of the Covid-19
+pandemic estimated from publicly available data}
 
 \author{
 John Sibert\thanks{sibert@hawaii.edu; johnrsibert@gmail.com}\\
@@ -45,7 +44,7 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 }
 
 \pagestyle{headings}
-\markright{John Sibert \hfil Simple SIR Covid-19 \hfil \today}
+\markright{John Sibert \hfil Covid-19 Transmission \& Mortality \hfil \today}
 
 \begin{document}
 
@@ -54,19 +53,19 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 \doublespacing
 
 \begin{abstract}
-
-\centerline{\help{Write me}}
-
-{\parindent=0truein
-
-TO DO:
-
-Rationalize examples
-
-Implement alternate ordinate scale
-
-Make linear plots of I and D?
-}
+A simple compartment model of Covid-19 infections and deaths is
+applied to publicly available data to estimate trends and transmission
+and mortality rates using random effects. Model estimates of
+infections and deaths match observations closely. Trends in
+estimated transmission rate vary substantially between geographic
+areas. Transmission rates were suppressed below 0.007\perda\ by the
+end of May in some areas, but often rebounded when social constraints
+were relaxed.
+Mortality rates of individuals infected with Covid-19 fell to less than
+0.001\perda\ in most areas by the end of July.
+These results show that publicly available data, often collected and
+compiled with different protocols, can be used to quantitatively
+estimate trends in transmission and mortality rate.
 \end{abstract}
 
 \section*{Introduction}
@@ -76,11 +75,11 @@ jurisdictions to advise people to ``shelter in place'' and to practice
 ``social distancing''. If this advice has been effective, it should be
 possible to detect the effects of the advice by comparing changes in
 transmission rates over time and between areas. 
-The SIR models are often applied to the spread of epidemics and have
+SIR models are often applied to the spread of epidemics and have
 certainly been applied to the current Covid-19 pandemic
-(\cite{Chen2020,Roques2020}).
-These models divide the affected the effected population into three compartments: 
-susceptible (S), Infected (I) and Recovered (R).
+(e.g. \cite{Chen2020,Roques2020}).
+These models divide the affected the effected population into three
+compartments: susceptible (S), Infected (I) and Recovered (R).
 SIR models are
 usually expressed as coupled ordinary differential equations,
 \begin{eqnarray}
@@ -97,16 +96,20 @@ and $\gamma$ is the instantaneous recovery rate ($[t^{-1}]$).
 
 %https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology
 
-Unfortunately, few data sets include data for each of
-these compartments. 
+As the pandemic began to unfold, scientific institutes and governments
+at different levels began to make data publicly available on the
+World Wide Web.
+Unfortunately, data collection protocols may vary between
+institution over time. Additionally, few data sets include data for each of
+the compartments in a SIR model. 
 The New York Times' ``historical'' 
 data set\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
-is easily accessible source of data and frequently updated. This data
-set comprise daily totals of ``cases'' and ``deaths'' for each county
+is an easily accessible source of data and is updated daily. These data
+comprise daily totals of ``cases'' and ``deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
-a reasonable approximations of the Infected compartment ($I$) in a SIR model. 
-There are simply no credible data of comparable scope on either the Susceptible or
-the Recovered compartments.
+a reasonable approximations of the Infected compartment ($I$) in a SIR
+model. There are simply no credible data of comparable scope on
+either the Susceptible or the Recovered compartments.
 
 \section*{Model Structure}
 I make some simplifying assumptions in the face of incomplete data: 
@@ -125,13 +128,13 @@ compartment, the simplified SIR model is
 \label{eqn:sSIRD}
 \frac{dD}{dt} &=& \mu I
 \end{eqnarray}
-and has state variables that might be matched to available observations.
+Most importantly this model
+has state variables that might be matched to available observations.
 
-The data available during the initial stages of the Covid-19 pandemic
-contain measurement errors of various types.
+The available data contain measurement errors of various types.
 Definitions and methods of detecting and reporting the numbers of
 infected persons and numbers of deaths attributable to Covid-19 have
-evolved since January of 2020, are continuing to change, and can be
+changed since January of 2020, are continuing to evolve, and can be
 expected to change in the future.
 Reporting protocols also vary between political jurisdictions (or
 ``geographies'' in the parlance of the New York Times).
@@ -169,17 +172,17 @@ t}\big)e^{\eta_t}
 where $\eta$ is a normal random deviate, $\eta\sim
 N(0,\sigma_\eta)$, representing temporal variability in the biosocial
 factors that mediate the spread of the pandemic. 
-The recovery rate, $\gamma_{t-\Delta t}$, in equation
-(\ref{eqn:sSIRfdI}) is computed algebraically as
-\begin{equation}
-\gamma_{t-\Delta t} = \beta_{t-\Delta t} - \mu_{t-\Delta t} +
-(1-\frac{I_t}{I_{t-\Delta t}})
-\end{equation}
-I have no particular
-justification, beyond the parsimony principle, for the assumption that
-the variance, $\sigma_\eta$, of the processes for $I$ and $D$, should be the
-same.
+I have no particular justification, beyond the parsimony principle,
+for the assumption that the variance, $\sigma_\eta$, of the processes
+for $I$ and $D$, should be the same.
 
+The rate constants in the SIR model differential equations (in this
+case $\beta$, $\mu$ and $\gamma$) are often assumed to be invariant.
+This biological assumption clearly conflicts with the social
+assumptions
+that behavioral modification can reduce transmission rates and
+that medical advances can reduce both transmission and mortality
+rates.
 One approach to modeling time-dependent rates of transmission and
 mortality, $\beta$ and $\mu$, is to treat them as random effects
 (\cite{Skaug2006}). Random effects are appropriate if repeating a time
@@ -193,9 +196,17 @@ N(0,\sigma_\beta)\\
 \log\mu_t &=& \log\mu_{t-\Delta t}+\varrho;\quad \varrho\sim
 N(0,\sigma_\mu)
 \end{eqnarray}
-A similar approacth has been used in fisheries stock assessment models
-to estimate time-dependent fishing induced mortalitty
-(\cite{Sibert2017,Nielsen2014b}).
+A similar approach has been used by fisheries scientists to represent
+ill-determined parameters in fisheries stock assessment models, such
+as time-dependent fishing induced mortality
+(\cite{Nielsen2014b,Sibert2017}).
+
+The recovery rate, $\gamma_{t-\Delta t}$, in equation
+(\ref{eqn:sSIRfdI}) is computed algebraically as
+\begin{equation}
+\gamma_{t-\Delta t} = \beta_{t-\Delta t} - \mu_{t-\Delta t} +
+(1-\frac{I_t}{I_{t-\Delta t}})
+\end{equation}
 
 The general form of the state-space observation model is
 \begin{equation}
@@ -278,9 +289,8 @@ errors, and random effects.
 \begin{equation}
 \label{eqn:likelihood}
 L(\theta,\alpha,x)=
-\prod^m_{t=2}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Sigma_\eta\big)\big]\cdot
-\prod^m_{t=1}\big[\phi\big(x_t-O(\alpha_t),
-\Sigma_\varepsilon\big)\big]
+\prod^m_{t=1}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Theta\big)\big]\cdot
+\prod^m_{t=0}\big[\phi\big(x_t-O(\alpha_t), \Omega\big)\big]
 \end{equation}
 where $m$ is the number of days elapsed since the first recorded case,
 $x_t$ is the vector of daily observations of cases and deaths,
@@ -296,7 +306,7 @@ github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 %\clearpage
 \section*{Results}
 
-\begin{figure}
+\begin{figure}[h!]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/counties_per_capita.eps}
 \end{center}
@@ -304,6 +314,7 @@ github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
 Trends in number of cases per 1000 people in the 30 most populous US
 counties.
 The vertical gray bar mark the March 19, 2020 California shelter in place order.
+See Table~\ref{tab:namekey} for key to county abbreviations.
 }
 \end{figure}
 
@@ -313,8 +324,8 @@ The vertical gray bar mark the March 19, 2020 California shelter in place order.
 
 Six months after the pandemic began spreading in the United States, it
 was obvious that some areas were more successful than other
-in controlling the spread of the corona virus.
-Trends in the per-capita number of cases in the thirtytwo largest
+in controlling the spread of the Covid-19 virus.
+Trends in the per-capita number of cases in the thirty most populous 
 counties in the
 United States are shown in Figure~\ref{fig:percap}.
 These trajectories fall into two more or less distinct groups: those
@@ -345,11 +356,13 @@ vertical gray bar marks the March 19, 2020 California shelter in place order.
 }
 \end{figure}
 
-Prevalence histories for two counties representative of concave
+Prevalence histories for counties representative of concave
 downward and concave upward trajectories are shown in
 Figure~\ref{fig:prev}. The 11-day moving averages of the daily
-increases in cases and deaths indicate daily trends is equivalent to
-the trends in Figure~\ref{fig:percap}.
+increases in cases and deaths is a good indicator of the
+relative success in controlling the outbreak.
+The cumulative trends in number of cases is equivalent to 
+the per capita trends in Figure~\ref{fig:percap}.
 All histories show extreme day to day variability.
 Variability is most notable in the deaths
 time series, particularly for smaller counties.
@@ -367,9 +380,10 @@ with unrealistically low estimates of \slI and \slD.
 The extreme variability in the data is reflected in the extreme
 variability of the estimated trends in transmission and mortality
 rates estimated by the unconstrained 5 parameter model.
-See Appendix~\ref{app:unconst} for details.
+See Appendix figures~\ref{fig:estsNaNYu} and~\ref{fig:estsMDFLu}
+for details.
 
-The \SSm\ model can be configured with selected parameters fixed at
+The \SSm\ model is easily configured with selected parameters fixed at
 constant values. 
 All subsequent analysis focused on models with 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
@@ -402,14 +416,14 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
-Diagnostics are plotted
+\label{pp:diagexpl} 
+Diagnostics for the constrained model are plotted
 (figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
 on logarithmic scales to both illustrate the
 lognormal likelihood functions used in the observation model,
 equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}), and to
 illustrate trends in estimated transmission and mortality rates close
 to zero.
-\label{pp:diagexpl} 
 The blue `+' symbols represent the observed cases ($I$) and deaths ($D$).
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
 and ($\widehat{D}$) of cases and deaths. 
@@ -433,33 +447,7 @@ respectively.
 Estimated cases and deaths agree well with observation throughout the
 time series.
 
-Figure~\ref{fig:xrates} compares estimated transmission rate among
-counties.
-Transmission rates increased rapidly at the beginning of the pandemic
-exceeding  1\perda\ ($\ln \beta \approx 0$) in early March, 
-an instantaneous transmission rate
-equivalent to a doubling time of less than one day.
-Beginning in April, transmission rates fell substantially, and doubling times
-increased to longer than 20 days in some counties.
-Counties with estimated transmission rates less than 0.007\perda\ 
-(or $\ln \beta \le 5$) at the end of May
-correspond roughly to those counties with concave downward prevalence
-trajectories.
-Figure~\ref{fig:xrates2} is a simplified presentation of estimated
-transmission rate between counties that compare a county with sustainable
-suppression of transmission (Cook Co, IL, Nassau Co, NY) with two counties that
-have suffered a resurgence of cases (Honolulu Co, HI and Miami-Dade Co.
-FL). The Honolulu example indicates that simply suppressing the
-transmission rate to a point where the doubling time is greater than
-100 days does not ensure a sustainable outcome.
-
-Figure~\ref{fig:drates} compares estimated mortality rate among
-counties. Initial mortality rates were around 
-0.01\perda\ ($\ln \mu \approx 4.6$) at the beginning of
-the pandemic but fell steadily to less than 
-0.001\perda\ ($\ln \mu \approx -6.9$) in July.
-
-\begin{figure}
+\begin{figure}a[h!]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary_g.eps}\\
 \end{center}
@@ -471,7 +459,27 @@ are shown on the right-hand ordinate.
 }
 \end{figure}
 
-\begin{figure}
+Figure~\ref{fig:xrates} compares estimated transmission rate among
+counties.
+Transmission rates increased rapidly at the beginning of the pandemic
+exceeding  1\perda\ ($\ln \beta \approx 0$) in early March, 
+an instantaneous transmission rate
+equivalent to a doubling time of less than one day.
+Beginning in April, transmission rates fell substantially, and doubling times
+increased to longer than 20 days in some counties in late May.
+Counties with estimated transmission rates less than 0.007\perda\ 
+(or $\ln \beta \le 5$) at the end of May
+correspond roughly to those counties with concave downward prevalence
+trajectories.
+Figure~\ref{fig:xrates2} is a simplified presentation of estimated
+transmission rate between counties that compare counties with sustainable
+suppression of transmission (Cook Co, IL, Nassau Co, NY) with two counties that
+have suffered a resurgence of cases (Honolulu Co, HI and Miami-Dade Co
+FL). The Honolulu example indicates that simply suppressing the
+transmission rate to a point where the doubling time is greater than
+100 days does not ensure a sustainable outcome.
+
+\begin{figure}[h!]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.eps}\\
 \end{center}
@@ -482,6 +490,12 @@ Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
 }
 \end{figure}
+
+Figure~\ref{fig:drates} compares estimated mortality rate among
+counties. Initial mortality rates were around 
+0.01\perda\ ($\ln \mu \approx 4.6$) at the beginning of
+the pandemic but fell steadily to less than 
+0.001\perda\ ($\ln \mu \approx -6.9$) in July.
 
 \begin{figure}
 \begin{center}
@@ -541,20 +555,63 @@ attributable to changes in model structure or to the increase in the
 length of the time series is unclear. This ambiguity influenced the
 development of the model.}
 
-\cite{Sibert2017,Nielsen2014b}
-
 
 \clearpage
 
 
+\clearpage
+\printbibliography[title=References]
+\clearpage
+
+%\section*{Appendix}
+%\appendix
+\begin{appendices}
+
+
+\section{Abbreviation Key}
+
+\begin{table}[h!]
+\caption{\label{tab:namekey}
+Key to county name abbreviations used in time series graphs, figures
+\ref{fig:percap} and 
+}
+\centering
+\begin{tabular}{lll||lll}
+\hline
+Key&County&State&Key&County&State\\
+\hline
+AlCA&Alameda&CA&MuOR&Multnomah&OR\\
+BeTX&Bexar&TX&NYNY&New York City&NY\\
+BrFL&Broward&FL&NaNY&Nassau&NY\\
+ClNV&Clark&NV&OaMI&Oakland&MI\\
+CoIL&Cook&IL&OrCA&Orange&CA\\
+DaTX&Dallas&TX&OrFL&Orange&FL\\
+FrOH&Franklin&OH&PBFL&Palm Beach&FL\\
+HaTX&Harris&TX&PhPA&Philadelphia&PA\\
+HeMN&Hennepin&MN&RiCA&Riverside&CA\\
+HiFL&Hillsborough&FL&SBCA&San Bernardino&CA\\
+HoHI&Honolulu&HI&SCCA&Santa Clara&CA\\
+KiWA&King&WA&SDCA&San Diego&CA\\
+LACA&Los Angeles&CA&SaCA&Sacramento&CA\\
+MDFL&Miami-Dade&FL&TaTX&Tarrant&TX\\
+MaAZ&Maricopa&AZ&TrTX&Travis&TX\\
+MiMA&Middlesex&MA&WaMI&Wayne&MI\\
+\hline
+\end{tabular}
+
+\end{table}
+\clearpage
+
+\section{Estimation results}
+
 \begin{sidewaystable}
 \caption{\label{tab:cons}
-Model results. Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$
-and constraints on  $\sigma_I$ and $\sigma_D$. 
+Model results. Estimating $\beta$ and $\mu$ trends as random effects with 
+constraints on  $\sigma_I$ and $\sigma_D$. 
 Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-08-04
 }
 \centering
-{\footnotesize
+{\scriptsize
 %%%%%%%%%%%%%% :r ../fits/fit_table.tex
 
 
@@ -602,28 +659,105 @@ Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-0
 
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
+\clearpage
+
+
+\begin{sidewaystable}
+\caption{\label{tab:uncons}
+Model results. Estimating $\beta$ and $\mu$ trends as random effects
+without constraints on  $\sigma_I$ and $\sigma_D$. 
+Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-08-04
+}
+\centering
+{\scriptsize
+%%%%%%%%%%%%%% :r ../fits/fit_table.tex
+
+\begin{tabular}{lrrrrrrrrrrrr}
+\hline
+ County             &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
+\hline
+ Nassau, NY         & 151   & 0.0789  & -1190 &     1 &           0.231 &            0.603 &         10.3   &    0.000183  &     3.29e-08 &        -9.46e-09 &           0.00295 &       9.88e-05  \\
+ New York City, NY  & 155   & 0.0833  & -1000 &     0 &           0.187 &            1.04  &          1.01  &    0.000436  &     0.000367 &        -2.73e-08 &           0.00476 &       0.000234  \\
+ Oakland, MI        & 146   & 0.068   &  -836 &     1 &           0.16  &            1.55  &          1.18  &    9.12e-07  &     0.00426  &        -1.91e-08 &           0.00669 &       0.000318  \\
+ Cook, IL           & 192   & 0.275   & -1100 &     1 &           0.116 &            3.68  &          0.992 &    8.16e-08  &     8.01e-05 &        -2.24e-07 &           0.00679 &       0.000201  \\
+ Wayne, MI          & 146   & 0.0544  &  -856 &     1 &           0.192 &            1.15  &          1.46  &    0.000795  &     0.000936 &        -2.57e-08 &           0.00701 &       0.000362  \\
+ Philadelphia, PA   & 146   & 0.102   &  -728 &     1 &           0.159 &            1     &          1.98  &    0.00274   &     0.00396  &        -3.1e-08  &           0.00964 &       0.000227  \\
+ Middlesex, MA      & 151   & 0.105   &  -836 &     0 &           0.162 &            1.05  &          1.24  &    0.000663  &     0.00204  &        -1.56e-08 &           0.00995 &       0.000331  \\
+ King, WA           & 157   & 0.00633 & -1080 &     1 &           0.147 &            0.474 &          0.909 &    0.00206   &     0.00224  &        -5.99e-09 &           0.0133  &       0.000455  \\
+ Honolulu, HI       & 150   & 0.166   & -1480 &    10 &           0.116 &            4.87  &        117     &    0.000734  &     3.7e-06  &        -5.53e-08 &           0.0156  &       1.46e-11  \\
+ Santa Clara, CA    & 185   & 0.204   & -1280 &     1 &           0.104 &            4.78  &          7.43  &    9.33e-08  &     2.29e-06 &        -1.53e-07 &           0.0158  &       1.16e-07  \\
+ Sacramento, CA     & 164   & 0.109   &  -803 &    10 &           0.123 &            3.17  &          2.46  &    1.44e-06  &     0.0049   &        -8.81e-08 &           0.0183  &       0.00016   \\
+ Multnomah, OR      & 146   & 0.0272  &  -894 &     1 &           0.119 &            0.896 &          3.35  &    0.0036    &     0.00226  &        -6.79e-08 &           0.0234  &       5.44e-05  \\
+ Franklin, OH       & 142   & 0.0629  &  -819 &     1 &           0.123 &            0.462 &          1.3   &    0.00255   &     0.00368  &        -1.42e-08 &           0.0239  &       0.000575  \\
+ Los Angeles, CA    & 190   & 0.236   &  -971 &     1 &           0.242 &            0.889 &          0.983 &    2.22e-06  &     0.00661  &        -3.77e-07 &           0.024   &       0.000399  \\
+ Alameda, CA        & 155   & 0.141   &  -905 &     1 &           0.131 &            3.61  &         20.3   &    2.65e-05  &     6.68e-08 &        -3.95e-08 &           0.0241  &       9.44e-10  \\
+ San Diego, CA      & 175   & 0.244   &  -850 &     1 &           0.161 &            1.08  &          1.23  &    4.71e-06  &     0.0103   &        -2.91e-07 &           0.0247  &       0.000335  \\
+ Bexar, TX          & 173   & 0.224   &  -689 &     1 &           0.131 &            2.61  &          1.44  &    0.000397  &     0.0103   &        -7.18e-08 &           0.0261  &       0.000256  \\
+ Orange, CA         & 191   & 0.313   &  -878 &     1 &           0.127 &            1.54  &          0.961 &    6.16e-06  &     0.053    &        -4.02e-07 &           0.0268  &       0.000509  \\
+ Orange, FL         & 143   & 0.0208  &  -710 &     1 &           0.119 &            0.678 &          1.08  &    0.0015    &     0.0373   &        -2.3e-08  &           0.027   &       0.000192  \\
+ Clark, NV          & 151   & 0.0724  &  -662 &    10 &           0.148 &            1.5   &          5.31  &    0.00247   &     1.25e-05 &        -4.16e-08 &           0.0276  &       0.000322  \\
+ Tarrant, TX        & 146   & 0.068   &  -662 &     1 &           0.14  &            1.24  &          1.34  &    0.00891   &     0.00326  &        -3.79e-08 &           0.0283  &       0.000269  \\
+ Harris, TX         & 151   & 0.0921  &  -429 &     1 &           0.116 &            0.27  &          0.965 &    0.156     &     0.0215   &        -2.11e-08 &           0.0297  &       0.000289  \\
+ Palm Beach, FL     & 144   & 0.069   &  -507 &     0 &           0.137 &            0.337 &          1.31  &    0.0822    &     0.00588  &        -1.16e-08 &           0.0302  &       0.000525  \\
+ San Bernardino, CA & 141   & 0.0634  &  -567 &     1 &           0.146 &            1.74  &          2.74  &    0.0051    &     0.00586  &        -1.74e-08 &           0.0304  &       0.000207  \\
+ Miami-Dade, FL     & 145   & 0.11    &  -722 &    10 &           0.156 &            0.639 &          0.961 &    6.89e-06  &     0.00814  &        -9.55e-09 &           0.0313  &       0.000447  \\
+ Hennepin, MN       & 144   & 0.103   &  -726 &     0 &           0.14  &            0.72  &          1.35  &    0.00522   &     0.00203  &        -9.13e-09 &           0.0314  &       0.00048   \\
+ Riverside, CA      & 149   & 0.06    &  -683 &     1 &           0.113 &            1.25  &          5.23  &    0.0174    &     2.17e-05 &        -2.61e-08 &           0.0317  &       0.000718  \\
+ Maricopa, AZ       & 190   & 0.283   &  -932 &     1 &           0.105 &            1.23  &          1.26  &    5.43e-06  &     0.0164   &        -4.2e-07  &           0.0322  &       0.000596  \\
+ Travis, TX         & 143   & 0.0972  &  -394 &     1 &           0.14  &            0.107 &          1.44  &    0.177     &     0.0131   &        -1.67e-08 &           0.0329  &       0.000265  \\
+ Hillsborough, FL   & 155   & 0.16    &  -653 &     0 &           0.111 &            1.11  &          1.28  &    0.00477   &     0.0169   &        -7.24e-08 &           0.0329  &       0.000393  \\
+ Broward, FL        & 150   & 0.0728  &  -584 &     1 &           0.13  &            0.23  &          1.63  &    0.0759    &     0.00289  &        -2.03e-08 &           0.0331  &       0.000275  \\
+ Dallas, TX         & 146   & 0.0612  &  -529 &     1 &           0.13  &            0.303 &          1.26  &    0.0757    &     0.00757  &        -1.04e-08 &           0.0349  &       0.000342  \\
+ Median             & 150.5 & 0.09465 &  -811 &     1 &           0.134 &            1.065 &          1.325 &    0.0011475 &     0.00382  &        -2.67e-08 &           0.0254  &       0.0003035 \\
+\hline
+\end{tabular}
+
+%%%%%%%%%%%%%%%%
+}\end{sidewaystable}
+
+
 
 \clearpage
-\printbibliography[title=References]
+\section{Diagnostic Plots}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_a_estimates.png}
+\end{center}
+\caption{\label{fig:estsNaNYca}
+Diagnostic plots of model estimates for Nasssau County, NY, 
+with constraints of the observation model variance, 
+\slI~$ = 0.223$ and \slD~$= 0.00953$. 
+Cases and deaths plotted on arithmetic scale.
+See page~\pageref{pp:diagexpl} for explanation of figure.
+}
+\end{figure}
 \clearpage
-`
-\section*{Appendix}
-\appendix
-
-\section{Unconstrained Estimates}
-\label{app:unconst}
-
 
 \begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_a_estimates.png}
+\end{center}
+\caption{\label{fig:estsMDFLca}
+Diagnostic plots of model estimates for Miami-Dade County, FL
+with constraints of the observation model variance, 
+\slI~$ = 0.223$ and \slD~$= 0.00953$. 
+Cases and deaths plotted on arithmetic scale.
+See page~\pageref{pp:diagexpl} for explanation of figure.
+}
+\end{figure}
+
+\begin{figure}[h!]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/unconstrained/NassauNY_TMB_estimates.png}
 \end{center}
 \caption{\label{fig:estsNaNYu}
 Diagnostic plots of model estimates for Nasssau County, NY, 
 without constraints of the observation model variance. 
-See page~\pageref{pp:diagexpu} for explanation of figure.
+See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
+\clearpage
 
 \begin{figure}
 \begin{center}
@@ -636,6 +770,8 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
+\end{appendices}
+
 \end{document}
 
 
@@ -646,37 +782,6 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
     %indicates that the iteration limit maxit had been reached.
 %10
 %
-    %indicates degeneracy of the Nelder--Mead simplex.
+    %indicates degeneracy of the 
 %
-
-
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/New_York_CityNY_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/CookIL_prevalence.png}\\
-\\
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/Miami-DadeFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/MaricopaAZ_prevalence.png}\\
-\\
-\multicolumn{1}{c}{Broward Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/BrowardFL_prevalence.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/TravisTX_prevalence.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:prev}
-Prevalence trajectories for six US counties.
-Blue bars indicate daily increases increases in cases and deaths;
-dark blue lines indicate 11 day moving averages of daily increases
-(labeled ``11da''); 
-pale blue lines indicate cumulative numbers (labeled $\Sigma C$ and
-$\Sigma D$); 
-vertical gray bar marks the March 19, 2020 California shelter in place order.
-\help{remove annotations.}
-}
-\end{figure}
 

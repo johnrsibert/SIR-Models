@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(1),
-           "logsigma_logD" = as.factor(1)
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -184,7 +184,7 @@ fit_examples = list(
 "AlamedaCA"
 )
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit

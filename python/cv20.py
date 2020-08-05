@@ -516,17 +516,13 @@ class Fit(Geography):
             ax[0].set_ylabel(prefix+'Cases')
             ax[1].set_ylabel(prefix+'Deaths')
         if (npl > 2):
-            ax[2].set_ylabel(prefix+r'$\beta\ (da^{-1})$')
+            ax[2].set_ylabel(r'$\beta\ (da^{-1})$')
         if (npl > 3):
-            ax[3].set_ylabel(prefix+r'$\mu\ (da^{-1})$')
+            ax[3].set_ylabel(r'$\mu\ (da^{-1})$')
     
     
         for a in range(0,len(ax)):
             self.make_date_axis(ax[a])
-        #   ax[a].set_xlim([firstDate,lastDate])
-        #   ax[a].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-        #   ax[a].xaxis.set_major_locator(plt.MultipleLocator(30))
-        #   ax[a].xaxis.set_minor_locator(plt.MultipleLocator(1))
     
         Date0 = self.get_metadata_item('Date0')
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
@@ -584,7 +580,7 @@ class Fit(Geography):
             tx = prop_scale(ax[2].get_xlim(), 0.05)
             ty = prop_scale(ax[2].get_ylim(), 0.90)
             ax[2].plot(pdate,log_beta)
-            plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale)
+            plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale=True)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             med = median(np.exp(log_beta))
@@ -596,7 +592,6 @@ class Fit(Geography):
         #   increase frequcncy of tick marks
             start, end = ax[2].get_ylim()
             dtick = (end - start)/5
-            print(start,end,dtick)
             ax[2].set_yticks(np.arange(start, end, dtick))
 
 
@@ -639,7 +634,7 @@ class Fit(Geography):
             ty = prop_scale(ax[3].get_ylim(), 0.90)
             ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
             ax[3].plot(pdate,self.diag['logmu'])
-            plot_error(ax[3],pdate,logmu,sigma_logmu,logscale)
+            plot_error(ax[3],pdate,logmu,sigma_logmu,logscale=True)
             ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             med = median(np.exp(self.diag['logmu']))
@@ -653,6 +648,8 @@ class Fit(Geography):
 
         if save:
             gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates'
+            if (not logscale):
+                gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_a'+'_estimates'
             fig.savefig(gfile+'.png')#,dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
@@ -738,6 +735,13 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
     #   aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
     #   ax.plot((aug1,aug1),ax.get_ylim(),color='black',linewidth=1)
+      
+    #   sigma_logbeta is the standard deviation of the generating
+    #   random walk, NOT the standard deviation of the estimated
+    #   random effect
+    #   if (yvarname == 'logbeta' and len(fit_files) <=4):
+    #       sigma_logbeta = fit.get_est_or_init('logsigma_logbeta')
+    #       plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
 
         sn = short_name(fit.moniker)
         mark_ends(ax,pdate[len(pdate)-1],yvar[len(yvar)-1],sn,'r')
@@ -753,6 +757,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 #   finagle doubling time axis at same scale as beta
     if (add_doubling_time):
         yticks = np.arange(-7,1,1)
+        ax.set_ylim(min(yticks)-1,max(yticks)+1)
         ax.set_yticks(yticks)
         dtax = ax.twinx()
         dtax.set_ylim(ax.get_ylim())
@@ -1090,22 +1095,24 @@ print('------- here ------')
 #alam.print_metadata()
 #alam.print_data()
 
-#tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'unconstrained/'+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'unconstrained/'+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-#tfit.plot(save=False)
+#tfit.plot(save=True,logscale=False)
 
 
 #update_everything()
 #web_update()
 #update_shared_plots()
 #make_dat_files()
-update_fits()
+#update_fits()
 #plot_multi_per_capita(plot_dt=False,save=True)
-make_fit_plots()
-make_fit_table()
-make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
-make_rate_plots('logmu',save=True)
+#make_fit_plots()
+#make_fit_table()
+#make_rate_plots('logbeta',add_doubling_time = True,save=True)
+cv.fit_path = cv.fit_path+'constrainID/'
+make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
+#make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
