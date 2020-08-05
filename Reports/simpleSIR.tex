@@ -1,6 +1,7 @@
 \documentclass[12pt,letterpaper]{article}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{appendix}
 \usepackage[figurewithin=section,tablewithin=section]{caption}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
@@ -366,7 +367,7 @@ with unrealistically low estimates of \slI and \slD.
 The extreme variability in the data is reflected in the extreme
 variability of the estimated trends in transmission and mortality
 rates estimated by the unconstrained 5 parameter model.
-See Appendix~\ref{app:diagnostics} for details.
+See Appendix~\ref{app:unconst} for details.
 
 The \SSm\ model can be configured with selected parameters fixed at
 constant values. 
@@ -385,7 +386,7 @@ rapidly using gradient methods.
 Diagnostic plots of model estimates for Nasssau County, NY, 
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See~\pageref{pp:diagexpl} for explanation of figure.
+See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
@@ -397,7 +398,7 @@ See~\pageref{pp:diagexpl} for explanation of figure.
 Diagnostic plots of model estimates for Miami-Dade County,FL,
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See~\pageref{pp:diagexpl} for explanation of figure.
+See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
@@ -446,9 +447,11 @@ correspond roughly to those counties with concave downward prevalence
 trajectories.
 Figure~\ref{fig:xrates2} is a simplified presentation of estimated
 transmission rate between counties that compare a county with sustainable
-suppression of transmission (Nassau Co, NY) with two counties that
-have suffered a resurgence of cases (Honolulu, HI and Miami-Dade Co.
-FL). 
+suppression of transmission (Cook Co, IL, Nassau Co, NY) with two counties that
+have suffered a resurgence of cases (Honolulu Co, HI and Miami-Dade Co.
+FL). The Honolulu example indicates that simply suppressing the
+transmission rate to a point where the doubling time is greater than
+100 days does not ensure a sustainable outcome.
 
 Figure~\ref{fig:drates} compares estimated mortality rate among
 counties. Initial mortality rates were around 
@@ -473,7 +476,7 @@ are shown on the right-hand ordinate.
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.eps}\\
 \end{center}
 \caption{\label{fig:xrates2}
-Estimated natural logarithms of the transmission rate for three US
+Estimated natural logarithms of the transmission rate for four US
 counties using the constrained \SSm\ model.
 Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
@@ -548,7 +551,7 @@ development of the model.}
 \caption{\label{tab:cons}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects with computed $\gamma$
 and constraints on  $\sigma_I$ and $\sigma_D$. 
-Data updated 2020-08-01 from https://github.com/nytimes/covid-19-data.git.2020-08-01
+Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-08-04
 }
 \centering
 {\footnotesize
@@ -557,82 +560,42 @@ Data updated 2020-08-01 from https://github.com/nytimes/covid-19-data.git.2020-0
 
 \begin{tabular}{lrrrrrrrrrrrr}
 \hline
- County             &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
+ County             &   $n$ &   $p_0$ &    $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
 \hline
- Nassau, NY         & 148   & 0.0805  &  -336 &     0 &          0.141  &            0.258 &         0.347  &        0.223 &       0.0953 &        -1.22e-08 &           0.00344 &        0.00027  \\
- New York City, NY  & 152   & 0.085   &  -299 &     0 &          0.163  &            0.218 &         0.363  &        0.223 &       0.0953 &        -2.36e-08 &           0.0057  &        0.000439 \\
- Wayne, MI          & 143   & 0.0556  &  -324 &     0 &          0.141  &            0.231 &         0.159  &        0.223 &       0.0953 &        -1.8e-08  &           0.00644 &        0.00092  \\
- Oakland, MI        & 143   & 0.0694  &  -320 &     0 &          0.138  &            0.228 &         0.43   &        0.223 &       0.0953 &        -1.62e-08 &           0.0103  &        0.000613 \\
- Philadelphia, PA   & 143   & 0.104   &  -327 &     0 &          0.127  &            0.176 &         0.428  &        0.223 &       0.0953 &        -2.43e-08 &           0.0112  &        0.00056  \\
- Middlesex, MA      & 148   & 0.107   &  -345 &     0 &          0.125  &            0.239 &         0.374  &        0.223 &       0.0953 &        -1.25e-08 &           0.0115  &        0.000484 \\
- King, WA           & 154   & 0.00645 &  -418 &     0 &          0.128  &            0.236 &         0.341  &        0.223 &       0.0953 &        -8.6e-09  &           0.0131  &        0.000518 \\
- Honolulu, HI       & 147   & 0.169   &  -471 &     0 &          0.0728 &            0.23  &         0.485  &        0.223 &       0.0953 &        -5.16e-08 &           0.0207  &        0.000174 \\
- Franklin, OH       & 139   & 0.0643  &  -405 &     0 &          0.103  &            0.158 &         0.303  &        0.223 &       0.0953 &        -1.76e-08 &           0.021   &        0.00104  \\
- Alameda, CA        & 152   & 0.144   &  -451 &     0 &          0.0817 &            0.134 &         0.25   &        0.223 &       0.0953 &        -3.45e-08 &           0.0232  &        0.000565 \\
- Cook, IL           & 189   & 0.279   &  -460 &     0 &          0.102  &            0.235 &         0.218  &        0.223 &       0.0953 &        -2.2e-07  &           0.0233  &        0.000478 \\
- Multnomah, OR      & 143   & 0.0278  &  -482 &     0 &          0.0806 &            0.183 &         0.322  &        0.223 &       0.0953 &        -5.08e-08 &           0.0233  &        0.000373 \\
- Santa Clara, CA    & 182   & 0.208   &  -571 &     0 &          0.0716 &            0.239 &         0.276  &        0.223 &       0.0953 &        -1.55e-07 &           0.0246  &        0.000355 \\
- Los Angeles, CA    & 187   & 0.239   &  -441 &     0 &          0.103  &            0.307 &         0.246  &        0.223 &       0.0953 &        -3.45e-07 &           0.0254  &        0.000432 \\
- San Diego, CA      & 172   & 0.249   &  -418 &     0 &          0.0967 &            0.278 &         0.32   &        0.223 &       0.0953 &        -2.63e-07 &           0.0272  &        0.000752 \\
- Riverside, CA      & 146   & 0.0612  &  -468 &     0 &          0.0909 &            0.138 &         0.185  &        0.223 &       0.0953 &        -2.72e-08 &           0.0298  &        0.000949 \\
- Palm Beach, FL     & 141   & 0.0704  &  -365 &     0 &          0.113  &            0.166 &         0.159  &        0.223 &       0.0953 &        -1.54e-08 &           0.0303  &        0.00099  \\
- Harris, TX         & 148   & 0.094   &  -361 &     0 &          0.104  &            0.199 &         0.315  &        0.223 &       0.0953 &        -2.43e-08 &           0.0307  &        0.000297 \\
- Orange, FL         & 140   & 0.0213  &  -405 &     0 &          0.103  &            0.21  &         0.445  &        0.223 &       0.0953 &        -1.98e-08 &           0.0321  &        0.000225 \\
- Miami-Dade, FL     & 142   & 0.112   &  -331 &     0 &          0.135  &            0.198 &         0.21   &        0.223 &       0.0953 &        -1.08e-08 &           0.0324  &        0.000479 \\
- Clark, NV          & 148   & 0.0738  &  -423 &     0 &          0.101  &            0.159 &         0.221  &        0.223 &       0.0953 &        -3.3e-08  &           0.0327  &        0.000811 \\
- Tarrant, TX        & 143   & 0.0694  &  -401 &     0 &          0.101  &            0.138 &         0.425  &        0.223 &       0.0953 &        -3.12e-08 &           0.033   &        0.00035  \\
- Travis, TX         & 140   & 0.0993  &  -345 &     0 &          0.101  &            0.19  &         0.274  &        0.223 &       0.0953 &        -1.73e-08 &           0.0332  &        0.000318 \\
- Orange, CA         & 188   & 0.317   &  -505 &     0 &          0.0776 &            0.235 &         0.269  &        0.223 &       0.0953 &        -3.73e-07 &           0.0338  &        0.000732 \\
- Dallas, TX         & 143   & 0.0625  &  -375 &     0 &          0.111  &            0.17  &         0.312  &        0.223 &       0.0953 &        -1.42e-08 &           0.0338  &        0.000571 \\
- San Bernardino, CA & 138   & 0.0647  &  -393 &     0 &          0.101  &            0.14  &         0.201  &        0.223 &       0.0953 &        -2.05e-08 &           0.0344  &        0.000853 \\
- Broward, FL        & 147   & 0.0743  &  -379 &     0 &          0.109  &            0.167 &         0.457  &        0.223 &       0.0953 &        -2.15e-08 &           0.0346  &        0.000431 \\
- Sacramento, CA     & 161   & 0.111   &  -559 &     0 &          0.0672 &            0.175 &         0.255  &        0.223 &       0.0953 &        -8.02e-08 &           0.0348  &        0.000473 \\
- Hillsborough, FL   & 152   & 0.163   &  -446 &     0 &          0.0822 &            0.189 &         0.229  &        0.223 &       0.0953 &        -7.16e-08 &           0.0388  &        0.000655 \\
- Hennepin, MN       & 141   & 0.106   &  -346 &     0 &          0.115  &            0.209 &         0.407  &        0.223 &       0.0953 &        -1.23e-08 &           0.0393  &        0.001    \\
- Maricopa, AZ       & 187   & 0.287   &  -469 &     0 &          0.0905 &            0.236 &         0.159  &        0.223 &       0.0953 &        -4.01e-07 &           0.0423  &        0.00188  \\
- Bexar, TX          & 170   & 0.228   &  -465 &     0 &          0.0751 &            0.213 &         0.377  &        0.223 &       0.0953 &        -7.61e-08 &           0.0474  &        0.00039  \\
+ Nassau, NY         & 151   & 0.0789  & -348   &     0 &          0.14   &            0.256 &         0.346  &        0.223 &       0.0953 &        -1.22e-08 &           0.00322 &        0.000241 \\
+ New York City, NY  & 155   & 0.0833  & -310   &     0 &          0.161  &            0.217 &         0.36   &        0.223 &       0.0953 &        -2.36e-08 &           0.00533 &        0.000405 \\
+ Wayne, MI          & 146   & 0.0544  & -336   &     0 &          0.14   &            0.229 &         0.16   &        0.223 &       0.0953 &        -1.8e-08  &           0.00619 &        0.000875 \\
+ Oakland, MI        & 146   & 0.068   & -332   &     0 &          0.137  &            0.226 &         0.426  &        0.223 &       0.0953 &        -1.62e-08 &           0.0101  &        0.000594 \\
+ Philadelphia, PA   & 146   & 0.102   & -340   &     0 &          0.126  &            0.175 &         0.425  &        0.223 &       0.0953 &        -2.42e-08 &           0.0106  &        0.000532 \\
+ Middlesex, MA      & 151   & 0.105   & -357   &     0 &          0.124  &            0.237 &         0.371  &        0.223 &       0.0953 &        -1.25e-08 &           0.0107  &        0.000451 \\
+ King, WA           & 157   & 0.00633 & -431   &     0 &          0.126  &            0.234 &         0.339  &        0.223 &       0.0953 &        -8.63e-09 &           0.013   &        0.000481 \\
+ Franklin, OH       & 142   & 0.0629  & -419   &     0 &          0.102  &            0.157 &         0.3    &        0.223 &       0.0953 &        -1.76e-08 &           0.0208  &        0.00101  \\
+ Honolulu, HI       & 150   & 0.166   & -484   &     0 &          0.0721 &            0.227 &         0.49   &        0.223 &       0.0953 &        -5.15e-08 &           0.0215  &        0.000174 \\
+ Cook, IL           & 192   & 0.275   & -473   &     0 &          0.101  &            0.234 &         0.217  &        0.223 &       0.0953 &        -2.2e-07  &           0.0226  &        0.000466 \\
+ Alameda, CA        & 155   & 0.141   & -465   &     0 &          0.0808 &            0.133 &         0.248  &        0.223 &       0.0953 &        -3.45e-08 &           0.0231  &        0.000527 \\
+ Multnomah, OR      & 146   & 0.0272  & -497   &     0 &          0.0798 &            0.181 &         0.318  &        0.223 &       0.0953 &        -5.07e-08 &           0.0233  &        0.000362 \\
+ Santa Clara, CA    & 185   & 0.204   & -586   &     0 &          0.071  &            0.237 &         0.274  &        0.223 &       0.0953 &        -1.55e-07 &           0.0246  &        0.000352 \\
+ Los Angeles, CA    & 190   & 0.236   & -454   &     0 &          0.102  &            0.305 &         0.244  &        0.223 &       0.0953 &        -3.45e-07 &           0.0249  &        0.000423 \\
+ San Diego, CA      & 175   & 0.244   & -430   &     0 &          0.0956 &            0.277 &         0.317  &        0.223 &       0.0953 &        -2.63e-07 &           0.0267  &        0.000719 \\
+ Riverside, CA      & 149   & 0.06    & -482   &     0 &          0.09   &            0.138 &         0.183  &        0.223 &       0.0953 &        -2.72e-08 &           0.0294  &        0.000895 \\
+ Palm Beach, FL     & 144   & 0.069   & -378   &     0 &          0.111  &            0.166 &         0.157  &        0.223 &       0.0953 &        -1.54e-08 &           0.0302  &        0.000942 \\
+ Harris, TX         & 151   & 0.0921  & -373   &     0 &          0.102  &            0.197 &         0.322  &        0.223 &       0.0953 &        -2.44e-08 &           0.0302  &        0.000301 \\
+ Miami-Dade, FL     & 145   & 0.11    & -342   &     0 &          0.133  &            0.197 &         0.206  &        0.223 &       0.0953 &        -1.08e-08 &           0.0308  &        0.000473 \\
+ Orange, FL         & 143   & 0.0208  & -418   &     0 &          0.101  &            0.21  &         0.435  &        0.223 &       0.0953 &        -1.98e-08 &           0.0314  &        0.00024  \\
+ Clark, NV          & 151   & 0.0724  & -436   &     0 &          0.1    &            0.158 &         0.218  &        0.223 &       0.0953 &        -3.3e-08  &           0.0319  &        0.000743 \\
+ Travis, TX         & 143   & 0.0972  & -359   &     0 &          0.1    &            0.19  &         0.271  &        0.223 &       0.0953 &        -1.73e-08 &           0.0327  &        0.000319 \\
+ Tarrant, TX        & 146   & 0.068   & -414   &     0 &          0.1    &            0.138 &         0.42   &        0.223 &       0.0953 &        -3.12e-08 &           0.0328  &        0.000335 \\
+ Broward, FL        & 150   & 0.0728  & -391   &     0 &          0.107  &            0.167 &         0.447  &        0.223 &       0.0953 &        -2.15e-08 &           0.0333  &        0.000411 \\
+ Orange, CA         & 191   & 0.313   & -519   &     0 &          0.0769 &            0.234 &         0.266  &        0.223 &       0.0953 &        -3.73e-07 &           0.0334  &        0.000732 \\
+ Dallas, TX         & 146   & 0.0612  & -388   &     0 &          0.11   &            0.17  &         0.309  &        0.223 &       0.0953 &        -1.43e-08 &           0.0336  &        0.000504 \\
+ San Bernardino, CA & 141   & 0.0634  & -406   &     0 &          0.0999 &            0.14  &         0.198  &        0.223 &       0.0953 &        -2.06e-08 &           0.0343  &        0.000794 \\
+ Sacramento, CA     & 164   & 0.109   & -574   &     0 &          0.0666 &            0.174 &         0.252  &        0.223 &       0.0953 &        -8.02e-08 &           0.0343  &        0.000428 \\
+ Hennepin, MN       & 144   & 0.103   & -359   &     0 &          0.114  &            0.207 &         0.402  &        0.223 &       0.0953 &        -1.24e-08 &           0.036   &        0.000917 \\
+ Hillsborough, FL   & 155   & 0.16    & -461   &     0 &          0.0813 &            0.189 &         0.227  &        0.223 &       0.0953 &        -7.15e-08 &           0.0373  &        0.00065  \\
+ Maricopa, AZ       & 190   & 0.283   & -482   &     0 &          0.0897 &            0.235 &         0.158  &        0.223 &       0.0953 &        -4e-07    &           0.0422  &        0.00188  \\
+ Bexar, TX          & 173   & 0.224   & -478   &     0 &          0.0745 &            0.213 &         0.376  &        0.223 &       0.0953 &        -7.61e-08 &           0.0461  &        0.000393 \\
 \hline
- Median             & 147.5 & 0.09665 &  -405 &     0 &          0.1025 &            0.204 &         0.3075 &        0.223 &       0.0953 &        -2.43e-08 &           0.03005 &        0.000501 \\
-\hline
-\end{tabular}
-
-
-%%%%%%%%%%%%%%%%
-}\end{sidewaystable}
-
-\begin{sidewaystable}
-\caption{\label{tab:uncons}
-Model results. Estimating $\beta$ and $\mu$ trends as random effects
-with computed $\gamma$
-Data updated 2020-07-22 from
-https://github.com/nytimes/covid-19-data.git.
-}
-\centering
-{\scriptsize
-%%%%%%%%%%%%%% :r ../fits/fit_table.tex
-
-
-\begin{tabular}{lrrrrrrrrrrrr}
-\hline
- County            &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_I$ &   $\sigma_D$ &   $\tilde\gamma$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
-\hline
- Nassau, NY        &   138 &  0.0863 &  -945 &     1 &           0.193 &            0.557 &          3.37  &     9.77e-05 &     2.42e-05 &        -9.45e-09 &           0.0035  &        0.000171 \\
- New York City, NY &   142 &  0.0909 &  -834 &     0 &           0.196 &            1.06  &          1.02  &     0.000522 &     0.000493 &        -2.73e-08 &           0.00583 &        0.000278 \\
- Cook, IL          &   179 &  0.294  &  -978 &     1 &           0.136 &            3.09  &          0.854 &     9.24e-08 &     0.000126 &        -2.24e-07 &           0.00926 &        0.000299 \\
- Honolulu, HI      &   137 &  0.181  & -1470 &    10 &           0.149 &            2.94  &         14.6   &     0.000346 &     2.68e-07 &        -5.51e-08 &           0.0108  &        2.24e-12 \\
- Philadelphia, PA  &   133 &  0.112  &  -608 &     1 &           0.167 &            1.02  &          1.98  &     0.00279  &     0.00452  &        -3.1e-08  &           0.0117  &        0.0003   \\
- Bexar, TX         &   160 &  0.242  &  -650 &    10 &           0.123 &            2.58  &          7.21  &     0.00236  &     1.76e-05 &        -7.18e-08 &           0.028   &        4.64e-07 \\
- Tarrant, TX       &   133 &  0.0746 &  -570 &     1 &           0.146 &            1.23  &          1.36  &     0.0102   &     0.00327  &        -3.78e-08 &           0.0305  &        0.000279 \\
- Palm Beach, FL    &   131 &  0.0758 &  -428 &     1 &           0.143 &            0.339 &          1.36  &     0.0873   &     0.00614  &        -1.17e-08 &           0.0308  &        0.000658 \\
- Harris, TX        &   138 &  0.101  &  -380 &     1 &           0.117 &            0.266 &          0.894 &     0.167    &     0.0226   &        -2.15e-08 &           0.0308  &        0.000278 \\
- Miami-Dade, FL    &   132 &  0.12   &  -618 &     1 &           0.159 &            0.606 &          0.995 &     0.000848 &     0.00583  &        -9.54e-09 &           0.0328  &        0.000493 \\
- Hillsborough, FL  &   142 &  0.175  &  -722 &     1 &           0.119 &            3.69  &         11.7   &     1.78e-07 &     4.86e-08 &        -7.24e-08 &           0.0355  &        4.64e-05 \\
- Travis, TX        &   130 &  0.107  &  -350 &     0 &           0.122 &            0.244 &          1.71  &     0.188    &     0.00726  &        -1.6e-08  &           0.0358  &        0.000243 \\
- Maricopa, AZ      &   177 &  0.303  &  -885 &     1 &           0.118 &            2.13  &          2.33  &     3.62e-07 &     0.000867 &        -4.2e-07  &           0.0367  &        0.000321 \\
- Dallas, TX        &   133 &  0.0672 &  -452 &     1 &           0.136 &            0.3   &          1.19  &     0.0798   &     0.00953  &        -1.04e-08 &           0.0371  &        0.000405 \\
- Broward, FL       &   137 &  0.0797 &  -511 &     0 &           0.136 &            0.231 &          1.66  &     0.0799   &     0.00289  &        -2.03e-08 &           0.038   &        0.000275 \\
-\hline
- Median            &   137 &  0.107  &  -618 &     1 &           0.136 &            1.02  &          1.66  &     0.00236  &     0.00289  &        -2.73e-08 &           0.0308  &        0.000278 \\
+ Median             & 150.5 & 0.09465 & -418.5 &     0 &          0.101  &            0.202 &         0.3045 &        0.223 &       0.0953 &        -2.43e-08 &           0.0298  &        0.000477 \\
 \hline
 \end{tabular}
 
@@ -640,66 +603,38 @@ https://github.com/nytimes/covid-19-data.git.
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
 
-
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/New_York_CityNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/CookIL_TMB_estimates.png}\\
-\\
-\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/NassauNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/PhiladelphiaPA_TMB_estimates.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:ests1U}
-Unconstrained model diagnostics for concave downward counties.
-See page \pageref{pp:diagexpl} for explanation of plots.
-}
-\end{figure}
-
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{cc}
-\multicolumn{1}{c}{Miami-Dade Co. FL}&\multicolumn{1}{c}{Maricopa Co. AZ}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/Miami-DadeFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/MaricopaAZ_TMB_estimates.png}\\
-\\
-\multicolumn{1}{c}{Palm Beach Co. FL}&\multicolumn{1}{c}{Travis Co. TX}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/Palm_BeachFL_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/unconstrained/TravisTX_TMB_estimates.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:ests2U}
-Unconstrained model diagnostics for concave upward counties.
-}
-\end{figure}
-
-\begin{figure}
-{\scriptsize
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{New York City}&\multicolumn{1}{c}{Cook Co. IL}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/New_York_CityNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/CookIL_TMB_estimates.png}\\
-\\
-\multicolumn{1}{c}{Nassau Co. NY}&\multicolumn{1}{c}{Philadelphia Co.  PA}\\
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates.png}&
-\includegraphics[width=0.50\textwidth]{../Graphics/constrainID/PhiladelphiaPA_TMB_estimates.png}\\
-\end{tabular}
-\end{center}
-}
-\caption{\label{fig:ests1}
-Model diagnostics for concave downward counties.
-}
-\end{figure}
 \clearpage
 \printbibliography[title=References]
+\clearpage
+`
+\section*{Appendix}
+\appendix
+
+\section{Unconstrained Estimates}
+\label{app:unconst}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/unconstrained/NassauNY_TMB_estimates.png}
+\end{center}
+\caption{\label{fig:estsNaNYu}
+Diagnostic plots of model estimates for Nasssau County, NY, 
+without constraints of the observation model variance. 
+See page~\pageref{pp:diagexpu} for explanation of figure.
+}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth]{../Graphics/unconstrained/Miami-DadeFL_TMB_estimates.png}
+\end{center}
+\caption{\label{fig:estsMDFLu}
+Diagnostic plots of model estimates for Miami-Dade County,FL,
+without constraints of the observation model variance. 
+See page~\pageref{pp:diagexpl} for explanation of figure.
+}
+\end{figure}
 
 \end{document}
 

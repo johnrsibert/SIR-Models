@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(1),
+           "logsigma_logD" = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
