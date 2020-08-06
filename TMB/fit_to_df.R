@@ -1,5 +1,14 @@
-save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
+#save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
+save.fit = function(fit,file,mod='simpleSIR4')
 {
+    attach(fit)
+
+    sdr = sdreport(obj)
+    SElogbeta = as.list(sdr,"Std. Error")$logbeta
+    SElogmu   = as.list(sdr,"Std. Error")$logmu
+    print(head(SElogbeta))
+    print(typeof(SElogbeta))
+
     diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
            obs_deaths = data$obs_deaths,
@@ -10,7 +19,14 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
            gamma = obj$report()$gamma,
            logbeta = obj$report()$logbeta,
            logmu = obj$report()$logmu
+    #      SElogbeta = SElogbeta,
+    #      SElogmu = SElogmu
     )
+    print(head(diag))
+    print(tail(diag))
+    print(typeof(diag))
+    print(head(obj$report()$logbeta))
+    print(typeof(obj$report()$logbeta))
 
     if (is.null(opt$value))
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
@@ -62,10 +78,18 @@ save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
                             names = like_names,
                             like = like)
 
-#   tod = format(Sys.time(), "%Y%m%d%H%M%S")
-#   file = paste(data$county,'_',tod,'.RData',sep='')
-#   file = "Los_Angeles_20200512111526.RData"
+    stderror = data.frame(stringsAsFactors = FALSE,
+                           logbeta = SElogbeta,
+                           logmu   = SElogmu)
+    print(head(stderror))
+    print(tail(stderror))
 
     print(paste('saving fit:',file))
     save(diag,meta,ests,like_comp,file=file)
+    save(diag,file="diag.RData")
+    save(stderror,file="stderror.RData")
+    write.csv(stderror,"stderror.csv")
+    write.csv(diag,"diag.csv")
+
+    detach(fit)
 }

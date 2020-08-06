@@ -105,7 +105,8 @@ if (do.plot){
 }
 
 rd.file = paste(fit_path,data$county,'.RData',sep='')
-save.fit(data,obj,opt,map,init,rd.file)
+#save.fit(data,obj,opt,map,init,rd.file)
+#save.fit(fit,file="t.RData")
 
 return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
 

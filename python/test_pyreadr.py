@@ -16,10 +16,12 @@ import js_covid as cv
 #print(result.keys())
 #print(result)
 #print('df1:',result['df1'])
-os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
+#os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
 
 print('----------'+os.getcwd())
-fit=pyreadr.read_r('HonoluluHI.RData')
+#fit=pyreadr.read_r('NassauNY.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/NassauNY.RData')
+
 print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
