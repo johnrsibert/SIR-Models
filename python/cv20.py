@@ -669,7 +669,7 @@ def get_mu_atD1(ext='.RData',fit_files = []):
         for i,ff in enumerate(fit_files):
             fit_files[i] = cv.fit_path+fit_files[i]+ext
 
-    mud_cols = ['moniker','t','logmu','mu']
+    mud_cols = ['moniker','lag','logmu','mu']
     tmp = np.empty(shape=(len(fit_files),4),dtype=object)
     for i,ff in enumerate(fit_files):
         moniker = os.path.splitext(os.path.basename(ff))[0]
@@ -679,15 +679,19 @@ def get_mu_atD1(ext='.RData',fit_files = []):
         for t in range(0,len(fit.diag.index)):
             if (muD1 < 0.0) and (obs_deaths[t] > 0.0):
                 muD1 = np.exp(fit.diag['logmu'][t])
-                tmp[i] = (moniker,t,fit.diag['logmu'][t],muD1)
+                lag = t-1
+                tmp[i] = (moniker,lag,fit.diag['logmu'][t],muD1)
 
     mud = pd.DataFrame(tmp,columns=mud_cols)
-    mud = mud.sort_values(by='logmu',ascending=False)
+    mud = mud.sort_values(by='lag',ascending=True)
     print(mud)
     mud.to_csv(cv.fit_path+'mud.csv',index=False)
-#   fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    ax.set_ylabel('First '+r'$\ln\ \mu\ (da^{-1})$')
+    ax.set_xlabel('Lag (days)') 
 #   ax.hist(mud['logmu'],density=True,bins=3)
-#   plt.show(True)
+    ax.plot(mud['lag'],(mud['logmu']))
+    plt.show(True)
 
 def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
                     fit_files = [], show_medians = False, 
@@ -1110,8 +1114,8 @@ print('------- here ------')
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 cv.fit_path = cv.fit_path+'constrainID/'
-make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 

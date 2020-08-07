@@ -1,5 +1,5 @@
 #save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
-save.fit = function(fit,file,mod='simpleSIR4')
+save.fit = function(fit,file.name,mod='simpleSIR4')
 {
     attach(fit)
 

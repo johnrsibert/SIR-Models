@@ -77,9 +77,9 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-#opt = nlminb(obj$par,obj$fn,obj$gr)
+opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
+#opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
 #opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
 
 print("Done minimization-----------------------------",quote=FALSE)
@@ -104,11 +104,12 @@ if (do.plot){
     dev.off()
 }
 
+fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init)
 rd.file = paste(fit_path,data$county,'.RData',sep='')
 #save.fit(data,obj,opt,map,init,rd.file)
-#save.fit(fit,file="t.RData")
+save.fit(fit,file=rd.file) #"t.RData")
 
-return(list(data=data,map=map,par=par,obj=obj,opt=opt,init=init))
+return(fit)
 
 } # do_one_run = function(
 

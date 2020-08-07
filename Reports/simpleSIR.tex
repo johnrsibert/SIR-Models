@@ -31,6 +31,8 @@
 \newcommand\SSm{{\tt simpleSIR4}}
 \newcommand\slI{$\sigma_{\ln I}$\ }
 \newcommand\slD{$\sigma_{\ln D}$}
+\newcommand\slB{$\sigma_{\ln \beta}$}
+\newcommand\slM{$\sigma_{\ln \mu}$}
 
 \title{Trends in transmission and mortality rates of the Covid-19
 pandemic estimated from publicly available data}
@@ -417,26 +419,29 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 \end{figure}
 
 \label{pp:diagexpl} 
-Diagnostics for the constrained model are plotted
-(figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
-on logarithmic scales to both illustrate the
+Diagnostic information for the model estimates is plotted
+%(figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
+on logarithmic scales both to illustrate the
 lognormal likelihood functions used in the observation model,
-equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}), and to
+equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}) and to
 illustrate trends in estimated transmission and mortality rates close
 to zero.
 The blue `+' symbols represent the observed cases ($I$) and deaths ($D$).
 The red lines overlaying the symbols are model predictions ($\widehat{I}$)
 and ($\widehat{D}$) of cases and deaths. 
-$\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
-logarithms of cases and deaths in the observation model.
+%$\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
+%logarithms of cases and deaths in the observation model.
 The shaded areas bounded by red outlines are 
-$\pm 2$ estimated standard deviations around the estimated trends.
+$\pm 2$ estimated standard deviations, \slI\ and \slD\ in the
+observation model, around the estimated trends.
 The solid blue lines in the transmission rate $\ln \beta$ and
 mortality rate $\ln \mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
-estimated random effects $\pm 2$ standard deviations of the generating
-random walks.
+estimated random effects $\pm 2$ standard deviations, \slB\ and \slM,
+of the generating random walks in the transition model.
+These areas should not be considered as indicators of the precision
+of the estimated random effects.
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
 medians of the estimated random effects over the time period.
 
@@ -445,14 +450,19 @@ figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc}
 for convex downward and convex upward trajectories
 respectively.
 Estimated cases and deaths agree well with observation throughout the
-time series.
+time series because of constraints on the observation model errors.
+Distinct trends in transmission rate estimates are plainly evident for
+the two prevalence patterns. A small, but distict, 
+transitory upward ``bump'' in July is
+evident for the convex downward example, Miami-Dade Co. FL.
+Estimated mortality rates trend generally downward  for both patterns.
 
-\begin{figure}a[h!]
+\begin{figure}[h!]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary_g.eps}\\
 \end{center}
 \caption{\label{fig:xrates}
-Estimated natural logarithms of the transmission rate for several US
+Estimated natural logarithms of the transmission rate for thirty two US
 counties using the constrained \SSm\ model.
 Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
@@ -481,7 +491,8 @@ transmission rate to a point where the doubling time is greater than
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.eps}\\
+\includegraphics[height=0.40\textheight]{../Graphics/constrainID/logbeta_summary.eps}\\
+%\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.eps}\\
 \end{center}
 \caption{\label{fig:xrates2}
 Estimated natural logarithms of the transmission rate for four US
@@ -492,35 +503,37 @@ are shown on the right-hand ordinate.
 \end{figure}
 
 Figure~\ref{fig:drates} compares estimated mortality rate among
-counties. Initial mortality rates were around 
-0.01\perda\ ($\ln \mu \approx 4.6$) at the beginning of
-the pandemic but fell steadily to less than 
-0.001\perda\ ($\ln \mu \approx -6.9$) in July.
+counties. Initial mortality rates were quite variable during the first
+months of the pandemic, but rose quickly to around 
+0.01\perda\ ($\ln \mu \approx 4.6$) in April. Subsequently the
+estimated mortality rates decreased for all counties and appear to
+have leveled off in August to lows near
+0.001\perda\ ($\ln \mu \approx -6.9$).
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary_g.eps}\\
+\includegraphics[height=0.40\textheight]{../Graphics/constrainID/logmu_summary_g.eps}\\
+%\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary_g.eps}\\
 \end{center}
 \caption{\label{fig:drates}
-Estimated natural logarithms of the mortality rate for several US counties using the
-constrained \SSm\ model.
+Estimated natural logarithms of the mortality rate for thirty two US
+counties using the constrained \SSm\ model.
 }
 \end{figure}
 
 \section*{Discussion}
 
-Nonlinear statistical models with multiple estimated parameters rely
+Nonlinear statistical models with multiple parameters rely
 on numerical methods to estimate parameters by searching for minima
-(hopefully finding only one) in the negative of the likelihood
+%(hopefully finding only one) 
+in the negative of the likelihood
 function. The parameter values at the minima are considered to be
-maximum likelihood estimators. Failure to find well defined minima is
-usually a cause for concern. The minimization algorithms applied to
-unconstrained \SSm\ do not reliably converge to a solution. The
+maximum likelihood estimators.  The minimization algorithms applied to
+unconstrained \SSm\ do not reliably converge to solutions. The
 standard deviations in the observation model are components of the
-likelihood, and the algorithm therefore pushes these parameters toward zero.
-Since the estimated parameters in \SSm\ are represented as logarithms,
-they cannot take values $\le$ zero. Restricting the values of
-$\sigma_I$ and $\sigma_D$ to small, but non-zero, constants allows the
+likelihood, and the algorithm pushes these parameters toward
+unrealistically low estimates.  Setting the values of
+\slI\ and \slD\ to arbitrarily small constants allows the
 algorithm to estimate the other parameters.
 
 The trends in estimated transmission rate Figure~\ref{fig:xrates} seem
@@ -528,32 +541,25 @@ reasonable. The extremely high transmission rates in March agree well
 with doubling times reported in newspaper articles at the time.
 The steady decline of transmission rates after shelter-in-place advice is 
 also consistent with casual observation.
+The transmission rates estimated for several counties appear to trend
+upward, at least briefly, in July (figure~\ref{fig:xrates}). Counties
+that display this upward deflection are also counties that have not
+been successful in controlling spread of the outbreak
+
 The incubation time of the Covid-19 virus is usually assumed to be
-about 14 days.
+about 14 days \cite{someone2020}.
 The trends in Figure~\ref{fig:xrates} in conjunction with the
 empirical prevalence trends suggest that sustainable containment of
 the pandemic does not occur unless the instantaneous transmission rate
-is forced below \help{ $0.018 da^{-1}$}, that is, unless the doubling time is greater
-than 35 days, approximately twice the incubation period.
+is forced below \help{ $0.018 da^{-1}$}, that is, unless the doubling
+time is greater than 35 days, approximately twice the incubation
+period.
 
-\help{
-Upward bump in transmission rates consistent with observed increases
-in cases in July.
+Given the presence of substantial numbers of zero observations at the
+start of the ``deaths'' time series, both the magnitude and the
+variability of the mortality rate estimates, Figure~\ref{fig:drates},
+is surprising.
 
-
-Omit:
-Whether the available data are sufficiently informative to enable
-estimation of the model parameters is a critical aspect of the
-evaluation of any statistical model.
-The speed at which the Covid-19 pandemic spread during the first
-quarter of
-2020 means that the length of the time series doubled during
-the development of this model. The capability of the
-model improve conveniently during the model development period,
-but whether the improvement is
-attributable to changes in model structure or to the increase in the
-length of the time series is unclear. This ambiguity influenced the
-development of the model.}
 
 
 \clearpage
@@ -785,3 +791,15 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
     %indicates degeneracy of the 
 %
 
+Whether the available data are sufficiently informative to enable
+estimation of the model parameters is a critical aspect of the
+evaluation of any statistical model.
+The speed at which the Covid-19 pandemic spread during the first
+quarter of
+2020 means that the length of the time series doubled during
+the development of this model. The capability of the
+model improve conveniently during the model development period,
+but whether the improvement is
+attributable to changes in model structure or to the increase in the
+length of the time series is unclear. This ambiguity influenced the
+development of the model.
