@@ -64,11 +64,12 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
     a = ax.get_lines()[-1].get_alpha()
 #   print('color, alpha:',c,a)
     if ( (end =='l') | (end == 'b')):
-        mark = ax.text(x,y,label+spacer,ha='right',va='center',fontsize=8,
+        mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',fontsize=8,
                 color=c) #,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
-        mark = ax.text(x,y,spacer+label,ha='left',va='center',fontsize=8,
+        i = len(x)-1
+        mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
                 color=c) #,alpha=a)
                       # Set the alpha value used for blendingD - 
     mark.set_alpha(a) # not supported on all backends
@@ -322,25 +323,23 @@ class Geography:
         for w in range(0,len(window)):
             adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
             ax[0].plot(Date[1:],adc,linewidth=2)
-            mark_ends(ax[0],Date[len(Date)-1],adc[len(adc)-1],
-                      str(window[w])+'da','r')
+            mark_ends(ax,Date,adc, str(window[w])+'da','r')
         
         ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
-        mark_ends(ax2[0],Date[len(Date)-1],cases[len(cases)-1],r'$\Sigma$C','r')
+        mark_ends(ax2,Date,cases,r'$\Sigma$C','r')
 
         if ((yscale == 'log') & (plot_dt)):
             ax[0] = self.plot_dtslopes(ax[0])
                 
         ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-        mark_ends(ax2[1],Date[len(Date)-1],deaths[len(deaths)-1],r'$\Sigma$D','r')
+        mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
 
         delta_deaths = np.diff(deaths)
         ax[1].bar(Date[1:],delta_deaths)
         for w in range(0,len(window)):
             add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
             ax[1].plot(Date[1:],add,linewidth=2)
-            mark_ends(ax[1],Date[len(Date)-1],add[len(add)-1],
-                          str(window[w])+'da','r')
+            mark_ends(ax[1],Date,add, str(window[w])+'da','r')
     
         for a in range(0,len(ax)):
         #   Adjust length of y axis
@@ -413,7 +412,7 @@ class Geography:
             y = c0 + np.exp(sl[i]*(d0-xrange[0]))
             ax.plot([d0,xrange[1]],[c0,y],color='black',linewidth=1)
             c = ax.get_lines()[-1].get_color()
-            mark_ends(ax,xrange[1],y,str(dt[i])+' da','r')
+            mark_ends(ax,xrange,y,str(dt[i])+' da','r')
 
         return(ax)
 
@@ -748,7 +747,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
     #       plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
 
         sn = short_name(fit.moniker)
-        mark_ends(ax,pdate[len(pdate)-1],yvar[len(yvar)-1],sn,'r')
+        mark_ends(ax,pdate,yvar,sn,'b')
         if (show_medians):
             med = median(np.exp(yvar))
             logmed = np.log(med)
@@ -1035,9 +1034,9 @@ def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
         key = key.append(kr,ignore_index=True)
 
         if (plot_dt):
-            mark_ends(ax,Date[len(Date)-1],delta_cases[len(delta_cases)-1],sn,'r')
+            mark_ends(ax,Date,delta_cases,sn,'r')
         else:
-            mark_ends(ax,Date[len(Date)-1],cases[len(cases)-1],sn,'r')
+            mark_ends(ax,Date,cases,sn,'r')
 
 #   Newsome's shelter in place order
     ax.plot((orderDate,orderDate),
@@ -1113,11 +1112,11 @@ print('------- here ------')
 #plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
-#make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 cv.fit_path = cv.fit_path+'constrainID/'
-#make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
+make_rate_plots('logbeta',add_doubling_time = True,save=True)
+make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
+make_rate_plots('logmu',save=True)
+make_rate_plots('gamma',save=True)
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')
