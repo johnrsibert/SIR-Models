@@ -68,7 +68,7 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
                 color=c) #,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
-        i = len(x)-1
+        i = len(x)-1 # or use [:-1]
         mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
                 color=c) #,alpha=a)
                       # Set the alpha value used for blendingD - 
@@ -323,10 +323,10 @@ class Geography:
         for w in range(0,len(window)):
             adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
             ax[0].plot(Date[1:],adc,linewidth=2)
-            mark_ends(ax,Date,adc, str(window[w])+'da','r')
+            mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
         
         ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
-        mark_ends(ax2,Date,cases,r'$\Sigma$C','r')
+        mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
 
         if ((yscale == 'log') & (plot_dt)):
             ax[0] = self.plot_dtslopes(ax[0])
@@ -339,7 +339,7 @@ class Geography:
         for w in range(0,len(window)):
             add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
             ax[1].plot(Date[1:],add,linewidth=2)
-            mark_ends(ax[1],Date,add, str(window[w])+'da','r')
+            mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
     
         for a in range(0,len(ax)):
         #   Adjust length of y axis
@@ -1098,10 +1098,10 @@ print('------- here ------')
 #alam.print_metadata()
 #alam.print_data()
 
-#tfit = Fit(cv.fit_path+'unconstrained/'+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+tfit = Fit(cv.fit_path+'unconstrained/'+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit = Fit(cv.fit_path+'unconstrained/'+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-#tfit.plot(save=True,logscale=False)
+tfit.plot(save=True,logscale=False)
 
 
 #update_everything()
@@ -1112,11 +1112,11 @@ print('------- here ------')
 #plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
-cv.fit_path = cv.fit_path+'constrainID/'
-make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
-make_rate_plots('logmu',save=True)
-make_rate_plots('gamma',save=True)
+#cv.fit_path = cv.fit_path+'constrainID/'
+#make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
+#make_rate_plots('logmu',save=True)
+#make_rate_plots('gamma',save=True)
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')
