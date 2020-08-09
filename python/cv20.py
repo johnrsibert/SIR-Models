@@ -88,7 +88,7 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
     c = ax.get_lines()[-1].get_color()
-    sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.2,
                             facecolor=c, edgecolor='0.1',lw=0.5)
     ax.add_patch(sd_region)
 
@@ -545,6 +545,7 @@ class Fit(Geography):
         for t in range(0,len(self.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
     
+        obsCol = 'fc4f30'
         obsI = self.diag['log_obs_cases']
         preI = self.diag['log_pred_cases']
         obsD = self.diag['log_obs_deaths']
@@ -557,12 +558,13 @@ class Fit(Geography):
         sigma_logmu = np.exp(self.get_est_or_init('logsigma_logmu'))
         if (logscale):
             ax[0].set_ylim(0.0,1.2*max(obsI))
-            ax[0].scatter(pdate,obsI)
-            ax[0].plot(pdate,preI,color='red')
+            ax[0].scatter(pdate,obsI,marker = '.',s=4,c='r') #color=obsCol)
+            ax[0].plot(pdate,preI)
+
         else:
             ax[0].set_ylim(0.0,1.2*max(np.exp(obsI)))
-            ax[0].scatter(pdate,np.exp(obsI))
-            ax[0].plot(pdate,np.exp(preI),color='red')
+            ax[0].scatter(pdate,np.exp(obsI),marker = '.',s=0.25,c='r') #color=obsCol)
+            ax[0].plot(pdate,np.exp(preI))#,color='red')
         plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
         tx = prop_scale(ax[0].get_xlim(), 0.05)
         ty = prop_scale(ax[0].get_ylim(), 0.90)
@@ -575,8 +577,8 @@ class Fit(Geography):
             ax[1].plot(pdate,preD,color='red')
         else:
             ax[1].set_ylim(0.0,1.2*max(np.exp(obsD)))
-            ax[1].scatter(pdate,np.exp(obsD))
-            ax[1].plot(pdate,np.exp(preD),color='red')
+            ax[1].scatter(pdate,np.exp(obsD),marker = '.',s=16, c='r') #color=obsCol)
+            ax[1].plot(pdate,np.exp(preD))#,color='red')
 
         plot_error(ax[1],pdate,obsD,sigma_logD,logscale)
         tx = prop_scale(ax[1].get_xlim(), 0.05)
@@ -669,7 +671,7 @@ class Fit(Geography):
             gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates'
             if (not logscale):
                 gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_a'+'_estimates'
-            fig.savefig(gfile+'.png')#,dpi=300)
+            fig.savefig(gfile+'.pdf')#,dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
             plt.pause(2)
@@ -1119,10 +1121,11 @@ print('------- here ------')
 #alam.print_metadata()
 #alam.print_data()
 
-#tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+cv.fit_path = cv.fit_path+'constrainID/'
+tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit = Fit(cv.fit_path+'unconstrained/'+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-#tfit.plot(save=False,logscale=True)
+tfit.plot(save=True,logscale=False)
 
 
 #update_everything()
@@ -1131,11 +1134,11 @@ print('------- here ------')
 #update_fits()
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
+#cv.fit_path = cv.fit_path+'constrainID/'
 #make_fit_plots()
 #make_fit_table()
-cv.fit_path = cv.fit_path+'constrainID/'
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 #plot_multi_per_capita(plot_dt=False,save=True)

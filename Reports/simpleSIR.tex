@@ -34,6 +34,8 @@
 \newcommand\slB{$\sigma_{\ln \beta}$}
 \newcommand\slM{$\sigma_{\ln \mu}$}
 
+%\renewcommand{\appendixtocname}{Supplementary Material}
+
 \title{Trends in transmission and mortality rates of the Covid-19
 pandemic estimated from publicly available data}
 
@@ -396,7 +398,7 @@ rapidly using gradient methods.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates.png}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_a_estimates.pdf}
 \end{center}
 \caption{\label{fig:estsNaNYc}
 Diagnostic plots of model estimates for Nasssau County, NY, 
@@ -438,10 +440,11 @@ The solid blue lines in the transmission rate $\ln \beta$ and
 mortality rate $\ln \mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
-estimated random effects $\pm 2$ standard deviations, \slB\ and \slM,
-of the generating random walks in the transition model.
-These areas should not be considered as indicators of the precision
-of the estimated random effects.
+estimated random effects $\pm 2$ estimated standard errors of the
+random effect.
+%, \slB\ and \slM, of the generating random walks in the transition model.
+%These areas should not be considered as indicators of the precision
+%of the estimated random effects.
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
 medians of the estimated random effects over the time period.
 
@@ -466,17 +469,18 @@ Estimated natural logarithms of the transmission rate for thirty two US
 counties using the constrained \SSm\ model.
 Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
+See Table~\ref{tab:namekey} for key to county abbreviations.
 }
 \end{figure}
 
 Figure~\ref{fig:xrates} compares estimated transmission rate among
 counties.
-Transmission rates increased rapidly at the beginning of the pandemic
-exceeding  1\perda\ ($\ln \beta \approx 0$) in early March, 
-an instantaneous transmission rate
+Transmission rates increased rapidly immediately after the first
+recorded case, and by early March the instantaneous transmission rate was greater
+than 1\perda\ ($\ln \beta \approx 0$),
 equivalent to a doubling time of less than one day.
 Beginning in April, transmission rates fell substantially, and doubling times
-increased to longer than 20 days in some counties in late May.
+increased to longer than 20 days in some counties by late May.
 Counties with estimated transmission rates less than 0.007\perda\ 
 (or $\ln \beta \le 5$) at the end of May
 correspond roughly to those counties with concave downward prevalence
@@ -487,7 +491,10 @@ suppression of transmission (Cook Co, IL, Nassau Co, NY) with two counties that
 have suffered a resurgence of cases (Honolulu Co, HI and Miami-Dade Co
 FL). The Honolulu example indicates that simply suppressing the
 transmission rate to a point where the doubling time is greater than
-100 days does not ensure a sustainable outcome.
+100 days does not ensure a sustainable outcome. The regions encolsed
+by $\pm 2$ standard errors show that estimated transmission rates these four counties
+were similar in April and May, but diverged significantly in June to
+become distinct in August.
 
 \begin{figure}[h!]
 \begin{center}
@@ -497,18 +504,21 @@ transmission rate to a point where the doubling time is greater than
 \caption{\label{fig:xrates2}
 Estimated natural logarithms of the transmission rate for four US
 counties using the constrained \SSm\ model.
+The shaded areas indicate the estimated random effect $\pm 2$
+estimated standard errors.
 Equivalent doubling times ($t_2 = \frac{\ln 2}{\exp(\ln \beta)}$)
 are shown on the right-hand ordinate.
+See Table~\ref{tab:namekey} for key to county abbreviations.
 }
 \end{figure}
 
 Figure~\ref{fig:drates} compares estimated mortality rate among
 counties. Initial mortality rates were quite variable during the first
-months of the pandemic, but rose quickly to around 
+months of the pandemic and but rose quickly to around 
 0.01\perda\ ($\ln \mu \approx 4.6$) in April. Subsequently the
-estimated mortality rates decreased for all counties and appear to
+estimated mortality rates decreased similarly for all counties and appear to
 have leveled off in August to lows near
-0.001\perda\ ($\ln \mu \approx -6.9$).
+0.0003\perda\ ($\ln \mu \approx -8$) in August.
 
 \begin{figure}
 \begin{center}
@@ -518,6 +528,7 @@ have leveled off in August to lows near
 \caption{\label{fig:drates}
 Estimated natural logarithms of the mortality rate for thirty two US
 counties using the constrained \SSm\ model.
+See Table~\ref{tab:namekey} for key to county abbreviations.
 }
 \end{figure}
 
@@ -546,31 +557,32 @@ upward, at least briefly, in July (figure~\ref{fig:xrates}). Counties
 that display this upward deflection are also counties that have not
 been successful in controlling spread of the outbreak
 
-The incubation time of the Covid-19 virus is usually assumed to be
-about 14 days \cite{someone2020}.
+The incubation time of the Covid-19 virus is generally considered to be
+about 14 days (\cite{Someone2020}).
 The trends in Figure~\ref{fig:xrates} in conjunction with the
-empirical prevalence trends suggest that sustainable containment of
+observed trends suggest that sustainable containment of
 the pandemic does not occur unless the instantaneous transmission rate
 is forced below \help{ $0.018 da^{-1}$}, that is, unless the doubling
 time is greater than 35 days, approximately twice the incubation
 period.
 
-Given the presence of substantial numbers of zero observations at the
-start of the ``deaths'' time series, both the magnitude and the
-variability of the mortality rate estimates, Figure~\ref{fig:drates},
-is surprising.
+The magnitude and variability of the mortality rate estimates
+(Figure~\ref{fig:drates})
+at the start of the time series may be a result of variable lags
+between between the first recorded case and the first recorded death.
+The first recorded death in King Co. WA occurred on the second day of
+the time series when four cases were recorded.
+In contract, the first recorded death in Middlesex Co. MA occurred on
+the sixteenth day of the time series when 177 cases were recorded.
 
-
-
-\clearpage
+%\clearpage
 
 
 \clearpage
 \printbibliography[title=References]
 \clearpage
 
-%\section*{Appendix}
-%\appendix
+\appendixpage
 \begin{appendices}
 
 
@@ -578,8 +590,7 @@ is surprising.
 
 \begin{table}[h!]
 \caption{\label{tab:namekey}
-Key to county name abbreviations used in time series graphs, figures
-\ref{fig:percap} and 
+Key to county name abbreviations.
 }
 \centering
 \begin{tabular}{lll||lll}
@@ -614,6 +625,7 @@ MiMA&Middlesex&MA&WaMI&Wayne&MI\\
 \caption{\label{tab:cons}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects with 
 constraints on  $\sigma_I$ and $\sigma_D$. 
+Counties sorted in order of decreasing transmission rate ($\beta$).
 Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-08-04
 }
 \centering
@@ -672,6 +684,7 @@ Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-0
 \caption{\label{tab:uncons}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects
 without constraints on  $\sigma_I$ and $\sigma_D$. 
+Counties sorted in order of decreasing transmission rate ($\beta$).
 Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-08-04
 }
 \centering
@@ -714,6 +727,7 @@ Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-0
  Hillsborough, FL   & 155   & 0.16    &  -653 &     0 &           0.111 &            1.11  &          1.28  &    0.00477   &     0.0169   &        -7.24e-08 &           0.0329  &       0.000393  \\
  Broward, FL        & 150   & 0.0728  &  -584 &     1 &           0.13  &            0.23  &          1.63  &    0.0759    &     0.00289  &        -2.03e-08 &           0.0331  &       0.000275  \\
  Dallas, TX         & 146   & 0.0612  &  -529 &     1 &           0.13  &            0.303 &          1.26  &    0.0757    &     0.00757  &        -1.04e-08 &           0.0349  &       0.000342  \\
+\hline
  Median             & 150.5 & 0.09465 &  -811 &     1 &           0.134 &            1.065 &          1.325 &    0.0011475 &     0.00382  &        -2.67e-08 &           0.0254  &       0.0003035 \\
 \hline
 \end{tabular}
@@ -728,7 +742,7 @@ Data updated 2020-08-04 from https://github.com/nytimes/covid-19-data.git.2020-0
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_a_estimates.png}
+\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_a_estimates.pdf}
 \end{center}
 \caption{\label{fig:estsNaNYca}
 Diagnostic plots of model estimates for Nasssau County, NY, 
