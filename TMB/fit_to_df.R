@@ -1,13 +1,13 @@
 #save.fit = function(data,obj,opt,map,init,file,mod='simpleSIR4')
-save.fit = function(fit,file.name,mod='simpleSIR4')
+save.fit = function(fit,file_root,mod='simpleSIR4')
 {
     attach(fit)
 
     sdr = sdreport(obj)
     SElogbeta = as.list(sdr,"Std. Error")$logbeta
     SElogmu   = as.list(sdr,"Std. Error")$logmu
-    print(head(SElogbeta))
-    print(typeof(SElogbeta))
+#   print(head(SElogbeta))
+#   print(typeof(SElogbeta))
 
     diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
@@ -22,11 +22,11 @@ save.fit = function(fit,file.name,mod='simpleSIR4')
     #      SElogbeta = SElogbeta,
     #      SElogmu = SElogmu
     )
-    print(head(diag))
-    print(tail(diag))
-    print(typeof(diag))
-    print(head(obj$report()$logbeta))
-    print(typeof(obj$report()$logbeta))
+#   print(head(diag))
+#   print(tail(diag))
+#   print(typeof(diag))
+#   print(head(obj$report()$logbeta))
+#   print(typeof(obj$report()$logbeta))
 
     if (is.null(opt$value))
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
@@ -81,15 +81,29 @@ save.fit = function(fit,file.name,mod='simpleSIR4')
     stderror = data.frame(stringsAsFactors = FALSE,
                            logbeta = SElogbeta,
                            logmu   = SElogmu)
-    print(head(stderror))
-    print(tail(stderror))
+#   print(dim(stderror))
+#   print(head(stderror))
+#   print(tail(stderror))
 
-    print(paste('saving fit:',file))
-    save(diag,meta,ests,like_comp,file=file)
-    save(diag,file="diag.RData")
-    save(stderror,file="stderror.RData")
-    write.csv(stderror,"stderror.csv")
-    write.csv(diag,"diag.csv")
+    rd.file = paste(fit_path,file_root,'.RData',sep='')
+    print(paste('saving fit:',rd.file))
+    save(diag,meta,ests,like_comp,file=rd.file)
+    pyreadr_kludge = TRUE
+    if (pyreadr_kludge)
+    {
+        csv.file=paste(fit_path,file_root,'_stderror.csv',sep='')
+        print(paste('saving stderror:',csv.file))
+        write.csv(stderror,csv.file)
+    #   t.file = paste(fit_path,file_root,'_stderror.RData',sep='')
+    #   print(t.file)
+    #   save(stderror,file=t.file)
+    #   t.file = paste(fit_path,file_root,'_diag.csv',sep='')
+    #   print(t.file)
+    #   write.csv(diag,tfile)
+    }
+#   save(diag,file="diag.RData")
+#   save(stderror,file="stderror.RData")
+#   write.csv(diag,"diag.csv")
 
     detach(fit)
 }

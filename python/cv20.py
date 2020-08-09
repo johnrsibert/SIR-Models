@@ -89,7 +89,7 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     xp = np.transpose(xy).shape
     c = ax.get_lines()[-1].get_color()
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.5,
-                            facecolor='0.9', edgecolor=c,lw=1)
+                            facecolor=c, edgecolor='0.1',lw=0.5)
     ax.add_patch(sd_region)
 
 
@@ -436,7 +436,6 @@ class Geography:
 
 
 
-
 class Fit(Geography):
 
     def __init__(self,fit_file,**kwargs):
@@ -448,12 +447,29 @@ class Fit(Geography):
             tfit=pyreadr.read_r(pn)
         else:
             sys.exit('class Fit  not yet implemented on '+extension+' files.')
+
         head, tail = os.path.split(pn)
         self.moniker = os.path.splitext(tail)[0]
-
         self.diag = tfit['diag']
         self.md = tfit['meta']
         self.ests = tfit['ests']
+        if (cv.pyreadr_kludge):
+        #   print('keys',tfit.keys())
+        #   print(tfit['diag'].columns)
+        #   print(len(tfit['diag'].columns))
+            insert = len(tfit['diag'].columns)
+        #   print('head:',head,'tail:',tail,tail[0])
+        #   print('filename',filename,'extension',extension)
+            csv_file = filename + '_stderror.csv'
+        #   print('reading',csv_file)
+            stderror = pd.read_csv(csv_file,header=0)
+        #   print(stderror['logbeta'],stderror['logmu'])
+        #   SElogbeta = stderror['logbeta']
+        #   SElogmu = stderror['logmu']
+            self.diag.insert(insert,'SElogbeta',stderror['logbeta'])
+            self.diag.insert(insert+1,'SElogmu',stderror['logmu'])
+        #   print(self.diag)
+
         self.date0 = self.get_metadata_item('Date0')
         self.ntime = int(self.get_metadata_item('ntime'))
     #   Date0 = self.get_metadata_item('Date0')
@@ -533,6 +549,8 @@ class Fit(Geography):
         preI = self.diag['log_pred_cases']
         obsD = self.diag['log_obs_deaths']
         preD = self.diag['log_pred_deaths']
+        SElogbeta = self.diag['SElogbeta']
+        SElogmu   = self.diag['SElogmu']
         sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
         sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
         sigma_logbeta = self.get_est_or_init('logsigma_logbeta')
@@ -579,7 +597,8 @@ class Fit(Geography):
             tx = prop_scale(ax[2].get_xlim(), 0.05)
             ty = prop_scale(ax[2].get_ylim(), 0.90)
             ax[2].plot(pdate,log_beta)
-            plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale=True)
+        #   plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale=True)
+            plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             med = median(np.exp(log_beta))
@@ -633,7 +652,8 @@ class Fit(Geography):
             ty = prop_scale(ax[3].get_ylim(), 0.90)
             ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
             ax[3].plot(pdate,self.diag['logmu'])
-            plot_error(ax[3],pdate,logmu,sigma_logmu,logscale=True)
+        #   plot_error(ax[3],pdate,logmu,sigma_logmu,logscale=True)
+            plot_error(ax[3],pdate,logmu,SElogmu,logscale=True)
             ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             med = median(np.exp(self.diag['logmu']))
@@ -742,9 +762,10 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
     #   sigma_logbeta is the standard deviation of the generating
     #   random walk, NOT the standard deviation of the estimated
     #   random effect
-    #   if (yvarname == 'logbeta' and len(fit_files) <=4):
-    #       sigma_logbeta = fit.get_est_or_init('logsigma_logbeta')
-    #       plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
+        if (yvarname == 'logbeta' and len(fit_files) <=4):
+        #   sigma_logbeta = fit.get_est_or_init('logsigma_logbeta')
+        #   plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
+            plot_error(ax,pdate,yvar,fit.diag['SElogbeta'],logscale=True)
 
         sn = short_name(fit.moniker)
         mark_ends(ax,pdate,yvar,sn,'b')
@@ -779,7 +800,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         dtax.set_yticklabels(labels)
 
     if save:
-        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.eps'
+        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.pdf'
         fig.savefig(gfile)
         print('plot saved as',gfile)
         plt.show(True)
@@ -1046,7 +1067,7 @@ def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
 
 #   print(key)
     if save:
-        gfile = cv.graphics_path+'counties_per_capita.eps'
+        gfile = cv.graphics_path+'counties_per_capita.pdf'
         plt.savefig(gfile) #,dpi=300)
         plt.show(False)
         print('plot saved as',gfile)
@@ -1098,25 +1119,26 @@ print('------- here ------')
 #alam.print_metadata()
 #alam.print_data()
 
-tfit = Fit(cv.fit_path+'unconstrained/'+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
 #tfit = Fit(cv.fit_path+'unconstrained/'+'Miami-DadeFL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-tfit.plot(save=True,logscale=False)
+#tfit.plot(save=False,logscale=True)
 
 
 #update_everything()
 #web_update()
-#update_shared_plots()
 #make_dat_files()
 #update_fits()
+#update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
 #make_fit_plots()
 #make_fit_table()
-#cv.fit_path = cv.fit_path+'constrainID/'
+cv.fit_path = cv.fit_path+'constrainID/'
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=False,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
+make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','CookIL','Miami-DadeFL','HonoluluHI'])
 #make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
+#plot_multi_per_capita(plot_dt=False,save=True)
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')

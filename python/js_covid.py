@@ -27,3 +27,8 @@ TMB_path = cv_home + 'TMB/'
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-08-15','%Y-%m-%d')
+
+# "temporary" workaround issue with pyreadr.read_r(...)
+# reading TMB standard error objects
+pyreadr_kludge = True
+
