@@ -58,13 +58,14 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 
 \begin{abstract}
 A simple compartment model of Covid-19 infections and deaths is
-applied to publicly available data to estimate trends and transmission
+applied to publicly available data. The model estimates estimates
+trends and transmission
 and mortality rates using random effects. Model estimates of
 infections and deaths match observations closely. Trends in
 estimated transmission rate vary substantially between geographic
 areas. Transmission rates were suppressed below 0.007\perda\ by the
-end of May in some areas, but often rebounded when social constraints
-were relaxed.
+end of May in some areas, but rebounded when social constraints
+were relaxed in other areas.
 Mortality rates of individuals infected with Covid-19 fell to less than
 0.001\perda\ in most areas by the end of July.
 These results show that publicly available data, often collected and
@@ -82,7 +83,7 @@ transmission rates over time and between areas.
 SIR models are often applied to the spread of epidemics and have
 certainly been applied to the current Covid-19 pandemic
 (e.g. \cite{Chen2020,Roques2020}).
-These models divide the affected the effected population into three
+These models divide the affected population into three
 compartments: susceptible (S), Infected (I) and Recovered (R).
 SIR models are
 usually expressed as coupled ordinary differential equations,
@@ -94,7 +95,7 @@ usually expressed as coupled ordinary differential equations,
 N &=& S + I + R
 \end{eqnarray}
 where $N$ is the population size, $\beta$ is the instantaneous
-rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
+transmission rate ($[t^{-1}]$), $\mu$ is the instantaneous mortality rate
 ($[t^{-1}]$),
 and $\gamma$ is the instantaneous recovery rate ($[t^{-1}]$).  
 
@@ -103,8 +104,8 @@ and $\gamma$ is the instantaneous recovery rate ($[t^{-1}]$).
 As the pandemic began to unfold, scientific institutes and governments
 at different levels began to make data publicly available on the
 World Wide Web.
-Unfortunately, data collection protocols may vary between
-institution over time. Additionally, few data sets include data for each of
+Data collection protocols vary between institutions and over time. 
+Additionally, few data sets include data for each of
 the compartments in a SIR model. 
 The New York Times' ``historical'' 
 data set\footnote{\label{ff:nyt}\url{https://github.com/nytimes/covid-19-data/}}
@@ -112,7 +113,7 @@ is an easily accessible source of data and is updated daily. These data
 comprise daily totals of ``cases'' and ``deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
 a reasonable approximations of the Infected compartment ($I$) in a SIR
-model. There are simply no credible data of comparable scope on
+model. There are credible data of comparable scope on
 either the Susceptible or the Recovered compartments.
 
 \section*{Model Structure}
@@ -204,7 +205,6 @@ A similar approach has been used by fisheries scientists to represent
 ill-determined parameters in fisheries stock assessment models, such
 as time-dependent fishing induced mortality
 (\cite{Nielsen2014b,Sibert2017}).
-
 The recovery rate, $\gamma_{t-\Delta t}$, in equation
 (\ref{eqn:sSIRfdI}) is computed algebraically as
 \begin{equation}
@@ -227,7 +227,7 @@ deaths. The observation model for cases is a simple log-normal error
 I_t-\log\widehat{I}_t}{\sigma_I}\Bigr)^2\bigg)\\
 \end{equation}
 where $I$ is the observed number of cases and $\widehat{I}$ is the
-number of cases predicted by equation~\ref{eqn:sSIRfdI}.
+number of cases predicted by equation~(\ref{eqn:sSIRfdI}).
 
 
 Not all those afflicted by Covid-19 have died; there are far fewer
@@ -255,7 +255,27 @@ $\widehat{D}$ is the number of deaths predicted by
 equation~\ref{eqn:sSIRfdD}, 
 and $p_0$ is the proportion of observed deaths equal to zero.
 
-\begin{table}
+Model parameters are estimated by
+maximizing the joint likelihood of the process errors, observation
+errors, and random effects.
+\begin{equation}
+\label{eqn:likelihood}
+L(\theta,\alpha,x)=
+\prod^m_{t=1}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Theta\big)\big]\cdot
+\prod^m_{t=0}\big[\phi\big(x_t-O(\alpha_t), \Omega\big)\big]
+\end{equation}
+where $m$ is the number of days elapsed since the first recorded case,
+$x_t$ is the vector of daily observations of cases and deaths,
+$\alpha_t$ is the vector of the daily calculations of the state
+variables and random effects,
+and $\theta$ 
+is a vector of model parameters (Table~\ref{tab:allvars1}).
+The R package TMB (\cite{TMB0000}) was used to 
+estimate the parameters of the model. 
+All R and C++ source files are available on 
+github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
+
+\begin{table}[!hb]
 \caption{List of model variables for the simple SIR model, \SSm.
 There are two state variables computed from the of estimated
 parameters and random effects.
@@ -287,26 +307,6 @@ $\sigma_\mu$ & Standard deviation of mortality rate random walk\\
 \end{center}
 \end{table}
 
-Model parameters are estimated by
-maximizing the joint likelihood of the process errors, observation
-errors, and random effects.
-\begin{equation}
-\label{eqn:likelihood}
-L(\theta,\alpha,x)=
-\prod^m_{t=1}\big[\phi\big(\alpha_t-T(\alpha_{t-1}), \Theta\big)\big]\cdot
-\prod^m_{t=0}\big[\phi\big(x_t-O(\alpha_t), \Omega\big)\big]
-\end{equation}
-where $m$ is the number of days elapsed since the first recorded case,
-$x_t$ is the vector of daily observations of cases and deaths,
-$\alpha_t$ is the vector of the daily calculations of the state
-variables and random effects,
-and $\theta$ 
-is a vector of model parameters (Table~\ref{tab:allvars1}).
-The R package TMB (\cite{TMB0000}) was used to 
-estimate the parameters of the model. 
-The R and supporting C++ files are available on 
-github.\footnote{\SSm~at \url{https://github.com/johnrsibert/SIR-Models}}
-
 %\clearpage
 \section*{Results}
 
@@ -330,13 +330,10 @@ Six months after the pandemic began spreading in the United States, it
 was obvious that some areas were more successful than other
 in controlling the spread of the Covid-19 virus.
 Trends in the per-capita number of cases in the thirty most populous 
-counties in the
-United States are shown in Figure~\ref{fig:percap}.
-These trajectories fall into two more or less distinct groups: those
-that are concave downward, \EG Nassau Co. NY (NaNY), indicating
-successful control, and those that are
-concave upward, \EG Miami-Dade Co. FL (MDFL), indicateing less
-successful control.
+counties in the United States are shown in Figure~\ref{fig:percap}.
+These trends form a continuum from those that bend sharply upward,
+\EG Miami-Dade Co. FL (MDFL),  to
+those that appear to reach a plateau, \EG Nassau Co. NY (NaNY). 
 
 
 \begin{figure}
@@ -344,7 +341,7 @@ successful control.
 \begin{center}
 \includegraphics[width=0.80\textwidth]{../Graphics/constrainID/NassauNY_prevalence.png}
  
-\vspace{0.25truein}
+\vspace{0.5truein}
 
 \includegraphics[width=0.80\textwidth]{../Graphics/constrainID/Miami-DadeFL_prevalence.png}
 \end{center}
@@ -354,14 +351,14 @@ Prevalence trajectories for two US counties.
 Blue bars indicate daily increases increases in cases and deaths;
 dark blue lines enclosing the bars indicate 11 day moving averages of
 daily increases (labeled ``11da'');
-pale blue lines indicate cumulative numbers (labeled $\Sigma C$ and
-$\Sigma D$); 
+pale blue lines indicate cumulative numbers of cases and deaths
+(labeled $\Sigma C$ and $\Sigma D$); 
 vertical gray bar marks the March 19, 2020 California shelter in place order.
 }
 \end{figure}
 
-Prevalence histories for counties representative of concave
-downward and concave upward trajectories are shown in
+Prevalence histories for counties representative of plateau
+and upward bending trajectories are shown in
 Figure~\ref{fig:prev}. The 11-day moving averages of the daily
 increases in cases and deaths is a good indicator of the
 relative success in controlling the outbreak.
@@ -376,16 +373,12 @@ In principle, all random effects and parameters are estimated
 simultaneously.
 Initial experiments with the model showed that several different
 numerical algorithms used to find the minimum of the log likelihood
-function were unable to easily reach a solution. Minima were reached
+function were unable to reach a solution easily. Minima were reached
 for some counties, but most attempts terminated prematurely. 
 Inspection of the diagnostic plots for the model showed that predicted
 values of cases and deaths matched observed values almost exactly
-with unrealistically low estimates of \slI and \slD.
-The extreme variability in the data is reflected in the extreme
-variability of the estimated trends in transmission and mortality
-rates estimated by the unconstrained 5 parameter model.
-See Appendix figures~\ref{fig:estsNaNYu} and~\ref{fig:estsMDFLu}
-for details.
+with unrealistically low estimates of \slI and \slD, 
+figures~\ref{fig:estsNaNYu} and~\ref{fig:estsMDFLu} and table~\ref{tab:uncons}.
 
 The \SSm\ model is easily configured with selected parameters fixed at
 constant values. 
@@ -421,7 +414,7 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 \end{figure}
 
 \label{pp:diagexpl} 
-Diagnostic information for the model estimates is plotted
+Diagnostic indicators for the model estimates is plotted
 %(figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
 on logarithmic scales both to illustrate the
 lognormal likelihood functions used in the observation model,

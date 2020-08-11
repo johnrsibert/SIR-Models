@@ -817,10 +817,10 @@ def make_fit_plots(ext = '.RData'):
     #   fit.print_metadata()
         fit.plot(logscale=True)
 
-     fit = Fit(cv.fit_path+'NassauNY'+ext)
-     fit.plot(save=True,logscale=False)
-     fit = Fit(cv.fit_path+'Miami-DadeFL'+ext)
-     fit.plot(save=True,logscale=False)
+    fit = Fit(cv.fit_path+'NassauNY'+ext)
+    fit.plot(save=True,logscale=False)
+    fit = Fit(cv.fit_path+'Miami-DadeFL'+ext)
+    fit.plot(save=True,logscale=False)
 
 
 def make_fit_table(ext = '.RData'):
@@ -1135,12 +1135,12 @@ print('------- here ------')
 #update_everything()
 #web_update()
 #make_dat_files()
-#update_fits()
+update_fits()
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
 #cv.fit_path = cv.fit_path+'constrainID/'
-#make_fit_plots()
-#make_fit_table()
+make_fit_plots()
+make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
 #make_rate_plots('logmu',save=True)

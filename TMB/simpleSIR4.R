@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(1),
+           "logsigma_logD" = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -77,10 +77,8 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-opt = nlminb(obj$par,obj$fn,obj$gr)
-#opt = optim(obj$par,obj$fn,obj$gr,method="BFGS")
-#opt = optim(obj$par,obj$fn,obj$gr) #,control=list(maxit=1000))
-#opt = optim(obj$par,obj$fn,obj$gr,method="L-BFGS-B",arg="L-BFGS-B")
+#opt = nlminb(obj$par,obj$fn,obj$gr)
+opt = optim(obj$par,obj$fn,obj$gr)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
