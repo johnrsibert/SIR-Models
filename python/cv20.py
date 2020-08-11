@@ -834,11 +834,11 @@ def make_fit_table(ext = '.RData'):
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     es_cols = ['logsigma_logP'   , 'logsigma_logbeta'  , 'logsigma_logmu'  ,
-               'logsigma_logC','logsigma_logD', 'mgamma','mbeta','mmu']
+               'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
               '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_I$','$\sigma_D$','$\\tilde\\gamma$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
+              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$','$\\tilde\\gamma$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
@@ -1135,11 +1135,12 @@ print('------- here ------')
 #update_everything()
 #web_update()
 #make_dat_files()
-update_fits()
+#update_fits()
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
 #cv.fit_path = cv.fit_path+'constrainID/'
-make_fit_plots()
+#make_fit_plots()
+cv.fit_path = cv.fit_path+'unconstrained/'
 make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
