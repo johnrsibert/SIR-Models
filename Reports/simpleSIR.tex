@@ -5,6 +5,7 @@
 \usepackage[figurewithin=section,tablewithin=section]{caption}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
+\usepackage{tabularx}
 %\usepackage{epsfig}
 %\usepackage{epstopdf}
 %\usepackage[outdir=./]{epstopdf}
@@ -145,7 +146,7 @@ Reporting protocols also vary between political jurisdictions (or
 ``geographies'' in the parlance of the New York Times).
 Finally, there is additional variability in the biosocial
 processes that mediate disease transmission.
-
+\url{https://github.com/nytimes/covid-19-data/blob/master/NEW-YORK-DEATHS-METHODOLOGY.md}
 State-space models separate variability in the biosocial
 processes in the system (transition model)
 from errors in observing features of interest
@@ -367,11 +368,18 @@ the per capita trends in Figure~\ref{fig:percap}.
 All histories show extreme day to day variability.
 Variability is most notable in the deaths
 time series, particularly for smaller counties.
+The cumulative deaths trajectory for Nassau County, NY, illustrates
+changing reporting practices. The New York Times changed the method of
+reporting deaths in New York State 
+\footnote{For details see
+https://github.com/nytimes/covid-19-data/blob/master/NEW-YORK-DEATHS-METHODOLOGY.md}.
+The effect of this change can be seen in the sharp {\itshape drop} in
+the cumulative number of deaths on August 6.
 
 The \SSm\  model estimates two random effects and five parameters.
 In principle, all random effects and parameters are estimated
 simultaneously.
-Initial experiments with the model showed that several different
+Initial experiments with the model showed that some
 numerical algorithms used to find the minimum of the log likelihood
 function were unable to reach a solution easily. Minima were reached
 for some counties, but most attempts terminated prematurely. 
@@ -383,7 +391,7 @@ figures~\ref{fig:estsNaNYu} and~\ref{fig:estsMDFLu} and table~\ref{tab:uncons}.
 The \SSm\ model is easily configured with selected parameters fixed at
 constant values. 
 All subsequent analysis focused on models with 
-\slI~$ = 0.223$ and \slD~$= 0.00953$. 
+\slI~$ = 0.223$ and \slD~$= 0.0953$. 
 These standard deviations are equivalent to measurement errors of
 approximately 25\% in reporting cases and 10\% in reporting deaths.
 The algorithm converges to a solution in all cases, and converges
@@ -414,48 +422,43 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 \end{figure}
 
 \label{pp:diagexpl} 
-Diagnostic indicators for the model estimates is plotted
-%(figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc})
-on logarithmic scales both to illustrate the
-lognormal likelihood functions used in the observation model,
-equations (\ref{eqn:logNlike}) and (\ref{eqn:ZIlogNlike}) and to
-illustrate trends in estimated transmission and mortality rates close
-to zero.
-The blue `+' symbols represent the observed cases ($I$) and deaths ($D$).
-The red lines overlaying the symbols are model predictions ($\widehat{I}$)
+The red dots represent the observed cases ($I$) and deaths ($D$).
+The blue lines overlaying the symbols are model predictions ($\widehat{I}$)
 and ($\widehat{D}$) of cases and deaths. 
-%$\sigma_I$ and $\sigma_D$ are the estimated standard deviations of
-%logarithms of cases and deaths in the observation model.
-The shaded areas bounded by red outlines are 
-$\pm 2$ estimated standard deviations, \slI\ and \slD\ in the
-observation model, around the estimated trends.
+The blue shaded areas are 
+$\pm 2$ standard deviations, \slI\ and \slD\ in the
+observation model, around the observed trends in cases and deaths.
+The estimated random effects for transmission and mortality are plotted
+on logarithmic scales both to illustrate the
+lognormal random walks used in characterizing the random effects
+and to illustrate trends in the estimated transmission and mortality
+rates close to zero.
 The solid blue lines in the transmission rate $\ln \beta$ and
 mortality rate $\ln \mu$ diagnostic plots are the estimated
 transmission and death rate random effects.
 The shaded areas bounded by blue outlines are
 estimated random effects $\pm 2$ estimated standard errors of the
 random effect.
-%, \slB\ and \slM, of the generating random walks in the transition model.
-%These areas should not be considered as indicators of the precision
-%of the estimated random effects.
 The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
 medians of the estimated random effects over the time period.
 
 Diagnostic plots for the constrained model are shown in
 figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc}
-for convex downward and convex upward trajectories
-respectively.
+for plateau and upward  bending trajectories respectively.
 Estimated cases and deaths agree well with observation throughout the
-time series because of constraints on the observation model errors.
-Distinct trends in transmission rate estimates are plainly evident for
-the two prevalence patterns. A small, but distict, 
-transitory upward ``bump'' in July is
-evident for the convex downward example, Miami-Dade Co. FL.
-Estimated mortality rates trend generally downward  for both patterns.
+time series and fall cleanly withing the area bounded by the
+constraints on the observation model errors.
+Distinct trends in transmission rate estimates are evident for
+the two prevalence patterns. A small transitory upward ``bump'' in July is
+evident for Miami-Dade Co. FL.
+% and other counties with upward trending trajectories.
+Estimated mortality rates trend generally downward  for both
+prevalence patterns.
 
-\begin{figure}[h!]
+\begin{figure}[!h]
 \begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary_g.pdf}\\
+\includegraphics[height=0.50\textheight]{../Graphics/constrainID/logbeta_summary_g.pdf}\\
+%\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary_g.pdf}\\
 \end{center}
 \caption{\label{fig:xrates}
 Estimated natural logarithms of the transmission rate for thirty two US
@@ -468,31 +471,30 @@ See Table~\ref{tab:namekey} for key to county abbreviations.
 
 Figure~\ref{fig:xrates} compares estimated transmission rate among
 counties.
-Transmission rates increased rapidly immediately after the first
-recorded case, and by early March the instantaneous transmission rate was greater
-than 1\perda\ ($\ln \beta \approx 0$),
+Transmission rates increased rapidly in February and early March for
+counties which reported their first cases earlier in the year.
+By mid March the instantaneous transmission rate
+was greater than 1\perda\ ($\ln \beta \approx 0$) in most counties,
 equivalent to a doubling time of less than one day.
-Beginning in April, transmission rates fell substantially, and doubling times
+Transmission rates fell substantially in April, and doubling times
 increased to longer than 20 days in some counties by late May.
 Counties with estimated transmission rates less than 0.007\perda\ 
 (or $\ln \beta \le 5$) at the end of May
-correspond roughly to those counties with concave downward prevalence
+correspond roughly to those counties with plateau prevalence
 trajectories.
-Figure~\ref{fig:xrates2} is a simplified presentation of estimated
-transmission rate between counties that compare counties with sustainable
-suppression of transmission (Cook Co, IL, Nassau Co, NY) with two counties that
-have suffered a resurgence of cases (Honolulu Co, HI and Miami-Dade Co
+Figure~\ref{fig:xrates2} compares transmission rate between counties
+with plateau prevalence trajectories (Cook Co, IL, Nassau Co, NY) and
+upward  trending trajectories (Honolulu Co, HI and Miami-Dade Co
 FL). The Honolulu example indicates that simply suppressing the
 transmission rate to a point where the doubling time is greater than
-100 days does not ensure a sustainable outcome. The regions encolsed
-by $\pm 2$ standard errors show that estimated transmission rates these four counties
-were similar in April and May, but diverged significantly in June to
-become distinct in August.
+100 days does not ensure a sustainable outcome. The regions enclosed
+by $\pm 2$ standard errors show that estimated transmission rates
+these four counties were similar in April and May, but diverged
+significantly in June to become distinct in August.
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[height=0.40\textheight]{../Graphics/constrainID/logbeta_summary.pdf}\\
-%\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logbeta_summary.pdf}\\
+\includegraphics[height=0.50\textheight]{../Graphics/constrainID/logbeta_summary_4.pdf}\\
 \end{center}
 \caption{\label{fig:xrates2}
 Estimated natural logarithms of the transmission rate for four US
@@ -508,15 +510,14 @@ See Table~\ref{tab:namekey} for key to county abbreviations.
 Figure~\ref{fig:drates} compares estimated mortality rate among
 counties. Initial mortality rates were quite variable during the first
 months of the pandemic and but rose quickly to around 
-0.01\perda\ ($\ln \mu \approx 4.6$) in April. Subsequently the
-estimated mortality rates decreased similarly for all counties and appear to
+0.01\perda\ ($\ln \mu \approx -4.6$) in April. Subsequently the
+estimated mortality rates decreased for all counties and appear to
 have leveled off in August to lows near
 0.0003\perda\ ($\ln \mu \approx -8$) in August.
 
 \begin{figure}
 \begin{center}
-\includegraphics[height=0.40\textheight]{../Graphics/constrainID/logmu_summary_g.pdf}\\
-%\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/logmu_summary_g.pdf}\\
+\includegraphics[height=0.50\textheight]{../Graphics/constrainID/logmu_summary_g.pdf}\\
 \end{center}
 \caption{\label{fig:drates}
 Estimated natural logarithms of the mortality rate for thirty two US
@@ -531,12 +532,13 @@ Nonlinear statistical models with multiple parameters rely
 on numerical methods to estimate parameters by searching for minima
 %(hopefully finding only one) 
 in the negative of the likelihood
-function. The parameter values at the minima are considered to be
+function. The parameter values at the minimum are considered to be
 maximum likelihood estimators.  The minimization algorithms applied to
 unconstrained \SSm\ do not reliably converge to solutions. The
 standard deviations in the observation model are components of the
 likelihood, and the algorithm pushes these parameters toward
-unrealistically low estimates.  Setting the values of
+unrealistically low estimates, see Table~\ref{tab:uncons}.
+Setting the values of
 \slI\ and \slD\ to arbitrarily small constants allows the
 algorithm to estimate the other parameters.
 
@@ -550,8 +552,11 @@ upward, at least briefly, in July (figure~\ref{fig:xrates}). Counties
 that display this upward deflection are also counties that have not
 been successful in controlling spread of the outbreak
 
+
 The incubation time of the Covid-19 virus is generally considered to be
-about 14 days (\cite{Someone2020}).
+about 14 days (\cite{Someone2020}), but infected persons may develop
+symptoms in as few as 5 days after infection \footnote{\url{
+https://www.cdc.gov/coronavirus/2019-ncov/hcp/clinical-guidance-management-patients.html}}.
 The trends in Figure~\ref{fig:xrates} in conjunction with the
 observed trends suggest that sustainable containment of
 the pandemic does not occur unless the instantaneous transmission rate
@@ -612,28 +617,32 @@ MiMA&Middlesex&MA&WaMI&Wayne&MI\\
 \end{table}
 \clearpage
 
-\section{Estimation results}
+\section{Estimation Results}
 
 \begin{table}[!ht]
 \caption{\label{tab:colheads}
+Meaning of column heading in the detailed estimation results tables.
+The ``Median'' row is the median of the column entries over all
+geographies.
 }
-\begin{tabular}{ll}
+%\begin{tabular}{ll}
+\begin{tabularx}{\textwidth}{ l X }
 \hline
-Column Head & Definition\\
+Column & Definition\\
 \hline
-County & County or New York Times ``geography'' name and State\\
+County & New York Times ``geography'' name and State.\\
 $n$ & Number of data points in time series.\\
 $p_0$ &  Proportion of deaths observations equal to zero.\\
-$f$ & Finial likelihood value at termination of minimization
-procedure.\\
+$f$ & Final likelihood value at termination of minimization
+procedure. Lower values of $f$ indicate closer match to the data.\\
 $C$ & Convergence flag. 0 indicates successful convergence to a
-solution; 1 indicates that interation limit has been reach; 10
+solution; 1 indicates that iteration limit has been reached; 10
 indicates degeneracy of simplex in the case of the Nelder-Mead
-algorithm.\\
-$\sigma_\eta$ & Standard deviation of the $I$ and $D$ process errors in the state
-space transition equations (\ref{eqn:sSIRfdI}) and
-(\ref{eqn:sSIRfdI}).\\
-$\sigma_\beta$ & standard deviation of the transmission rate random
+algorithm (\cite{Baudin2010}).\\
+$\sigma_\eta$ & Standard deviation of the $I$ and $D$ process errors
+in the state space transition equations (\ref{eqn:sSIRfdI}) and
+(\ref{eqn:sSIRfdD}).\\
+$\sigma_\beta$ & Standard deviation of the transmission rate random
 walk.\\
 $\sigma_\mu$ & Standard deviation of the mortality rate random walk.\\
 $\sigma_{\ln I}$ & Standard deviation of the cases observation error.\\
@@ -643,7 +652,8 @@ $\tilde{\mu}$ & Median of estimated mortality rate.\\
 $\tilde\gamma$ & Median of computed recovery rate.\\
 \hline
 
-\end{tabular}
+%\end{tabular}
+\end{tabularx}
 
 \end{table}
 
@@ -765,9 +775,9 @@ Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.2020-0
 
 
 \clearpage
-\section{Diagnostic Plots}
 
-\begin{figure}[h!]
+\section{Diagnostic Plots}
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates_a.pdf}
 \end{center}

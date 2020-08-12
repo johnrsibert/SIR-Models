@@ -358,7 +358,7 @@ class Geography:
             fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
                      ha='left',va='bottom', fontsize=8)
     
-            mtime = os.path.getmtime("/home/other/nytimes-covid-19-data/us-counties.csv")
+            mtime = os.path.getmtime(cv.NUY_home+'us-counties.csv')
             dtime = datetime.fromtimestamp(mtime)
             fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
 
@@ -531,9 +531,9 @@ class Fit(Geography):
             ax[0].set_ylabel(prefix+'Cases')
             ax[1].set_ylabel(prefix+'Deaths')
         if (npl > 2):
-            ax[2].set_ylabel(r'$\beta\ (da^{-1})$')
+            ax[2].set_ylabel(r'$\ln\ \beta\ (da^{-1})$')
         if (npl > 3):
-            ax[3].set_ylabel(r'$\mu\ (da^{-1})$')
+            ax[3].set_ylabel(r'$\ln\ \mu\ (da^{-1})$')
     
     
         for a in range(0,len(ax)):
@@ -613,7 +613,6 @@ class Fit(Geography):
             dtick = (end - start)/5
             ax[2].set_yticks(np.arange(start, end, dtick))
 
-
         #   finagle doubling time axis at same scale as beta
             add_doubling_time = False
             if (add_doubling_time):
@@ -622,18 +621,14 @@ class Fit(Geography):
                 dtax.grid(False,axis='y') # omit grid lines
                 dtax.set_ylabel('Doubling Time (da)')
             #   render now to get the tick positions and labels
-                fig.show()
-                fig.canvas.draw()
+            #   fig.show()
+            #   fig.canvas.draw()
                 y2_ticks = dtax.get_yticks()
                 labels = dtax.get_yticklabels()
-                for i in range(0,len(y2_ticks)):
+                labels[0] = ''
+                for i in range(1,len(y2_ticks)):
                     y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
-                    if (y2_ticks[i] < 100.0):
-                       labels[i] = '%.2g'%y2_ticks[i]
-                    elif(y2_ticks[i] < 1000.0):
-                       labels[i] = '>100'
-                    else:
-                       labels[i] = ''
+                    labels[i] = round(float(y2_ticks[i]),2)
                       
                 dtax.tick_params(length=0)
                 dtax.set_yticklabels(labels)
@@ -673,7 +668,7 @@ class Fit(Geography):
             fig.savefig(gfile+'.pdf')#,dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
-            plt.pause(2)
+            plt.pause(3)
             plt.close()
         else:
             plt.show(True)
@@ -732,10 +727,9 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         fit_files = glob.glob(cv.fit_path+'*'+ext)
     #   fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
     else:
-        suffix = ''
+        suffix = '_'+str(len(fit_files))
         for i,ff in enumerate(fit_files):
             fit_files[i] = cv.fit_path+fit_files[i]+ext
-        #   fit_files[i] = cv.fit_path+'constrainID/'+fit_files[i]+ext
     for i,ff in enumerate(fit_files):
         print(i,ff)
         fit = Fit(ff)
@@ -743,13 +737,10 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             fit.make_date_axis(ax)
             ax.set_ylabel(ylabel)
        
-    #   fit.read_nyt_data()
         pdate = []
         Date0 = datetime.strptime(fit.date0,'%Y-%m-%d')
         for t in range(0,len(fit.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
-
-    #   pdate = fit.get_pdate()
 
         yvar = fit.diag[yvarname]
         if (yvarname == 'gamma'):
@@ -757,9 +748,6 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             print(min(yvar),max(yvar))
         ax.plot(pdate,yvar)
 
-    #   aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
-    #   ax.plot((aug1,aug1),ax.get_ylim(),color='black',linewidth=1)
-      
     #   sigma_logbeta is the standard deviation of the generating
     #   random walk, NOT the standard deviation of the estimated
     #   random effect
@@ -769,7 +757,11 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             plot_error(ax,pdate,yvar,fit.diag['SElogbeta'],logscale=True)
 
         sn = short_name(fit.moniker)
-        mark_ends(ax,pdate,yvar,sn,'b')
+        if (yvarname == 'logbeta'):
+            mark_ends(ax,pdate,yvar,sn,'r')
+        else:
+            mark_ends(ax,pdate,yvar,sn,'b')
+
         if (show_medians):
             med = median(np.exp(yvar))
             logmed = np.log(med)
@@ -1108,7 +1100,7 @@ def update_everything():
     make_fit_table()
     make_rate_plots('logbeta',add_doubling_time = True,save=True)
     make_rate_plots('logbeta',add_doubling_time = True,save=True,
-                    fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
+                     fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     print('Finished Everything!')
@@ -1125,9 +1117,9 @@ print('------- here ------')
 #alam.print_data()
 
 #cv.fit_path = cv.fit_path+'constrainID/'
-#tfit = Fit(cv.fit_path+'NassauNY.RData') #'Los Angeles','California','CA','ADMB')
+#tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
-#tfit.plot(save=True,logscale=False)
+#tfit.plot(save=True,logscale=True)
 
 #tfit = Fit(cv.fit_path+'constrainID/'+'NassauNY.RData')
 #tfit.plot(save=True,logscale=False)
@@ -1138,13 +1130,13 @@ print('------- here ------')
 #update_fits()
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
-#cv.fit_path = cv.fit_path+'constrainID/'
+
+cv.fit_path = cv.fit_path+'constrainID/'
 #make_fit_plots()
-cv.fit_path = cv.fit_path+'unconstrained/'
-make_fit_table()
+#make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-#make_rate_plots('logmu',save=True)
+make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 #plot_multi_per_capita(plot_dt=False,save=True)
 
@@ -1156,12 +1148,18 @@ make_fit_table()
 #test.print_metadata()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['NassauNY','Miami-DadeFL','HonoluluHI'])
-#make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
 #get_mu_atD1()
 
+
+#verify anomaly in Nassau County death tally
+#print(cv.NYT_home,cv.dat_path)
+#cv.NYT_home = '/home/jsibert/Downloads/'
+#cv.NYT_counties = cv.NYT_home + 'us-counties.csv'
+#cv.dat_path = cv.NYT_home
+#print(cv.NYT_home,cv.dat_path)
+#test = Geography(name='Nassau',enclosed_by='New York',code='NY')
+#test.read_nyt_data()
+#test.write_dat_file()
