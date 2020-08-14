@@ -53,8 +53,8 @@ map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(1),
-           "logsigma_logD" = as.factor(1)
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -189,8 +189,8 @@ if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
-    do_one_run(County="NassauNY")->fit
-#   do_one_run(County="BrowardFL")->fit
+#   do_one_run(County="NassauNY")->fit
+    do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    dp =paste(dat_path,'*.dat',sep='')

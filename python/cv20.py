@@ -1131,11 +1131,12 @@ print('------- here ------')
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
 
-cv.fit_path = cv.fit_path+'constrainID/'
+#cv.fit_path = cv.fit_path+'constrainID/'
+#update_fits()
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
 make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 #plot_multi_per_capita(plot_dt=False,save=True)

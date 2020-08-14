@@ -111,9 +111,7 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-//  logEye(0) = log_obs_cases(0);
-//  logD(0) = log_obs_deaths(0);
-    gamma[0] = 1e-8;
+    gamma[0] = 0.0; //eps;
     for (int t = 1; t <= ntime; t++)
     {
          // infection rate random walk
@@ -128,8 +126,8 @@ Type objective_function <Type>::operator()()
                          exp(logmu(t-1))))+eps);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
-         gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
-     //  gamma(t) = 1e-8;
+     //  gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
+         gamma(t) = 0.0;
 
          // deaths process error
          Type prevD = exp(logD(t-1));
