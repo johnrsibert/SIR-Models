@@ -6,9 +6,6 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
 \usepackage{tabularx}
-%\usepackage{epsfig}
-%\usepackage{epstopdf}
-%\usepackage[outdir=./]{epstopdf}
 \usepackage{longtable}
 \usepackage{rotating}
 \usepackage{booktabs}
@@ -57,15 +54,15 @@ Honolulu, HI  96822 U.S.A.\\[0.125in]
 
 \begin{abstract}
 A simple compartment model of Covid-19 infections and deaths is
-applied to publicly available data. The model estimates estimates
-trends and transmission
-and mortality rates using random effects. Model estimates of
-infections and deaths match observations closely. Trends in
-estimated transmission rate vary substantially between geographic
+applied to publicly available data. 
+The model estimates trends in transmission and mortality rates using
+random effects.
+Model estimates of infections and deaths match observations closely. 
+Trends in transmission rate vary substantially between geographic
 areas. Transmission rates were suppressed below 0.007\perda\ by the
 end of May in some areas, but rebounded when social constraints
 were relaxed in other areas.
-Mortality rates of individuals infected with Covid-19 fell to less than
+Mortality rates of infected individuals with Covid-19 fell to less than
 0.001\perda\ in most areas by the end of July.
 These results show that publicly available data, often collected and
 compiled with different protocols, can be used to quantitatively
@@ -80,7 +77,7 @@ jurisdictions to advise people to ``shelter in place'' and to practice
 possible to detect the effects of the advice by comparing changes in
 transmission rates over time and between areas. 
 SIR models are often applied to the spread of epidemics and have
-certainly been applied to the current Covid-19 pandemic
+been applied to the current Covid-19 pandemic
 (e.g. \cite{Chen2020,Roques2020}).
 These models divide the affected population into three
 compartments: susceptible (S), Infected (I) and Recovered (R).
@@ -103,8 +100,8 @@ and $\gamma$ is the instantaneous recovery rate ($[t^{-1}]$).
 As the pandemic began to unfold, scientific institutes and governments
 at different levels began to make data publicly available on the
 World Wide Web.
-Data collection protocols vary between institutions and over time. 
-Additionally, few data sets include data for each of
+Data collection protocols vary between institutions and over time, 
+and few data sets include data for each of
 the compartments in a SIR model. 
 The New York Times' ``historical'' 
 data set\footnote{\label{ff:nyt}https://github.com/nytimes/covid-19-data/}
@@ -112,7 +109,7 @@ is an easily accessible source of data and is updated daily. These data
 comprise daily totals of ``cases'' and ``deaths'' for each county
 in the United States. I assume that the data included as ``cases'' are
 a reasonable approximations of the Infected compartment ($I$) in a SIR
-model. There are credible data of comparable scope on
+model. There are no credible data of comparable scope on
 either the Susceptible or the Recovered compartments.
 
 \section*{Model Structure}
@@ -122,7 +119,7 @@ I make some simplifying assumptions in the face of incomplete data:
 Susceptible compartment does not change, 
 $\frac{dS}{dt} = 0 = \frac{dN}{dt}$,
 eliminating the Susceptible compartment.
-(3) People who recover from a Covid-19 infection return to the Susceptible
+(3) People who recover from Covid-19 infections return to the Susceptible
 compartment, eliminating the Recovered compartment. 
 With these assumptions, and with the addition of a ``deaths''
 compartment, the simplified SIR model is
@@ -142,7 +139,7 @@ changed since January of 2020, are continuing to evolve, and can be
 expected to change in the future.
 Reporting protocols also vary between political jurisdictions (or
 ``geographies'' in the parlance of the New York Times).
-Finally, there is additional variability in the biosocial
+Finally, there is additional variability in biosocial
 processes that mediate disease transmission.
 
 I implement the simplified SIR model as a state space-model.
@@ -178,7 +175,7 @@ where $\eta$ is a normal random deviate, $\eta\sim
 N(0,\sigma_\eta)$, representing temporal variability in the biosocial
 factors that mediate the spread of the pandemic. 
 I have no particular justification, beyond the parsimony principle,
-for the assumption that the variance, $\sigma_\eta$, of the processes
+for the assumption that the standard deviaton, $\sigma_\eta$, of the processes
 for $I$ and $D$, should be the same.
 
 The rate constants in the SIR model differential equations (in this
@@ -194,7 +191,7 @@ mortality, $\beta$ and $\mu$, is to treat them as random effects
 series of observations would not yield the same outcome as the initial
 observations. Random effects are also appropriate when observing
 the same process in two different areas. I model the  $\beta$ and
-$\mu$ time series as log-normal random walks. I assume that
+$\mu$ time series as log-normal random walks, and I assume that
 \begin{eqnarray}
 \log\beta_t &=& \log\beta_{t-\Delta t}+\varepsilon;\quad \varepsilon\sim 
 N(0,\sigma_\beta)\\
@@ -206,8 +203,8 @@ ill-determined parameters in fisheries stock assessment models, such
 as time-dependent fishing induced mortality
 (\cite{Nielsen2014b,Sibert2017}).
 The recovery rate, $\gamma$, in the SIR model is a potential model
-parameter, but there are no data with which to constrain it as a model
-parameter. Rather, $\gamma_{t-\Delta t}$, in equation
+parameter, but there are no data with which to constrain it.
+Rather, $\gamma_{t-\Delta t}$, in equation~
 (\ref{eqn:sSIRfdI}) can be set arbitrarily to 0 or computed algebraically as
 \begin{equation}
 \label{eqn:gamma}
@@ -236,12 +233,12 @@ number of cases predicted by equation~(\ref{eqn:sSIRfdI}).
 Not all those afflicted by Covid-19 have died; there are far fewer
 deaths than infections. In addition,
 the observed time series for both $I$ and $D$ begins at the first recorded
-case, i.e. at time $t=0, I_t \ge 1$. The first recorded death occurs
+case, i.e., at time $t=0, I_t \ge 1$. The first recorded death occurs
 several days or weeks after the first recorded case.
 Therefore the deaths time-series inevitably contains a
 substantial number of initial recorded zeros. 
-The observation model for deaths accommodates observed zeroes by
-assuming to be ``zero-inflated'' log normal likelihood given by
+The observation model for deaths is a ``zero-inflated'' log normal
+error to accommodate observed zeroes
 \begin{equation}
 \label{eqn:ZIlogNlike}
   \log \varepsilon_t = \left\{
@@ -335,9 +332,9 @@ was obvious that some areas were more successful than other
 in controlling the spread of the Covid-19 virus.
 Trends in the per-capita number of cases in the thirty most populous 
 counties in the United States are shown in Figure~\ref{fig:percap}.
-These trends form a continuum from those that bend sharply upward,
-\EG Miami-Dade Co. FL (MDFL),  to
-those that appear to reach a plateau, \EG Nassau Co. NY (NaNY). 
+The shapes of these trends form a continuum from those that bend
+sharply upward, \EG Miami-Dade Co FL (MDFL),  to
+those that appear to reach a plateau, \EG Nassau Co NY (NaNY). 
 
 
 \begin{figure}
@@ -351,9 +348,9 @@ those that appear to reach a plateau, \EG Nassau Co. NY (NaNY).
 \end{center}
 }
 \caption{\label{fig:prev}
-Prevalence trajectories for two US counties.
+Prevalence histories for two US counties.
 Blue bars indicate daily increases increases in cases and deaths;
-dark blue lines enclosing the bars indicate 11 day moving averages of
+dark blue lines indicate 11 day moving averages of
 daily increases (labeled ``11da'');
 pale blue lines indicate cumulative numbers of cases and deaths
 (labeled $\Sigma C$ and $\Sigma D$); 
@@ -362,9 +359,10 @@ vertical gray bar marks the March 19, 2020 California shelter in place order.
 \end{figure}
 
 Prevalence histories for counties representative of plateau
-and upward bending trajectories are shown in
+(Nassau Co NY)
+and upward bending (Miami-Dade Co FL) trajectories are shown in
 Figure~\ref{fig:prev}. The 11-day moving averages of the daily
-increases in cases and deaths is a good indicator of the
+increases in cases and deaths is an indicator of the
 relative success in controlling the outbreak.
 The cumulative trends in number of cases is equivalent to 
 the per capita trends in Figure~\ref{fig:percap}.
@@ -404,51 +402,6 @@ approximately 25\% in reporting cases and 10\% in reporting deaths.
 The algorithm converges to a solution in all cases, and converges
 rapidly using gradient methods.
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates_a.pdf}
-\end{center}
-\caption{\label{fig:estsNaNYc}
-Diagnostic plots of model estimates for Nasssau County, NY, 
-with constraints of the observation model variance, 
-\slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See page~\pageref{pp:diagexpl} for explanation of figure.
-}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=1.00\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_estimates_a.pdf}
-\end{center}
-\caption{\label{fig:estsMDFLc}
-Diagnostic plots of model estimates for Miami-Dade County,FL,
-with constraints of the observation model variance, 
-\slI~$ = 0.223$ and \slD~$= 0.00953$. 
-See page~\pageref{pp:diagexpl} for explanation of figure.
-}
-\end{figure}
-
-\label{pp:diagexpl} 
-The red dots represent the observed cases ($I$) and deaths ($D$).
-The blue lines overlaying the symbols are model predictions ($\widehat{I}$)
-and ($\widehat{D}$) of cases and deaths. 
-The blue shaded areas are 
-$\pm 2$ standard deviations, \slI\ and \slD\ in the
-observation model, around the observed trends in cases and deaths.
-The estimated random effects for transmission and mortality are plotted
-on logarithmic scales both to illustrate the
-lognormal random walks used in characterizing the random effects
-and to illustrate trends in the estimated transmission and mortality
-rates close to zero.
-The solid blue lines in the transmission rate $\ln \beta$ and
-mortality rate $\ln \mu$ diagnostic plots are the estimated
-transmission and death rate random effects.
-The shaded areas bounded by blue outlines are
-estimated random effects $\pm 2$ estimated standard errors of the
-random effect.
-The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
-medians of the estimated random effects over the time period.
-
 Diagnostic plots for the constrained model are shown in
 figures~\ref{fig:estsNaNYc} and~ \ref{fig:estsMDFLc}
 for plateau and upward  bending trajectories respectively.
@@ -457,8 +410,8 @@ time series and fall cleanly withing the area bounded by the
 constraints on the observation model errors.
 Distinct trends in transmission rate estimates are evident for
 the two prevalence patterns. A small transitory upward ``bump'' in July is
-evident for Miami-Dade Co. FL.
-In contrast, the estimated transmission rate for Nassau Co. NY trends
+evident for Miami-Dade Co FL.
+In contrast, the estimated transmission rate for Nassau Co NY trends
 downward monotonically. 
 Estimated mortality rates trend generally downward subsequent to an
 initial peak for both prevalence patterns.
@@ -559,17 +512,15 @@ with doubling times reported in newspaper articles at the time.
 The steady decline of transmission rates after shelter-in-place advice is 
 also consistent with casual observation.
 The transmission rates estimated for several counties appear to trend
-upward, at least briefly, in July (figure~\ref{fig:xrates}). Counties
-that display this upward deflection are also counties that have not
-been successful in controlling spread of the outbreak
+upward, at least briefly, in July (figure~\ref{fig:xrates}). 
 
-
-The incubation time of the Covid-19 virus is generally considered to be
-about 14 days (\cite{Someone2020}), but infected persons may develop
+The WHO and the CDO both assert that
+the incubation time of the Covid-19 virus is generally considered to be
+about 14 days but infected persons may develop
 symptoms in as few as 5 days after
-infection\footnote{https://www.cdc.gov/coronavirus/2019-ncov/hcp/clinical-guidance-management-patients.html}.
-The trends in Figure~\ref{fig:xrates} in conjunction with the
-observed trends suggest that sustainable containment of
+infection.\footnote{https://www.cdc.gov/coronavirus/2019-ncov/hcp/clinical-guidance-management-patients.html}
+The trends in Figure~\ref{fig:xrates}
+suggest that sustainable containment of
 the pandemic does not occur unless the instantaneous transmission rate
 is forced below  0.018\perda, that is, unless the doubling
 time is greater than 35 days, approximately three time the incubation
@@ -579,11 +530,39 @@ The magnitude and variability of the mortality rate estimates
 (Figure~\ref{fig:drates})
 at the start of the time series may be a result of variable lags
 between between the first recorded case and the first recorded death.
-The first recorded death in King Co. WA occurred on the second day of
+The first recorded death in King Co WA occurred on the second day of
 the time series when four cases were recorded.
-In contract, the first recorded death in Middlesex Co. MA occurred on
+In comparison, the first recorded death in Middlesex Co MA occurred on
 the sixteenth day of the time series when 177 cases were recorded.
+\cite{Cahill2020} report that values of case mortality
+ratios calculated from the New York Times data decreased from 0.071 in
+March to 0.046 in June in US counties. 
+These mortality rates are 3 orders of magnitude larger than
+estimates of $\mu$ reported here.
 
+The state-space modeling framework enables separation of variability in
+recording numbers of cases and deaths from variability in the
+processes enabling the transmission of the epidemic. 
+The constraints, \slI~$ = 0.223$ and \slD~$= 0.00953$, allow the model
+to converge on credible trends in the transmission and morality rate random
+effects. At the end of the time series, trends in plateau trajectories
+are separated by two standard errors from trends in upward trending
+trajectories. 
+
+The \SSm\ model appears to be a useful aid in
+understanding how social practices in different US counties have
+mediated the spread of the epidemic during its initial phases.
+The model is an oversimplification, however, and is unsuited to modeling what
+has become a long-term problem. Omission of the Recovered
+compartment in the SIR model leaves the recovery rate parameter,
+$\gamma$, required by equation~(\ref{eqn:sSIRfdD}), untethered to
+observation. If the estimates of mortality rates are in fact biased
+downward, addition of the Recovered compartment might lead to
+lower estimates of the infection rate and to higher
+estimates of mortality rates.
+Reliable data reporting the numbers of recovered
+Covid-19 patients would be an invaluable asset for epidemiological
+modeling.
 
 
 \clearpage
@@ -601,7 +580,7 @@ the sixteenth day of the time series when 177 cases were recorded.
 \caption{\label{tab:namekey}
 Key to county name abbreviations. This list of counties includes the
 30 most populous counties in the United States plus Honolulu Co HI and
-Multnomah Co. OR.
+Multnomah Co OR.
 }
 \centering
 \begin{tabular}{lll||lll}
@@ -646,7 +625,7 @@ Column & Definition\\
 County & New York Times ``geography'' name and State.\\
 $n$ & Number of data points in time series.\\
 $p_0$ &  Proportion of deaths observations equal to zero.\\
-$f$ & Final likelihood value at termination of minimization
+$f$ & Likelihood value at termination of minimization
 procedure. Lower values of $f$ indicate closer match to the data.\\
 $C$ & Convergence flag. 0 indicates successful convergence to a
 solution; 1 indicates that iteration limit has been reached; 10
@@ -662,7 +641,7 @@ $\sigma_{\ln I}$ & Standard deviation of the cases observation error.\\
 $\sigma_{\ln D}$ & Standard deviation of the deaths observation error.\\
 $\tilde{\beta}$ & Median of estimated transmission rate.\\
 $\tilde{\mu}$ & Median of estimated mortality rate.\\
-$\tilde\gamma$ & Median of computed recovery rate.\\
+%$\tilde\gamma$ & Median of computed recovery rate.\\
 \hline
 
 %\end{tabular}
@@ -674,113 +653,109 @@ $\tilde\gamma$ & Median of computed recovery rate.\\
 \begin{sidewaystable}
 \caption{\label{tab:uncons}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects
-without constraints on  \slI\ and \slD. 
+without constraints on  \slI\ and \slD\ and $\gamma = 0$.
 Counties sorted in order of increasing median transmission rate ($\tilde\beta$).
-Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.2020-08-10
+Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.
 }
 \centering
 {\scriptsize
 %%%%%%%%%%%%%% :r ../fits/fit_table.tex
 
-\begin{tabular}{lrrrrrrrrrrrr}
+\begin{tabular}{lrrrrrrrrrrr}
 \hline
- County             &   $n$ &   $p_0$ &    $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_{\ln I}$ &   $\sigma_{\ln D}$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ &   $\tilde\gamma$ \\
+ County             &   $n$ &   $p_0$ &   $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_{\ln I}$ &   $\sigma_{\ln D}$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
 \hline
- Nassau, NY         & 157   & 0.0759  & -364   &     0 &          0.137  &           0.254  &         0.357  &              0.223 &             0.0953 &           0.00282 &        0.00018  &       -1.22e-08  \\
- New York City, NY  & 161   & 0.0802  & -333   &     0 &          0.158  &           0.216  &         0.354  &              0.223 &             0.0953 &           0.0047  &        0.000349 &       -2.35e-08  \\
- Wayne, MI          & 152   & 0.0523  & -360   &     0 &          0.137  &           0.226  &         0.161  &              0.223 &             0.0953 &           0.00576 &        0.000792 &       -1.8e-08   \\
- Middlesex, MA      & 157   & 0.101   & -382   &     0 &          0.121  &           0.234  &         0.366  &              0.223 &             0.0953 &           0.00938 &        0.000395 &       -1.25e-08  \\
- Philadelphia, PA   & 152   & 0.098   & -364   &     0 &          0.123  &           0.173  &         0.418  &              0.223 &             0.0953 &           0.00946 &        0.000474 &       -2.42e-08  \\
- Oakland, MI        & 152   & 0.0654  & -356   &     0 &          0.134  &           0.221  &         0.421  &              0.223 &             0.0953 &           0.00979 &        0.000526 &       -1.62e-08  \\
- King, WA           & 163   & 0.0061  & -456   &     0 &          0.124  &           0.231  &         0.336  &              0.223 &             0.0953 &           0.0126  &        0.000418 &       -8.71e-09  \\
- Cook, IL           & 198   & 0.266   & -499   &     0 &          0.0993 &           0.231  &         0.217  &              0.223 &             0.0953 &           0.0204  &        0.000453 &       -2.2e-07   \\
- Franklin, OH       & 148   & 0.0604  & -446   &     0 &          0.0999 &           0.157  &         0.297  &              0.223 &             0.0953 &           0.0207  &        0.000981 &       -1.76e-08  \\
- Alameda, CA        & 161   & 0.136   & -495   &     0 &          0.0791 &           0.131  &         0.244  &              0.223 &             0.0953 &           0.0227  &        0.000459 &       -3.45e-08  \\
- Honolulu, HI       & 156   & 0.159   & -509   &     0 &          0.0712 &           0.222  &         0.455  &              0.223 &             0.0953 &           0.023   &        0.000185 &       -5.15e-08  \\
- Multnomah, OR      & 152   & 0.0261  & -527   &     0 &          0.078  &           0.178  &         0.309  &              0.223 &             0.0953 &           0.0233  &        0.000356 &       -5.06e-08  \\
- Los Angeles, CA    & 196   & 0.228   & -479   &     0 &          0.1    &           0.3    &         0.241  &              0.223 &             0.0953 &           0.0237  &        0.000382 &       -3.45e-07  \\
- Santa Clara, CA    & 191   & 0.198   & -616   &     0 &          0.0697 &           0.232  &         0.27   &              0.223 &             0.0953 &           0.0244  &        0.000351 &       -1.55e-07  \\
- San Diego, CA      & 181   & 0.236   & -457   &     0 &          0.0936 &           0.275  &         0.311  &              0.223 &             0.0953 &           0.0261  &        0.000681 &       -2.62e-07  \\
- Miami-Dade, FL     & 151   & 0.105   & -365   &     0 &          0.13   &           0.197  &         0.201  &              0.223 &             0.0953 &           0.0288  &        0.000475 &       -1.08e-08  \\
- Riverside, CA      & 155   & 0.0577  & -511   &     0 &          0.0882 &           0.138  &         0.18   &              0.223 &             0.0953 &           0.0289  &        0.000785 &       -2.73e-08  \\
- Orange, FL         & 149   & 0.02    & -443   &     0 &          0.0993 &           0.21   &         0.416  &              0.223 &             0.0953 &           0.0292  &        0.000273 &       -1.99e-08  \\
- Palm Beach, FL     & 150   & 0.0662  & -404   &     0 &          0.109  &           0.165  &         0.154  &              0.223 &             0.0953 &           0.0296  &        0.000873 &       -1.55e-08  \\
- Harris, TX         & 157   & 0.0886  & -399   &     0 &          0.1    &           0.193  &         0.321  &              0.223 &             0.0953 &           0.0298  &        0.000327 &       -2.45e-08  \\
- Hennepin, MN       & 150   & 0.0993  & -385   &     0 &          0.111  &           0.204  &         0.394  &              0.223 &             0.0953 &           0.0299  &        0.000789 &       -1.25e-08  \\
- Clark, NV          & 157   & 0.0696  & -463   &     0 &          0.0983 &           0.157  &         0.212  &              0.223 &             0.0953 &           0.0307  &        0.000617 &       -3.3e-08   \\
- Broward, FL        & 156   & 0.0701  & -417   &     0 &          0.105  &           0.168  &         0.437  &              0.223 &             0.0953 &           0.0313  &        0.000399 &       -2.15e-08  \\
- Travis, TX         & 149   & 0.0933  & -385   &     0 &          0.0981 &           0.189  &         0.268  &              0.223 &             0.0953 &           0.0314  &        0.00032  &       -1.74e-08  \\
- Sacramento, CA     & 170   & 0.105   & -605   &     0 &          0.0654 &           0.173  &         0.247  &              0.223 &             0.0953 &           0.0322  &        0.000423 &       -8.02e-08  \\
- Tarrant, TX        & 152   & 0.0654  & -441   &     0 &          0.098  &           0.135  &         0.409  &              0.223 &             0.0953 &           0.0323  &        0.000299 &       -3.12e-08  \\
- Orange, CA         & 197   & 0.303   & -546   &     0 &          0.0755 &           0.231  &         0.261  &              0.223 &             0.0953 &           0.033   &        0.000717 &       -3.73e-07  \\
- Dallas, TX         & 152   & 0.0588  & -414   &     0 &          0.107  &           0.17   &         0.302  &              0.223 &             0.0953 &           0.0332  &        0.000417 &       -1.43e-08  \\
- San Bernardino, CA & 147   & 0.0608  & -433   &     0 &          0.0978 &           0.14   &         0.191  &              0.223 &             0.0953 &           0.0339  &        0.000675 &       -2.06e-08  \\
- Hillsborough, FL   & 161   & 0.154   & -489   &     0 &          0.0796 &           0.187  &         0.222  &              0.223 &             0.0953 &           0.0355  &        0.00059  &       -7.14e-08  \\
- Maricopa, AZ       & 196   & 0.274   & -508   &     0 &          0.0881 &           0.233  &         0.156  &              0.223 &             0.0953 &           0.0407  &        0.00185  &       -4e-07     \\
- Bexar, TX          & 179   & 0.217   & -506   &     0 &          0.0732 &           0.213  &         0.365  &              0.223 &             0.0953 &           0.0442  &        0.000407 &       -7.61e-08  \\
+ Nassau, NY         & 157   & 0.0759  &  -963 &     1 &          0.168  &            0.514 &          0.902 &          1.55e-05  &           0.0422   &           0.00247 &        0.000178 \\
+ New York City, NY  & 161   & 0.0802  & -1060 &     1 &          0.185  &            1.03  &          1.11  &          0.000423  &           0.000328 &           0.00391 &        0.00021  \\
+ Cook, IL           & 198   & 0.266   & -1140 &     1 &          0.102  &            3.92  &          0.97  &          1.49e-07  &           8.46e-05 &           0.00677 &        0.000183 \\
+ Wayne, MI          & 152   & 0.0523  &  -917 &     1 &          0.188  &            1.13  &          1.46  &          0.000788  &           0.000921 &           0.0068  &        0.000321 \\
+ Oakland, MI        & 152   & 0.0654  &  -864 &    10 &          0.18   &            1.52  &          1.09  &          9.42e-07  &           0.00901  &           0.00707 &        0.000392 \\
+ Middlesex, MA      & 157   & 0.101   &  -854 &    10 &          0.164  &            1.32  &          1.03  &          1.02e-06  &           0.0064   &           0.00832 &        0.000322 \\
+ Philadelphia, PA   & 152   & 0.098   &  -788 &     0 &          0.156  &            1.01  &          1.96  &          0.00251   &           0.00368  &           0.00853 &        0.000208 \\
+ King, WA           & 163   & 0.0061  & -1140 &     1 &          0.144  &            0.468 &          0.914 &          0.00202   &           0.00223  &           0.0131  &        0.000401 \\
+ Santa Clara, CA    & 191   & 0.198   & -1130 &     1 &          0.0977 &            2.12  &          1.72  &          1.19e-06  &           0.00331  &           0.0159  &        0.000135 \\
+ Honolulu, HI       & 156   & 0.159   & -1790 &     1 &          0.128  &            1.77  &        583     &          0.000611  &           2.72e-07 &           0.0162  &        1.71e-14 \\
+ Sacramento, CA     & 170   & 0.105   &  -847 &    10 &          0.13   &            3.17  &          2.54  &          5.27e-07  &           0.00418  &           0.0185  &        0.00014  \\
+ Multnomah, OR      & 152   & 0.0261  &  -950 &     1 &          0.116  &            0.894 &          3.47  &          0.00377   &           0.00207  &           0.0226  &        4.91e-05 \\
+ Franklin, OH       & 148   & 0.0604  &  -880 &     1 &          0.121  &            0.461 &          1.37  &          0.00239   &           0.00294  &           0.0227  &        0.000524 \\
+ Los Angeles, CA    & 196   & 0.228   & -1040 &     1 &          0.107  &            1.34  &          1.27  &          1.51e-08  &           0.000135 &           0.0231  &        0.000385 \\
+ Alameda, CA        & 161   & 0.136   &  -800 &     1 &          0.195  &            3.46  &        236     &          5.58e-05  &           4.54e-07 &           0.0235  &        5.48e-10 \\
+ San Diego, CA      & 181   & 0.236   &  -892 &    10 &          0.14   &            0.916 &          0.818 &          5.02e-06  &           0.0158   &           0.0242  &        0.000337 \\
+ Orange, CA         & 197   & 0.303   &  -998 &     1 &          0.0983 &            2.21  &          2.13  &          4.33e-07  &           0.000969 &           0.0251  &        0.000143 \\
+ Hennepin, MN       & 150   & 0.0993  &  -783 &     1 &          0.137  &            0.718 &          1.34  &          0.0049    &           0.00194  &           0.0251  &        0.000441 \\
+ Bexar, TX          & 179   & 0.217   &  -718 &     1 &          0.129  &            2.6   &          3.09  &          0.000386  &           0.00114  &           0.0254  &        7.7e-05  \\
+ Orange, FL         & 149   & 0.02    &  -757 &     0 &          0.117  &            0.67  &          1.06  &          0.00138   &           0.0369   &           0.0259  &        0.000206 \\
+ Tarrant, TX        & 152   & 0.0654  &  -703 &     0 &          0.137  &            1.23  &          1.3   &          0.00863   &           0.00344  &           0.0275  &        0.000269 \\
+ Harris, TX         & 157   & 0.0886  &  -460 &     0 &          0.114  &            0.266 &          0.938 &          0.154     &           0.0213   &           0.0288  &        0.000309 \\
+ Miami-Dade, FL     & 151   & 0.105   &  -774 &     1 &          0.155  &            0.599 &          1.01  &          2.6e-05   &           0.00598  &           0.0292  &        0.000428 \\
+ Hillsborough, FL   & 161   & 0.154   &  -827 &     1 &          0.114  &            3.27  &         10.6   &          2.48e-07  &           4.96e-08 &           0.0299  &        9.47e-05 \\
+ Palm Beach, FL     & 150   & 0.0662  &  -544 &     1 &          0.134  &            0.337 &          1.3   &          0.08      &           0.00566  &           0.0299  &        0.00052  \\
+ Riverside, CA      & 155   & 0.0577  &  -731 &     1 &          0.142  &            0.932 &          3.81  &          0.0105    &           4.12e-05 &           0.0308  &        0.000701 \\
+ Travis, TX         & 149   & 0.0933  &  -449 &    10 &          0.119  &            0.532 &          5.39  &          0.224     &           0.000184 &           0.0312  &        0.000237 \\
+ Clark, NV          & 157   & 0.0696  &  -645 &     1 &          0.118  &            0.4   &          4.19  &          0.0504    &           5.08e-05 &           0.0316  &        0.00032  \\
+ Broward, FL        & 156   & 0.0701  &  -622 &     1 &          0.128  &            0.237 &          1.6   &          0.0732    &           0.00295  &           0.0316  &        0.000267 \\
+ Maricopa, AZ       & 196   & 0.274   &  -823 &    10 &          0.144  &            0.799 &          0.898 &          4.08e-05  &           0.124    &           0.0331  &        0.000863 \\
+ Dallas, TX         & 152   & 0.0588  &  -567 &     0 &          0.128  &            0.303 &          1.28  &          0.0738    &           0.00695  &           0.034   &        0.000328 \\
+ San Bernardino, CA & 147   & 0.0608  &  -568 &    10 &          0.123  &            0.824 &         33.9   &          0.033     &           9.24e-05 &           0.0345  &        0.000186 \\
 \hline
- Median             & 156.5 & 0.09095 & -444.5 &     0 &          0.0993 &           0.2005 &         0.2995 &              0.223 &             0.0953 &           0.02885 &        0.000438 &       -2.435e-08 \\
+ Median             & 156.5 & 0.09095 &  -825 &     1 &          0.1295 &            0.924 &          1.355 &          0.0006995 &           0.002585 &           0.02465 &        0.000268 \\
 \hline
 \end{tabular}
-
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
-
-
 
 
 \begin{sidewaystable}
 \caption{\label{tab:cons}
 Model results. Estimating $\beta$ and $\mu$ trends as random effects with 
-constraints on \slI\  and \slD.
+constraints on \slI\  and \slD\ and $\gamma = 0$.
 Counties sorted in order of increasing median transmission rate ($\tilde\beta$).
-Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.2020-08-10
+Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.
 }
 \centering
 {\scriptsize
 %%%%%%%%%%%%%% :r ../fits/fit_table.tex
 
-\begin{tabular}{lrrrrrrrrrrrr}
+\begin{tabular}{lrrrrrrrrrrr}
 \hline
- County             &   $n$ &   $p_0$ &    $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_{\ln I}$ &   $\sigma_{\ln D}$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ &   $\tilde\gamma$ \\
+ County             &   $n$ &   $p_0$ &    $f$ &   $C$ &   $\sigma_\eta$ &   $\sigma_\beta$ &   $\sigma_\mu$ &   $\sigma_{\ln I}$ &   $\sigma_{\ln D}$ &   $\tilde{\beta}$ &   $\tilde{\mu}$ \\
 \hline
- Nassau, NY         & 157   & 0.0759  & -364   &     0 &          0.137  &           0.254  &         0.357  &              0.223 &             0.0953 &           0.00282 &        0.00018  &       -1.22e-08  \\
- New York City, NY  & 161   & 0.0802  & -333   &     0 &          0.158  &           0.216  &         0.354  &              0.223 &             0.0953 &           0.0047  &        0.000349 &       -2.35e-08  \\
- Wayne, MI          & 152   & 0.0523  & -360   &     0 &          0.137  &           0.226  &         0.161  &              0.223 &             0.0953 &           0.00576 &        0.000792 &       -1.8e-08   \\
- Middlesex, MA      & 157   & 0.101   & -382   &     0 &          0.121  &           0.234  &         0.366  &              0.223 &             0.0953 &           0.00938 &        0.000395 &       -1.25e-08  \\
- Philadelphia, PA   & 152   & 0.098   & -364   &     0 &          0.123  &           0.173  &         0.418  &              0.223 &             0.0953 &           0.00946 &        0.000474 &       -2.42e-08  \\
- Oakland, MI        & 152   & 0.0654  & -356   &     0 &          0.134  &           0.221  &         0.421  &              0.223 &             0.0953 &           0.00979 &        0.000526 &       -1.62e-08  \\
- King, WA           & 163   & 0.0061  & -456   &     0 &          0.124  &           0.231  &         0.336  &              0.223 &             0.0953 &           0.0126  &        0.000418 &       -8.71e-09  \\
- Cook, IL           & 198   & 0.266   & -499   &     0 &          0.0993 &           0.231  &         0.217  &              0.223 &             0.0953 &           0.0204  &        0.000453 &       -2.2e-07   \\
- Franklin, OH       & 148   & 0.0604  & -446   &     0 &          0.0999 &           0.157  &         0.297  &              0.223 &             0.0953 &           0.0207  &        0.000981 &       -1.76e-08  \\
- Alameda, CA        & 161   & 0.136   & -495   &     0 &          0.0791 &           0.131  &         0.244  &              0.223 &             0.0953 &           0.0227  &        0.000459 &       -3.45e-08  \\
- Honolulu, HI       & 156   & 0.159   & -509   &     0 &          0.0712 &           0.222  &         0.455  &              0.223 &             0.0953 &           0.023   &        0.000185 &       -5.15e-08  \\
- Multnomah, OR      & 152   & 0.0261  & -527   &     0 &          0.078  &           0.178  &         0.309  &              0.223 &             0.0953 &           0.0233  &        0.000356 &       -5.06e-08  \\
- Los Angeles, CA    & 196   & 0.228   & -479   &     0 &          0.1    &           0.3    &         0.241  &              0.223 &             0.0953 &           0.0237  &        0.000382 &       -3.45e-07  \\
- Santa Clara, CA    & 191   & 0.198   & -616   &     0 &          0.0697 &           0.232  &         0.27   &              0.223 &             0.0953 &           0.0244  &        0.000351 &       -1.55e-07  \\
- San Diego, CA      & 181   & 0.236   & -457   &     0 &          0.0936 &           0.275  &         0.311  &              0.223 &             0.0953 &           0.0261  &        0.000681 &       -2.62e-07  \\
- Miami-Dade, FL     & 151   & 0.105   & -365   &     0 &          0.13   &           0.197  &         0.201  &              0.223 &             0.0953 &           0.0288  &        0.000475 &       -1.08e-08  \\
- Riverside, CA      & 155   & 0.0577  & -511   &     0 &          0.0882 &           0.138  &         0.18   &              0.223 &             0.0953 &           0.0289  &        0.000785 &       -2.73e-08  \\
- Orange, FL         & 149   & 0.02    & -443   &     0 &          0.0993 &           0.21   &         0.416  &              0.223 &             0.0953 &           0.0292  &        0.000273 &       -1.99e-08  \\
- Palm Beach, FL     & 150   & 0.0662  & -404   &     0 &          0.109  &           0.165  &         0.154  &              0.223 &             0.0953 &           0.0296  &        0.000873 &       -1.55e-08  \\
- Harris, TX         & 157   & 0.0886  & -399   &     0 &          0.1    &           0.193  &         0.321  &              0.223 &             0.0953 &           0.0298  &        0.000327 &       -2.45e-08  \\
- Hennepin, MN       & 150   & 0.0993  & -385   &     0 &          0.111  &           0.204  &         0.394  &              0.223 &             0.0953 &           0.0299  &        0.000789 &       -1.25e-08  \\
- Clark, NV          & 157   & 0.0696  & -463   &     0 &          0.0983 &           0.157  &         0.212  &              0.223 &             0.0953 &           0.0307  &        0.000617 &       -3.3e-08   \\
- Broward, FL        & 156   & 0.0701  & -417   &     0 &          0.105  &           0.168  &         0.437  &              0.223 &             0.0953 &           0.0313  &        0.000399 &       -2.15e-08  \\
- Travis, TX         & 149   & 0.0933  & -385   &     0 &          0.0981 &           0.189  &         0.268  &              0.223 &             0.0953 &           0.0314  &        0.00032  &       -1.74e-08  \\
- Sacramento, CA     & 170   & 0.105   & -605   &     0 &          0.0654 &           0.173  &         0.247  &              0.223 &             0.0953 &           0.0322  &        0.000423 &       -8.02e-08  \\
- Tarrant, TX        & 152   & 0.0654  & -441   &     0 &          0.098  &           0.135  &         0.409  &              0.223 &             0.0953 &           0.0323  &        0.000299 &       -3.12e-08  \\
- Orange, CA         & 197   & 0.303   & -546   &     0 &          0.0755 &           0.231  &         0.261  &              0.223 &             0.0953 &           0.033   &        0.000717 &       -3.73e-07  \\
- Dallas, TX         & 152   & 0.0588  & -414   &     0 &          0.107  &           0.17   &         0.302  &              0.223 &             0.0953 &           0.0332  &        0.000417 &       -1.43e-08  \\
- San Bernardino, CA & 147   & 0.0608  & -433   &     0 &          0.0978 &           0.14   &         0.191  &              0.223 &             0.0953 &           0.0339  &        0.000675 &       -2.06e-08  \\
- Hillsborough, FL   & 161   & 0.154   & -489   &     0 &          0.0796 &           0.187  &         0.222  &              0.223 &             0.0953 &           0.0355  &        0.00059  &       -7.14e-08  \\
- Maricopa, AZ       & 196   & 0.274   & -508   &     0 &          0.0881 &           0.233  &         0.156  &              0.223 &             0.0953 &           0.0407  &        0.00185  &       -4e-07     \\
- Bexar, TX          & 179   & 0.217   & -506   &     0 &          0.0732 &           0.213  &         0.365  &              0.223 &             0.0953 &           0.0442  &        0.000407 &       -7.61e-08  \\
+ Nassau, NY         & 157   & 0.0759  & -364   &     0 &          0.137  &           0.254  &         0.357  &              0.223 &             0.0953 &           0.00282 &        0.00018  \\
+ New York City, NY  & 161   & 0.0802  & -333   &     0 &          0.158  &           0.216  &         0.354  &              0.223 &             0.0953 &           0.0047  &        0.000349 \\
+ Wayne, MI          & 152   & 0.0523  & -360   &     0 &          0.137  &           0.226  &         0.161  &              0.223 &             0.0953 &           0.00576 &        0.000792 \\
+ Middlesex, MA      & 157   & 0.101   & -382   &     0 &          0.121  &           0.234  &         0.366  &              0.223 &             0.0953 &           0.00938 &        0.000395 \\
+ Philadelphia, PA   & 152   & 0.098   & -364   &     0 &          0.123  &           0.173  &         0.418  &              0.223 &             0.0953 &           0.00946 &        0.000474 \\
+ Oakland, MI        & 152   & 0.0654  & -356   &     0 &          0.134  &           0.221  &         0.421  &              0.223 &             0.0953 &           0.00979 &        0.000526 \\
+ King, WA           & 163   & 0.0061  & -456   &     0 &          0.124  &           0.231  &         0.336  &              0.223 &             0.0953 &           0.0126  &        0.000418 \\
+ Cook, IL           & 198   & 0.266   & -499   &     0 &          0.0993 &           0.231  &         0.217  &              0.223 &             0.0953 &           0.0204  &        0.000453 \\
+ Franklin, OH       & 148   & 0.0604  & -446   &     0 &          0.0999 &           0.157  &         0.297  &              0.223 &             0.0953 &           0.0207  &        0.000981 \\
+ Alameda, CA        & 161   & 0.136   & -495   &     0 &          0.0791 &           0.131  &         0.244  &              0.223 &             0.0953 &           0.0227  &        0.000459 \\
+ Honolulu, HI       & 156   & 0.159   & -509   &     0 &          0.0712 &           0.222  &         0.455  &              0.223 &             0.0953 &           0.023   &        0.000185 \\
+ Multnomah, OR      & 152   & 0.0261  & -527   &     0 &          0.078  &           0.178  &         0.309  &              0.223 &             0.0953 &           0.0233  &        0.000356 \\
+ Los Angeles, CA    & 196   & 0.228   & -479   &     0 &          0.1    &           0.3    &         0.241  &              0.223 &             0.0953 &           0.0237  &        0.000382 \\
+ Santa Clara, CA    & 191   & 0.198   & -616   &     0 &          0.0697 &           0.232  &         0.27   &              0.223 &             0.0953 &           0.0244  &        0.000351 \\
+ San Diego, CA      & 181   & 0.236   & -457   &     0 &          0.0936 &           0.275  &         0.311  &              0.223 &             0.0953 &           0.0261  &        0.000681 \\
+ Miami-Dade, FL     & 151   & 0.105   & -365   &     0 &          0.13   &           0.197  &         0.201  &              0.223 &             0.0953 &           0.0288  &        0.000475 \\
+ Riverside, CA      & 155   & 0.0577  & -511   &     0 &          0.0882 &           0.138  &         0.18   &              0.223 &             0.0953 &           0.0289  &        0.000785 \\
+ Orange, FL         & 149   & 0.02    & -443   &     0 &          0.0993 &           0.21   &         0.416  &              0.223 &             0.0953 &           0.0292  &        0.000273 \\
+ Palm Beach, FL     & 150   & 0.0662  & -404   &     0 &          0.109  &           0.165  &         0.154  &              0.223 &             0.0953 &           0.0296  &        0.000873 \\
+ Harris, TX         & 157   & 0.0886  & -399   &     0 &          0.1    &           0.193  &         0.321  &              0.223 &             0.0953 &           0.0298  &        0.000327 \\
+ Hennepin, MN       & 150   & 0.0993  & -385   &     0 &          0.111  &           0.204  &         0.394  &              0.223 &             0.0953 &           0.0299  &        0.000789 \\
+ Clark, NV          & 157   & 0.0696  & -463   &     0 &          0.0983 &           0.157  &         0.212  &              0.223 &             0.0953 &           0.0307  &        0.000617 \\
+ Broward, FL        & 156   & 0.0701  & -417   &     0 &          0.105  &           0.168  &         0.437  &              0.223 &             0.0953 &           0.0313  &        0.000399 \\
+ Travis, TX         & 149   & 0.0933  & -385   &     0 &          0.0981 &           0.189  &         0.268  &              0.223 &             0.0953 &           0.0314  &        0.00032  \\
+ Sacramento, CA     & 170   & 0.105   & -605   &     0 &          0.0654 &           0.173  &         0.247  &              0.223 &             0.0953 &           0.0322  &        0.000423 \\
+ Tarrant, TX        & 152   & 0.0654  & -441   &     0 &          0.098  &           0.135  &         0.409  &              0.223 &             0.0953 &           0.0323  &        0.000299 \\
+ Orange, CA         & 197   & 0.303   & -546   &     0 &          0.0755 &           0.231  &         0.261  &              0.223 &             0.0953 &           0.033   &        0.000717 \\
+ Dallas, TX         & 152   & 0.0588  & -414   &     0 &          0.107  &           0.17   &         0.302  &              0.223 &             0.0953 &           0.0332  &        0.000417 \\
+ San Bernardino, CA & 147   & 0.0608  & -433   &     0 &          0.0978 &           0.14   &         0.191  &              0.223 &             0.0953 &           0.0339  &        0.000675 \\
+ Hillsborough, FL   & 161   & 0.154   & -489   &     0 &          0.0796 &           0.187  &         0.222  &              0.223 &             0.0953 &           0.0355  &        0.00059  \\
+ Maricopa, AZ       & 196   & 0.274   & -508   &     0 &          0.0881 &           0.233  &         0.156  &              0.223 &             0.0953 &           0.0407  &        0.00185  \\
+ Bexar, TX          & 179   & 0.217   & -506   &     0 &          0.0732 &           0.213  &         0.365  &              0.223 &             0.0953 &           0.0442  &        0.000407 \\
 \hline
- Median             & 156.5 & 0.09095 & -444.5 &     0 &          0.0993 &           0.2005 &         0.2995 &              0.223 &             0.0953 &           0.02885 &        0.000438 &       -2.435e-08 \\
+ Median             & 156.5 & 0.09095 & -444.5 &     0 &          0.0993 &           0.2005 &         0.2995 &              0.223 &             0.0953 &           0.02885 &        0.000438 \\
 \hline
 \end{tabular}
-
 
 %%%%%%%%%%%%%%%%
 }\end{sidewaystable}
@@ -790,34 +765,54 @@ Data updated 2020-08-10 from https://github.com/nytimes/covid-19-data.git.2020-0
 \clearpage
 
 \section{Diagnostic Plots}
-\begin{figure}[!ht]
+
+\label{pp:diagexpl} 
+The red dots represent the observed cases ($I$) and deaths ($D$).
+The blue lines overlaying the symbols are model predictions ($\widehat{I}$)
+and ($\widehat{D}$) of cases and deaths. 
+The blue shaded areas are 
+$\pm 2$ standard deviations, \slI\ and \slD\ in the
+observation model, around the observed trends in cases and deaths.
+The estimated random effects for transmission and mortality are plotted
+on logarithmic scales both to illustrate the
+lognormal random walks used in characterizing the random effects
+and to illustrate trends in the estimated transmission and mortality
+rates close to zero.
+The solid blue lines in the transmission rate $\ln \beta$ and
+mortality rate $\ln \mu$ diagnostic plots are the estimated
+transmission and death rate random effects.
+The shaded areas bounded by blue outlines are
+estimated random effects $\pm 2$ estimated standard errors of the
+random effect.
+The red lines labeled $\tilde{\beta}$ and $\tilde{\mu}$ are the
+medians of the estimated random effects over the time period.
+
+
+\begin{figure}
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/NassauNY_TMB_estimates_a.pdf}
 \end{center}
-\caption{\label{fig:estsNaNYca}
+\caption{\label{fig:estsNaNYc}
 Diagnostic plots of model estimates for Nasssau County, NY, 
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-Cases and deaths plotted on arithmetic scale.
 See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
-\clearpage
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/constrainID/Miami-DadeFL_TMB_estimates_a.pdf}
 \end{center}
-\caption{\label{fig:estsMDFLca}
-Diagnostic plots of model estimates for Miami-Dade County, FL
+\caption{\label{fig:estsMDFLc}
+Diagnostic plots of model estimates for Miami-Dade County,FL,
 with constraints of the observation model variance, 
 \slI~$ = 0.223$ and \slD~$= 0.00953$. 
-Cases and deaths plotted on arithmetic scale.
 See page~\pageref{pp:diagexpl} for explanation of figure.
 }
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}
 \begin{center}
 \includegraphics[width=1.00\textwidth]{../Graphics/unconstrained/NassauNY_TMB_estimates.pdf}
 \end{center}
@@ -844,6 +839,8 @@ See page~\pageref{pp:diagexpl} for explanation of figure.
 
 \end{document}
 
+https://coronavirus.jhu.edu/data/mortality
+https://coronavirus.jhu.edu/data/mortality
 
 %An integer code. 0 indicates successful completion (which is always the case for "SANN" and "Brent"). Possible error codes are
 %

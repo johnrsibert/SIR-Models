@@ -826,16 +826,17 @@ def make_fit_table(ext = '.RData'):
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     es_cols = ['logsigma_logP'   , 'logsigma_logbeta'  , 'logsigma_logmu'  ,
-               'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
+               'logsigma_logC','logsigma_logD','mbeta','mmu'] #,'mgamma']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
               '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$','$\\tilde\\gamma$']
+              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
+            #,'$\\tilde\\gamma$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
-    mgamma = pd.DataFrame(columns=['mgamma'])
+#   mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
     sigfigs = 3
@@ -871,11 +872,11 @@ def make_fit_table(ext = '.RData'):
         mbeta = np.append(mbeta,median(beta))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
-        gamma = diag['gamma']
-        mgamma = np.append(mgamma,gamma.quantile(q=0.5))
+    #   gamma = diag['gamma']
+    #   mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
-    tt['mgamma'] = mgamma
+#   tt['mgamma'] = mgamma
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
 
@@ -899,10 +900,10 @@ def make_fit_table(ext = '.RData'):
 
     tex = cv.fit_path+'fit_table.tex'
     ff = open(tex, 'w')
-    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with computed $\gamma$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git."
+    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with $\gamma = 0$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git.\n"
 
     ff.write(caption_text)
-    ff.write(str(dtime.date())+'\n')
+#   ff.write(str(dtime.date())+'\n')
     ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
 #   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
 #               header=header,escape=False,#float_format='{:0.4f}'.format
@@ -1131,13 +1132,13 @@ print('------- here ------')
 #update_shared_plots()
 #plot_multi_per_capita(plot_dt=False,save=True)
 
-#cv.fit_path = cv.fit_path+'constrainID/'
+#cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
 #make_fit_plots()
 #make_fit_table()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-make_rate_plots('logmu',save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+#make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
 #plot_multi_per_capita(plot_dt=False,save=True)
 
