@@ -154,11 +154,16 @@ class Geography:
         print('gdat_file:',self.dat_file)
         print('gupdated:',self.updated)
         print('gdate0:',self.date0)
+        print('gntime:',self.ntime)
 
     def print_data(self):
+        self.get_pdate()
         print('date','cases','deaths','pdate')
         for k in range(0,len(self.date)):
-            print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
+            if (self.deaths != None):
+                print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
+            else:
+                print(self.date[k],self.cases[k],self.pdate[k])
             
     def get_pdate(self):
         if (self.pdate != None):
@@ -216,7 +221,7 @@ class Geography:
         county_filter = dat['county'].isin([self.name])
         County_rows = state_filter & county_filter
         if (len(County_rows) < 1):
-            sys.exit(' * * * no recores fround for',self.name,self.surrounded_by)
+            sys.exit(' * * * no records fround for',self.name,self.surrounded_by)
 
    #    tmp = dat[County_rows]['date'].map(Strptime)
    #    self.pdate  = np.array(mdates.date2num(tmp))
@@ -225,6 +230,7 @@ class Geography:
         self.date   = np.array(dat[County_rows]['date'])
         self.date0 = self.date[0]
         self.ntime = len(self.date)
+        self.source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
         
     def write_dat_file(self):
         print(len(self.date),'records found for',self.name,self.enclosed_by)
@@ -239,6 +245,38 @@ class Geography:
         O.write('#%6s %5s\n'%('cases','deaths'))
         for r in range(0,len(self.date)):
             O.write('%7d %6d\n'%(self.cases[r],self.deaths[r]))
+
+    def read_BCHA_data(self,gtype='hsa'):
+        self.gtype = gtype
+        cspath = cv.BCHA_path
+
+        dat = pd.read_csv(cspath,header=0)
+
+        mtime = os.path.getmtime(cspath)
+        dtime = datetime.fromtimestamp(mtime)
+        self.updated = str(dtime.date())
+        self.population = None
+        self.source = 'British Columbia Centre for Disease Control'
+        #             'www.bccdc.ca/Health-Info-Site/Documents/' 
+
+        rdates = pd.DatetimeIndex(dat["Reported_Date"],normalize=True)
+        self.date = pd.date_range(rdates[0],rdates[len(rdates)-1],normalize=True,freq='D')
+        self.date = self.date.strftime('%Y-%m-%d')
+        self.date0 = self.date[0]
+        self.ntime = len(self.date)
+
+        daily_cases = pd.Series([0]*self.ntime)
+
+        HA_filter = dat["HA"].isin([self.name])
+
+        for i in range(0,len(self.date)):
+            date_mask = dat["Reported_Date"].isin([self.date[i]])
+            mask = HA_filter & date_mask
+            daily_cases[i] = len(dat[mask.values])
+
+        self.cases = daily_cases.cumsum()
+        
+
 
     def dow_count(self,mult = 1000.0):
         """
@@ -358,7 +396,7 @@ class Geography:
             fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
                      ha='left',va='bottom', fontsize=8)
     
-            mtime = os.path.getmtime(cv.NUY_home+'us-counties.csv')
+            mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
             dtime = datetime.fromtimestamp(mtime)
             fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
 
@@ -1130,7 +1168,8 @@ print('------- here ------')
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
-#plot_multi_per_capita(plot_dt=False,save=True)
+#plot
+
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
@@ -1165,3 +1204,9 @@ print('------- here ------')
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test.read_nyt_data()
 #test.write_dat_file()
+#web_update()
+BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+BCtest.read_BCHA_data()
+BCtest.print_metadata()
+#BCtest.get_pdate()
+BCtest.plot_prevalence(save=False,signature=True)

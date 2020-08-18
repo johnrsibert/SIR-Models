@@ -24,6 +24,8 @@ dat_path = cv_home + 'dat/'
 graphics_path = cv_home + 'Graphics/'
 TMB_path = cv_home + 'TMB/'
 
+BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
+
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-08-31','%Y-%m-%d')
