@@ -256,8 +256,9 @@ class Geography:
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
         self.population = None
-        self.source = 'British Columbia Centre for Disease Control'
-        #             'www.bccdc.ca/Health-Info-Site/Documents/' 
+   #    self.source = 'British Columbia Centre for Disease Control'\
+        self.source = 'Government of British Columbia'\
+                      ' www.bccdc.ca/Health-Info-Site/Documents/' 
 
         rdates = pd.DatetimeIndex(dat["Reported_Date"],normalize=True)
         self.date = pd.date_range(rdates[0],rdates[len(rdates)-1],normalize=True,freq='D')
@@ -323,18 +324,30 @@ class Geography:
         firstDate = mdates.date2num(cv.FirstNYTDate)
         orderDate = mdates.date2num(cv.CAOrderDate)
         lastDate  = mdates.date2num(cv.EndOfTime)
+
+        if (self.deaths is None):
+            nax = 1
+        else:
+            nax = 2
     
-        fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
+        fig, pax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
+        ax = [None]*2
+        if (nax == 1):
+            ax[0] = pax
+        else:
+            ax=pax
+
         if (per_capita):
             ax[0].set_ylabel('Daily Cases'+' per '+str(mult))
-            ax[1].set_ylabel('Daily Deaths'+' per '+str(mult))
+            if (nax > 1):
+                ax[1].set_ylabel('Daily Deaths'+' per '+str(mult))
         else:
             ax[0].set_ylabel('Daily Cases')
-            ax[1].set_ylabel('Daily Deaths')
-    
+            if (nax > 1):
+                ax[1].set_ylabel('Daily Deaths')
     
         ax2 = []
-        for a in range(0,len(ax)):
+        for a in range(0,nax):
             self.make_date_axis(ax[a])
 
             ax[a].set_yscale(yscale)
@@ -343,8 +356,11 @@ class Geography:
         
         if (per_capita):
             cases =  mult*self.cases/self.population + eps
-            deaths =  mult*self.deaths/self.population + eps
-        else :
+            if (nax > 1):
+                deaths =  mult*self.deaths/self.population + eps
+            else:
+                deaths =  self.deaths
+        else:
             cases  =  self.cases
             deaths =  self.deaths
         
@@ -369,17 +385,18 @@ class Geography:
         if ((yscale == 'log') & (plot_dt)):
             ax[0] = self.plot_dtslopes(ax[0])
                 
-        ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-        mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
+        if (nax > 1):
+            ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
+            mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
 
-        delta_deaths = np.diff(deaths)
-        ax[1].bar(Date[1:],delta_deaths)
-        for w in range(0,len(window)):
-            add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
-            ax[1].plot(Date[1:],add,linewidth=2)
-            mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
+            delta_deaths = np.diff(deaths)
+            ax[1].bar(Date[1:],delta_deaths)
+            for w in range(0,len(window)):
+                add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
+                ax[1].plot(Date[1:],add,linewidth=2)
+                mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
     
-        for a in range(0,len(ax)):
+        for a in range(0,nax):
         #   Adjust length of y axis
             ax[a].set_ylim(0,ax[a].get_ylim()[1])
             if (delta_ts):
@@ -391,9 +408,13 @@ class Geography:
         #   ax[a].legend()
     
         if (annotation):
-            title = 'Covid-19 Prevalence in '+self.name+' County, '+ self.enclosed_by
+            if (self.gtype == 'county'):
+                gname = 'County'
+            else:
+                gname = 'Region'
+            title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+ self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
-            fig.text(0.0,0.0,' Data source: New York Times, https://github.com/nytimes/covid-19-data.git.',
+            fig.text(0.0,0.0,' Data source: '+ self.source ,
                      ha='left',va='bottom', fontsize=8)
     
             mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
@@ -1049,6 +1070,10 @@ def update_shared_plots():
         tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(signature = True, save=True)
 
+    tmpG = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+    tmpG.read_BCHA_data()
+    tmpG.plot_prevalence(save=True,signature=True)
+
     cv.graphics_path = save_path
 
 def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
@@ -1167,8 +1192,7 @@ print('------- here ------')
 #web_update()
 #make_dat_files()
 #update_fits()
-#update_shared_plots()
-#plot
+update_shared_plots()
 
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
@@ -1203,10 +1227,12 @@ print('------- here ------')
 #print(cv.NYT_home,cv.dat_path)
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test.read_nyt_data()
+#test.plot_prevalence(save=False,signature=True)
 #test.write_dat_file()
+
 #web_update()
-BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-BCtest.read_BCHA_data()
-BCtest.print_metadata()
+#BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+#BCtest.read_BCHA_data()
+#BCtest.print_metadata()
 #BCtest.get_pdate()
-BCtest.plot_prevalence(save=False,signature=True)
+#BCtest.plot_prevalence(save=True,signature=True)
