@@ -732,7 +732,45 @@ class Fit(Geography):
         else:
             plt.show(True)
 
+    def plot_CMR(self, save = True):
+        npl = 3
+        fig, ax = plt.subplots(npl,1,figsize=(9.0,(npl)*3.0))
+        ax[0].set_ylabel('Empirical CMR')
+        ax[1].set_ylabel('Estimated CMR')
+        ax[2].set_ylabel(r'$\mu\ (da^{-1})$')
+ 
+        for a in range(0,len(ax)):
+            self.make_date_axis(ax[a])
+    
+        Date0 = self.get_metadata_item('Date0')
+        Date0 = datetime.strptime(Date0,'%Y-%m-%d')
+        pdate = []
+        for t in range(0,len(self.diag.index)):
+            pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
+        
+    #   self.get_pdate()
+        obsI = self.diag['obs_cases']
+        obsD = self.diag['obs_deaths']
+        obsCMR = obsD/obsI
+        estI = np.exp(self.diag['log_pred_cases'])
+        estD = np.exp(self.diag['log_pred_deaths'])
+        estCMR = estD/estI 
+        mu   = np.exp(self.diag['logmu'])
 
+        ax[0].plot(pdate,obsCMR)
+        ax[1].set_ylim(ax[0].get_ylim())
+        ax[1].plot(pdate,estCMR)
+        ax[2].plot(pdate,mu)
+
+        fig.text(0.5,0.95,'Case Mortality Ratio' ,ha='center',va='bottom')
+        if (save):
+            gfile = cv.graphics_path+self.moniker+'_CMR.pdf'
+            fig.savefig(gfile)
+            plt.show(False)
+            print('plot saved as',gfile)
+            plt.pause(3)
+        else:
+            plt.show()
 
 # ----------- end of class definitions--------------       
 
@@ -1186,13 +1224,14 @@ print('------- here ------')
 #tfit.plot(save=True,logscale=True)
 
 #tfit = Fit(cv.fit_path+'constrainID/'+'NassauNY.RData')
+#tfit.plot_CMR()
 #tfit.plot(save=True,logscale=False)
 
 #update_everything()
 #web_update()
 #make_dat_files()
 #update_fits()
-update_shared_plots()
+#update_shared_plots()
 
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
