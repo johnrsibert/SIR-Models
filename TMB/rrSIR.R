@@ -2,7 +2,7 @@ SIR_path = '/home/jsibert/Projects/SIR-Models/'
 fit_path = paste(SIR_path,'fits/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
-source(paste(TMB_path,'plot_state.R',sep=''))
+source(paste(TMB_path,'plot_rrSIR.R',sep=''))
 source(paste(TMB_path,'SIR_read_dat.R',sep=''))
 source(paste(TMB_path,'fit_to_df.R',sep=''))
 require(TMB)
@@ -25,7 +25,7 @@ data=dat$data
 print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
-#data$log_obs_deaths = log(data$obs_deaths+eps)
+data$log_obs_deaths = log(data$obs_deaths+eps)
 print("-data:")
 print(data)
 
@@ -43,10 +43,10 @@ init = list(
     logprop_immune = 1.0,
 
     logsigma_logC = log(log(1.25)),
-#   logsigma_logD = log(log(1.1)),
+    logsigma_logD = log(log(1.1)),
 
     logbeta = log(0.05),
-    loggamma = log(0.05),
+    loggamma = log(eps), #log(0.05),
     logmu = log(0.05)
 )
 print("--init parameter values:")
@@ -66,7 +66,7 @@ par = list(
     logprop_immune = init$logprop_immune,
 
     logsigma_logC = init$logsigma_logC,
-#   logsigma_logD = init$logsigma_logD,
+    logsigma_logD = init$logsigma_logD,
 
     logbeta = rep(init$logbeta,(data$ntime+1)),
     loggamma    = rep(init$loggamma,data$ntime+1),
@@ -78,17 +78,17 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(1),
+           "logsigma_loggamma" = as.factor(NA),
            "logsigma_logmu" = as.factor(1),
 
            "logbias_logbeta" = as.factor(NA),
            "logbias_loggamma" = as.factor(NA),
-           "logbias_logmu" = as.factor(NA),
+           "logbias_logmu" = as.factor(1),
 
            "logprop_immune" = as.factor(NA),
 
-           "logsigma_logC" = as.factor(NA)
-#          "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -119,7 +119,9 @@ print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
 print(paste("Objective function value =",opt$value))
 print(paste("Convergence ",opt$convergence))
-print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
+print(paste("Number of parameters = ",length(opt$
+
+par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print(exp(opt$par))
@@ -129,15 +131,17 @@ print(paste("median logbeta:",mlogbeta))
 mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
 
+fit = list(dat=data,map=map,par=par,obj=obj,opt=opt,init=init,
+           model.name=model.name)
 if (do.plot){
     x11()
-    plot.log.state(data,par,obj,opt,map,np=4)
+#   plot.log.state(data,par,obj,opt,map,np=4)
+    plot.log.state(fit)
     dev.file = paste(fit_path,data$county,'.pdf',sep='')
     dev.copy2pdf(file=dev.file,width=6.5,height=6)
     dev.off()
 }
 
-fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init)
 #rd.file = paste(fit_path,data$county,'.RData',sep='')
 #save.fit(data,obj,opt,map,init,rd.file)
 #save.fit(fit,file=data$county)#   rd.file) #"t.RData")
@@ -153,7 +157,7 @@ if (nrun < 2) {
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY")->fit
-    do_one_run(County="BrowardFL",do.plot=FALSE)->fit
+    do_one_run(County="BrowardFL",do.plot=TRUE)->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    dp =paste(dat_path,'*.dat',sep='')

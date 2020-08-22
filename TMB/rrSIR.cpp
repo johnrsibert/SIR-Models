@@ -20,7 +20,7 @@ Type NLerr(Type logobs, Type logpred, Type var)
     return nll;
 }
 
-/*
+
 // zero-inflated log-normal error
 template <class Type>
 Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
@@ -37,7 +37,7 @@ Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
     }
     return nll;
 }
-*/
+
 
 template < class Type > Type isNaN(Type x, const int line)
 {
@@ -56,8 +56,11 @@ Type objective_function <Type>::operator()()
 
     DATA_SCALAR(N0)
     DATA_INTEGER(ntime)
-    DATA_VECTOR(log_obs_cases)
+    DATA_VECTOR(obs_cases)
     DATA_VECTOR(obs_deaths)
+    DATA_SCALAR(prop_zero_deaths)
+    DATA_VECTOR(log_obs_cases)
+    DATA_VECTOR(log_obs_deaths)
 
 
     PARAMETER(logsigma_logP);          // SIR process error
@@ -73,7 +76,7 @@ Type objective_function <Type>::operator()()
     PARAMETER(logprop_immune);         // proprtion of infected recovered who are immune
 
     PARAMETER(logsigma_logC);          // cases observation error
-//  PARAMETER(logsigma_logD);          // deaths observation error
+    PARAMETER(logsigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
@@ -91,12 +94,14 @@ Type objective_function <Type>::operator()()
 
     Type bias_logbeta = exp(logbias_logbeta); 
     Type bias_logmu = exp(logbias_logmu); 
+//  TTRACE(bias_logbeta,bias_logmu)
     Type bias_loggamma = exp(logbias_loggamma); 
     Type prop_immune = exp(prop_immune);
+//  TTRACE(bias_loggamma,prop_immune)
 
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
-//  Type sigma_logD = exp(logsigma_logD);
+    Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
@@ -104,7 +109,7 @@ Type objective_function <Type>::operator()()
     Type var_logP = square(sigma_logP);
 
     Type var_logC = square(sigma_logC);
-//  Type var_logD = square(sigma_logD);
+    Type var_logD = square(sigma_logD);
 
     Type f = 0.0;
     Type betanll = 0.0;
@@ -117,6 +122,7 @@ Type objective_function <Type>::operator()()
     //  loop over time
     logS[0] = log(N0);
     logEye[0] = eps;
+    logD[0] = eps;
     logR[0] = eps;
     for (int t = 1; t <= ntime; t++)
     {
@@ -133,11 +139,11 @@ Type objective_function <Type>::operator()()
          Type beta = exp(logbeta(t-1));
          Type gamma = exp(loggamma(t-1));
          Type mu = exp(logmu(t-1));
-         Type S = exp(logS(t-1));
+         Type S   = exp(logS(t-1));
          Type Eye = exp(logEye(t-1));
-         Type R = exp(logR(t-1));
-         Type N = S + Eye + R;
-         Type D = exp(logD(t-1));
+         Type R   = exp(logR(t-1));
+         Type N   = S + Eye + R;
+         Type D   = exp(logD(t-1));
          Type bison = beta * Eye * S/N;
 
          // susceptible process error
@@ -157,6 +163,7 @@ Type objective_function <Type>::operator()()
 
          // deaths process error
          Type deltaD = mu*Eye;
+//       TTRACE(D,deltaD)
          logD(t) = log(D + deltaD);
          Pnll += isNaN(NLerr(logD(t-1), logD(t), var_logP),__LINE__);
 
@@ -167,15 +174,17 @@ Type objective_function <Type>::operator()()
      {   
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
 
-     //  temp = -(tobs*log(tpred) - tpred - FACT.log_factorial((int)tobs));
      //  dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
-         dnll += isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
+     //  temp = -(tobs*log(tpred) - tpred - FACT.log_factorial((int)tobs));
+         dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
      }
 
      // total likelihood
      f += isNaN((betanll + munll + gammanll + Pnll + cnll + dnll),__LINE__);
 
+     REPORT(logS)
      REPORT(logEye)
+     REPORT(logR)
      REPORT(logD)
      REPORT(logbeta)
      REPORT(loggamma)
@@ -185,6 +194,9 @@ Type objective_function <Type>::operator()()
      REPORT(sigma_logbeta);
      REPORT(sigma_loggamma);
      REPORT(sigma_logmu);
+     REPORT(bias_logbeta);
+     REPORT(bias_loggamma);
+     REPORT(bias_logmu);
 
      REPORT(f);
      REPORT(betanll);
