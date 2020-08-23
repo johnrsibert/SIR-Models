@@ -36,9 +36,9 @@ init = list(
     logsigma_loggamma = 0.2,
     logsigma_logmu = 0.2, #log(2.0),
 
-    logbias_logbeta = 0.0,
-    logbias_loggamma = 0.0,
-    logbias_logmu = 0.0,
+    bias_logbeta = 0.0,
+    bias_loggamma = 0.0,
+    bias_logmu = 0.0,
 
     logprop_immune = 1.0,
 
@@ -59,9 +59,9 @@ par = list(
     logsigma_loggamma = init$logsigma_loggamma,
     logsigma_logmu = init$logsigma_logmu,
 
-    logbias_logbeta = init$logbias_logbeta,
-    logbias_loggamma = init$logbias_loggamma,
-    logbias_logmu = init$logbias_logmu,
+    bias_logbeta = init$bias_logbeta,
+    bias_loggamma = init$bias_loggamma,
+    bias_logmu = init$bias_logmu,
 
     logprop_immune = init$logprop_immune,
 
@@ -78,12 +78,12 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(NA),
+           "logsigma_loggamma" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
-           "logbias_logbeta" = as.factor(NA),
-           "logbias_loggamma" = as.factor(NA),
-           "logbias_logmu" = as.factor(1),
+           "bias_logbeta" = as.factor(NA),
+           "bias_loggamma" = as.factor(NA),
+           "bias_logmu" = as.factor(1),
 
            "logprop_immune" = as.factor(NA),
 
@@ -112,8 +112,8 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-#opt = nlminb(obj$par,obj$fn,obj$gr)
-opt = optim(obj$par,obj$fn,obj$gr)
+opt = nlminb(obj$par,obj$fn,obj$gr)
+#opt = optim(obj$par,obj$fn,obj$gr)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -153,11 +153,13 @@ return(fit)
 
 nrun = 1
 if (nrun < 2) {
+#   sink('test.log', type = c("output", "message"))
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
-#   do_one_run(County="NassauNY")->fit
-    do_one_run(County="BrowardFL",do.plot=TRUE)->fit
+    do_one_run(County="NassauNY",do.plot=TRUE)->fit
+#   do_one_run(County="BrowardFL",do.plot=TRUE)->fit
+#   sink()
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    dp =paste(dat_path,'*.dat',sep='')

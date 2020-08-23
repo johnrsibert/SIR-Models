@@ -69,9 +69,9 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_loggamma);      // gamma randomwalk sd
     PARAMETER(logsigma_logmu);         // mu randomwalk sd
 
-    PARAMETER(logbias_logbeta);        // beta random walk bias
-    PARAMETER(logbias_loggamma);       // gamma randomwalk bias
-    PARAMETER(logbias_logmu);          // mu randomwalk bias
+    PARAMETER(bias_logbeta);        // beta random walk bias
+    PARAMETER(bias_loggamma);       // gamma randomwalk bias
+    PARAMETER(bias_logmu);          // mu randomwalk bias
 
     PARAMETER(logprop_immune);         // proprtion of infected recovered who are immune
 
@@ -92,11 +92,11 @@ Type objective_function <Type>::operator()()
     Type sigma_logmu = exp(logsigma_logmu); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
 
-    Type bias_logbeta = exp(logbias_logbeta); 
-    Type bias_logmu = exp(logbias_logmu); 
+    //Type bias_logbeta = exp(logbias_logbeta); 
+    //Type bias_logmu = exp(logbias_logmu); 
 //  TTRACE(bias_logbeta,bias_logmu)
-    Type bias_loggamma = exp(logbias_loggamma); 
-    Type prop_immune = exp(prop_immune);
+    //Type bias_loggamma = exp(logbias_loggamma); 
+    Type prop_immune = exp(logprop_immune);
 //  TTRACE(bias_loggamma,prop_immune)
 
     Type sigma_logP = exp(logsigma_logP);
@@ -148,23 +148,23 @@ Type objective_function <Type>::operator()()
 
          // susceptible process error
          Type deltaS = -bison + (1.0-prop_immune)*gamma*Eye;
-         logS(t) = log(S + deltaS);
+         logS(t) = isNaN(log(S + deltaS),__LINE__);
          Pnll += isNaN(NLerr(logS(t-1), logS(t), var_logP),__LINE__);
 
          // cases process error
          Type deltaEye = bison - mu*Eye - gamma*Eye;
-         logEye(t) = log(Eye + deltaEye);
+         logEye(t) = isNaN(log(Eye + deltaEye),__LINE__);
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
 
          // recovered process error
          Type deltaR = prop_immune*gamma*Eye;
-         logR(t) = log(R+deltaR);
+         logR(t) = isNaN(log(R+deltaR),__LINE__);
          Pnll += isNaN(NLerr(logR(t-1), logR(t),var_logP),__LINE__);
 
          // deaths process error
          Type deltaD = mu*Eye;
 //       TTRACE(D,deltaD)
-         logD(t) = log(D + deltaD);
+         logD(t) = isNaN(log(D + deltaD),__LINE__);
          Pnll += isNaN(NLerr(logD(t-1), logD(t), var_logP),__LINE__);
 
      }
