@@ -193,7 +193,6 @@ Type objective_function <Type>::operator()()
              Pnll += square(deltaR);
              TTRACE(nextR,deltaR)
          }
-         Pnll += isNaN(NLerr(logR(t-1), logR(t),var_logP),__LINE__);
 
          // deaths process error
          Type deltaD = mu*Eye;

@@ -36,17 +36,17 @@ init = list(
     logsigma_loggamma = 0.2,
     logsigma_logmu = -1.2, #0.2,
 
-    logbias_logbeta = -0.01,
-    logbias_loggamma = -0.01,
-    logbias_logmu = -0.01,
+    logbias_logbeta = 0.0,
+    logbias_loggamma = 0.0,
+    logbias_logmu = 0.0,
 
-    logprop_immune = 1.0,
+    logprop_immune = log(1.0),
 
     logsigma_logC = log(log(1.25)),
 #   logsigma_logD = log(log(1.1)),
 
     logbeta = log(0.05),
-    loggamma = log(0.05),
+    loggamma = log(eps),
     logmu = log(0.05)
 )
 print("--init parameter values:")
@@ -76,7 +76,7 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "loggamma" = rep(as.factor(NA),data$ntime+1),
+#          "loggamma" = rep(as.factor(NA),data$ntime+1),
 
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
@@ -126,6 +126,7 @@ print(paste("Number of parameters = ",length(opt$
 par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
+print("exp(parameters):",quote=FALSE)
 print(exp(opt$par))
 
 mlogbeta = median(obj$report()$logbeta)
