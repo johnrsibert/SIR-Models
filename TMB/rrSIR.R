@@ -30,23 +30,23 @@ print("-data:")
 print(data)
 
 init = list(
-    logsigma_logP = log(0.2),
+    logsigma_logP = log(0.1),
 
-    logsigma_logbeta = 0.4, #log(0.7),
+    logsigma_logbeta = -1.5, #0.4,
     logsigma_loggamma = 0.2,
-    logsigma_logmu = 0.2, #log(2.0),
+    logsigma_logmu = -1.2, #0.2,
 
-    bias_logbeta = 0.0,
-    bias_loggamma = 0.0,
-    bias_logmu = 0.0,
+    logbias_logbeta = -0.01,
+    logbias_loggamma = -0.01,
+    logbias_logmu = -0.01,
 
     logprop_immune = 1.0,
 
     logsigma_logC = log(log(1.25)),
-    logsigma_logD = log(log(1.1)),
+#   logsigma_logD = log(log(1.1)),
 
     logbeta = log(0.05),
-    loggamma = log(eps), #log(0.05),
+    loggamma = log(0.05),
     logmu = log(0.05)
 )
 print("--init parameter values:")
@@ -59,14 +59,14 @@ par = list(
     logsigma_loggamma = init$logsigma_loggamma,
     logsigma_logmu = init$logsigma_logmu,
 
-    bias_logbeta = init$bias_logbeta,
-    bias_loggamma = init$bias_loggamma,
-    bias_logmu = init$bias_logmu,
+    logbias_logbeta = init$logbias_logbeta,
+    logbias_loggamma = init$logbias_loggamma,
+    logbias_logmu = init$logbias_logmu,
 
     logprop_immune = init$logprop_immune,
 
     logsigma_logC = init$logsigma_logC,
-    logsigma_logD = init$logsigma_logD,
+#   logsigma_logD = init$logsigma_logD,
 
     logbeta = rep(init$logbeta,(data$ntime+1)),
     loggamma    = rep(init$loggamma,data$ntime+1),
@@ -76,19 +76,21 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
+           "loggamma" = rep(as.factor(NA),data$ntime+1),
+
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(1),
+           "logsigma_loggamma" = as.factor(NA),
            "logsigma_logmu" = as.factor(1),
 
-           "bias_logbeta" = as.factor(NA),
-           "bias_loggamma" = as.factor(NA),
-           "bias_logmu" = as.factor(1),
+           "logbias_logbeta" = as.factor(1),
+           "logbias_loggamma" = as.factor(NA),
+           "logbias_logmu" = as.factor(1),
 
            "logprop_immune" = as.factor(NA),
 
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(NA)
+#          "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -116,8 +118,8 @@ opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr)
 
 print("Done minimization-----------------------------",quote=FALSE)
-print(paste("Objective function value =",opt$objective))
-print(paste("Objective function value =",opt$value))
+print(paste("Function objective =",opt$objective))
+print(paste("Function value =",opt$value))
 print(paste("Convergence ",opt$convergence))
 print(paste("Number of parameters = ",length(opt$
 
@@ -131,15 +133,29 @@ print(paste("median logbeta:",mlogbeta))
 mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
 
+#print('data')
+#print(data)
+#print('map')
+#print(map)
+#print('par')
+#print(par)
+#print('obj')
+#print(obj)
+#print('opt')
+#print(opt)
+#print('init')
+#print(init)
+#print(model.name)
+
 fit = list(dat=data,map=map,par=par,obj=obj,opt=opt,init=init,
            model.name=model.name)
 if (do.plot){
-    x11()
+#   x11()
 #   plot.log.state(data,par,obj,opt,map,np=4)
     plot.log.state(fit)
-    dev.file = paste(fit_path,data$county,'.pdf',sep='')
-    dev.copy2pdf(file=dev.file,width=6.5,height=6)
-    dev.off()
+#   dev.file = paste(fit_path,data$county,'.pdf',sep='')
+#   dev.copy2pdf(file=dev.file,width=6.5,height=6)
+#   dev.off()
 }
 
 #rd.file = paste(fit_path,data$county,'.RData',sep='')
@@ -148,7 +164,7 @@ if (do.plot){
 
 return(fit)
 
-} # do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
+} # do_one_run = function(County = ...)
 
 
 nrun = 1
@@ -157,8 +173,8 @@ if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
-    do_one_run(County="NassauNY",do.plot=TRUE)->fit
-#   do_one_run(County="BrowardFL",do.plot=TRUE)->fit
+#   do_one_run(County="NassauNY",do.plot=TRUE)->fit
+    do_one_run(County="BrowardFL",do.plot=TRUE)->fit
 #   sink()
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))

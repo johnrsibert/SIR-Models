@@ -20,7 +20,7 @@ Type NLerr(Type logobs, Type logpred, Type var)
     return nll;
 }
 
-
+/*
 // zero-inflated log-normal error
 template <class Type>
 Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
@@ -37,7 +37,7 @@ Type ZILNerr(Type logobs, Type logpred, Type var, Type prop0 = 0.15)
     }
     return nll;
 }
-
+*/
 
 template < class Type > Type isNaN(Type x, const int line)
 {
@@ -69,14 +69,14 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_loggamma);      // gamma randomwalk sd
     PARAMETER(logsigma_logmu);         // mu randomwalk sd
 
-    PARAMETER(bias_logbeta);        // beta random walk bias
-    PARAMETER(bias_loggamma);       // gamma randomwalk bias
-    PARAMETER(bias_logmu);          // mu randomwalk bias
+    PARAMETER(logbias_logbeta);        // beta random walk bias
+    PARAMETER(logbias_loggamma);       // gamma randomwalk bias
+    PARAMETER(logbias_logmu);          // mu randomwalk bias
 
     PARAMETER(logprop_immune);         // proprtion of infected recovered who are immune
 
     PARAMETER(logsigma_logC);          // cases observation error
-    PARAMETER(logsigma_logD);          // deaths observation error
+//  PARAMETER(logsigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
@@ -92,16 +92,17 @@ Type objective_function <Type>::operator()()
     Type sigma_logmu = exp(logsigma_logmu); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
 
-    //Type bias_logbeta = exp(logbias_logbeta); 
-    //Type bias_logmu = exp(logbias_logmu); 
+    Type bias_logbeta = exp(logbias_logbeta); 
+    TTRACE(logbias_logbeta,bias_logbeta)
+    Type bias_logmu = exp(logbias_logmu); 
 //  TTRACE(bias_logbeta,bias_logmu)
-    //Type bias_loggamma = exp(logbias_loggamma); 
+    Type bias_loggamma = exp(logbias_loggamma); 
     Type prop_immune = exp(logprop_immune);
 //  TTRACE(bias_loggamma,prop_immune)
 
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
-    Type sigma_logD = exp(logsigma_logD);
+//  Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
@@ -109,7 +110,7 @@ Type objective_function <Type>::operator()()
     Type var_logP = square(sigma_logP);
 
     Type var_logC = square(sigma_logC);
-    Type var_logD = square(sigma_logD);
+//  Type var_logD = square(sigma_logD);
 
     Type f = 0.0;
     Type betanll = 0.0;
@@ -127,13 +128,14 @@ Type objective_function <Type>::operator()()
     for (int t = 1; t <= ntime; t++)
     {
          // infection rate random walk
-         betanll += isNaN(NLerr(logbeta(t-1)+bias_logbeta,logbeta(t),var_logbeta),__LINE__);
+         betanll += isNaN(NLerr(logbeta(t-1)*bias_logbeta,logbeta(t),var_logbeta),__LINE__);
+
 
          // mortality rate random walk
-         munll += isNaN(NLerr(logmu(t-1)+bias_logmu,logmu(t),var_logmu),__LINE__);
+         munll += isNaN(NLerr(logmu(t-1)*bias_logmu,logmu(t),var_logmu),__LINE__);
 
-         // mortality rate random walk
-         gammanll += isNaN(NLerr(loggamma(t-1)+bias_loggamma,loggamma(t),var_loggamma),__LINE__);
+         // recovery rate random walk
+         gammanll += isNaN(NLerr(loggamma(t-1)*bias_loggamma,loggamma(t),var_loggamma),__LINE__);
 
          // compute process error likelihood
          Type beta = exp(logbeta(t-1));
@@ -148,17 +150,49 @@ Type objective_function <Type>::operator()()
 
          // susceptible process error
          Type deltaS = -bison + (1.0-prop_immune)*gamma*Eye;
-         logS(t) = isNaN(log(S + deltaS),__LINE__);
-         Pnll += isNaN(NLerr(logS(t-1), logS(t), var_logP),__LINE__);
+         //logS(t) = isNaN(log(S + deltaS),__LINE__);
+         Type nextS = S + deltaS;
+         if (nextS > 0.0)
+         {
+             logS(t) = log(nextS);
+             Pnll += isNaN(NLerr(logS(t-1), logS(t), var_logP),__LINE__);
+         }
+         else
+         {
+             Pnll += square(deltaS);
+             TTRACE(nextS,deltaS)
+         }
 
          // cases process error
          Type deltaEye = bison - mu*Eye - gamma*Eye;
-         logEye(t) = isNaN(log(Eye + deltaEye),__LINE__);
-         Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
+         //logEye(t) = isNaN(log(Eye + deltaEye),__LINE__);
+         Type nextEye = Eye + deltaEye;
+         if (nextEye > 0.0)
+         {
+             logEye(t) = log(nextEye);
+             Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
+         }
+         else
+         {
+             Pnll += square(deltaEye);
+             TTRACE(nextEye,deltaEye)
+         }
+
 
          // recovered process error
          Type deltaR = prop_immune*gamma*Eye;
-         logR(t) = isNaN(log(R+deltaR),__LINE__);
+         //logR(t) = isNaN(log(R+deltaR),__LINE__);
+         Type nextR = R + deltaR;
+         if (nextR > 0.0)
+         {
+             logR(t) = log(nextR);
+             Pnll += isNaN(NLerr(logR(t-1), logR(t),var_logP),__LINE__);
+         }
+         else
+         {
+             Pnll += square(deltaR);
+             TTRACE(nextR,deltaR)
+         }
          Pnll += isNaN(NLerr(logR(t-1), logR(t),var_logP),__LINE__);
 
          // deaths process error

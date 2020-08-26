@@ -77,8 +77,8 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-#opt = nlminb(obj$par,obj$fn,obj$gr)
-opt = optim(obj$par,obj$fn,obj$gr)
+opt = nlminb(obj$par,obj$fn,obj$gr)
+#opt = optim(obj$par,obj$fn,obj$gr)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Objective function value =",opt$objective))
@@ -94,6 +94,8 @@ print(paste("median logbeta:",mlogbeta))
 mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
 
+fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init,
+           model.name=model.name)
 if (do.plot){
     x11()
     plot.log.state(data,par,obj,opt,map,np=4)
@@ -102,7 +104,6 @@ if (do.plot){
     dev.off()
 }
 
-fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init)
 #rd.file = paste(fit_path,data$county,'.RData',sep='')
 #save.fit(data,obj,opt,map,init,rd.file)
 save.fit(fit,file=data$county)#   rd.file) #"t.RData")
