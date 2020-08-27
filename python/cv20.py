@@ -774,6 +774,59 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
+def plot_DC(Gfile='top30.csv'):
+
+    def plot_cmr(a, rr=[2.0]):
+        for r in rr:
+            rstr = str(r)
+            xr = [0.0]*2
+            yr = [0.0]*2
+            for i in range(0,len(yr)):
+                xr[i] = a.get_xlim()[i]
+                yr[i] = xr[i]*r/100.0
+            a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
+            mark_ends(a,xr,yr,rstr,'r')
+
+
+
+    print('Reading:',cv.cv_home+Gfile)
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
+    print('Finished reading:',cv.cv_home+Gfile)
+    print(gg.columns)
+
+    plt.rcParams["scatter.marker"] = '.'
+    plt.rcParams["lines.markersize"] = 3
+    fig, ax = plt.subplots(2,figsize=(6.5,9.0))
+
+    for a in ax:
+        a.set_yscale('log')
+        a.set_ylabel('Deaths')
+        a.set_ylim(1,1e5)
+        a.set_xscale('log')
+        a.set_xlabel('Cases')
+        a.set_xlim(10,1e6)
+
+    ct = []
+    dt = []
+    print(len(gg))
+    for g in range(0,len(gg)):
+        print(g,gg['name'][g])
+        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
+                         code=gg['code'][g])
+        tmpG.read_nyt_data('county')
+        ax[0].scatter(tmpG.cases,tmpG.deaths)
+        nt = len(tmpG.cases)-1
+        ct.append(tmpG.cases[nt])
+        dt.append(tmpG.deaths[nt])
+
+    plot_cmr(ax[0], [0.5,1.0,2.0,4.0,8.0])
+
+    ax[1].scatter(ct,dt)
+    plot_cmr(ax[1], [0.5,1.0,2.0,4.0,8.0])
+    plt.show()
+
+
+
 def get_mu_atD1(ext='.RData',fit_files = []):
     if (len(fit_files) < 1):
         fit_files = glob.glob(cv.fit_path+'*'+ext)
@@ -1275,3 +1328,5 @@ print('------- here ------')
 #BCtest.print_metadata()
 #BCtest.get_pdate()
 #BCtest.plot_prevalence(save=True,signature=True)
+
+plot_DC(Gfile='top500.csv')
