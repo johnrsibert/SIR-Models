@@ -158,7 +158,10 @@ class Geography:
 
     def print_data(self):
         self.get_pdate()
-        print('date','cases','deaths','pdate')
+        if (self.deaths != None):
+            print('date','cases','deaths','pdate')
+        else:
+            print('date','cases','pdate')
         for k in range(0,len(self.date)):
             if (self.deaths != None):
                 print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
@@ -189,7 +192,13 @@ class Geography:
         if (self.name == 'New York City'):
             return(nyc_pop)
 
-        dat = pd.read_csv(cv.census_data_path,header=0)
+        dat = pd.read_csv(cv.census_data_path,header=0)#, encoding = "ISO-8859-1")
+
+    #   get rid of Parish county designation in census data
+        ccnames = dat['county']
+        ccnames = ccnames.str.replace(' Parish', '', regex = True)
+        dat['county'] = ccnames
+
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
         COUNTY_filter = (dat['COUNTY']>0)
@@ -262,16 +271,19 @@ class Geography:
 
         rdates = pd.DatetimeIndex(dat["Reported_Date"],normalize=True)
         self.date = pd.date_range(rdates[0],rdates[len(rdates)-1],normalize=True,freq='D')
-        self.date = self.date.strftime('%Y-%m-%d')
+        self.date = self.date.strftime('%Y-%m-%d') # NYT style
         self.date0 = self.date[0]
         self.ntime = len(self.date)
+        self.get_pdate()
+
 
         daily_cases = pd.Series([0]*self.ntime)
 
         HA_filter = dat["HA"].isin([self.name])
-
+        dat["rep_date"] = rdates
         for i in range(0,len(self.date)):
-            date_mask = dat["Reported_Date"].isin([self.date[i]])
+        #   date_mask = dat["Reported_Date"].isin([self.date[i]])
+            date_mask = dat["rep_date"].isin([self.date[i]])
             mask = HA_filter & date_mask
             daily_cases[i] = len(dat[mask.values])
 
@@ -774,7 +786,7 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
-def plot_DC(Gfile='top30.csv'):
+def plot_DC(Gfile='top30.csv',save=True):
 
     def plot_cmr(a, rr=[2.0]):
         for r in rr:
@@ -787,28 +799,39 @@ def plot_DC(Gfile='top30.csv'):
             a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
             mark_ends(a,xr,yr,rstr,'r')
 
-
-
     print('Reading:',cv.cv_home+Gfile)
-    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#',
+                     encoding = "ISO-8859-1")
     print('Finished reading:',cv.cv_home+Gfile)
     print(gg.columns)
 
     plt.rcParams["scatter.marker"] = '.'
     plt.rcParams["lines.markersize"] = 3
-    fig, ax = plt.subplots(2,figsize=(6.5,9.0))
+    nplot = 3
+    fig, ax = plt.subplots(nplot,figsize=(6.5,9.0))
 
-    for a in ax:
-        a.set_yscale('log')
-        a.set_ylabel('Deaths')
-        a.set_ylim(1,1e5)
-        a.set_xscale('log')
-        a.set_xlabel('Cases')
-        a.set_xlim(10,1e6)
+    for i in range(0,2):
+        ax[i].set_yscale('log')
+        ax[i].set_ylabel('Deaths')
+        ax[i].set_ylim(1,1e5)
+        ax[i].set_xscale('log')
+        ax[i].set_xlabel('Cases')
+        ax[i].set_xlim(10,1e6)
+
+
+#   if (nplot > 2):
+#      i = 2
+#      ax[i].set_yscale('log')
+#      ax[i].set_ylim(0.0025,0.16)
+#      ax[i].set_ylabel('Fatality/Cases')
+#      ax[i].set_xscale('log')
+#      ax[i].set_xlabel('Cases')
+#      ax[i].set_xlim(10,1e6)
 
     ct = []
     dt = []
-    print(len(gg))
+    ft = []
+    print('Processing',len(gg),'geographies')
     for g in range(0,len(gg)):
         print(g,gg['name'][g])
         tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
@@ -818,12 +841,49 @@ def plot_DC(Gfile='top30.csv'):
         nt = len(tmpG.cases)-1
         ct.append(tmpG.cases[nt])
         dt.append(tmpG.deaths[nt])
+        ft.append(tmpG.deaths[nt]/tmpG.cases[nt])
+        if (nplot > 2):
+           ratio = tmpG.deaths/tmpG.cases
+           ax[2].scatter(tmpG.cases,ratio,color='blue',alpha=0.2)
+
+    if (nplot > 2):
+#       ax[2].plot(ax[2].get_xlim(),(0.02,0.02),color='0.5',alpha=0.5)
+        cmr = np.array(ft)
+        print(len(cmr))
+        print(cmr)
+        print(cmr.min(),cmr.max())
+    #   cmrbins=np.array([0.0,0.5,1.0,2.0,4.0,8.0,16.0])/100.0
+    #   print(cmrbins)
+        ax[2].hist(cmr,50)
+    #   ax[2].set_xscale('log')
+        ax[2].set_xlim(0.0,0.1)
+        ax[2].set_xlabel('Case Fatality Ratio')
+        ax[2].set_ylabel('Number')
+        np.savetxt('cfr'+str(len(cmr))+'.txt',cmr, delimiter= ' ') 
+       # savetxt("foo.csv", a, delimiter=",")e
 
     plot_cmr(ax[0], [0.5,1.0,2.0,4.0,8.0])
 
+    logxlim = np.log(ax[0].get_xlim())
+    tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
+    logylim = np.log(ax[0].get_ylim())
+    ty = np.exp(logylim[0]+0.9*(logylim[1]-logylim[0]))
+    ax[0].text(tx,ty,' n = '+str(len(gg)),ha='left',va='center')
+
     ax[1].scatter(ct,dt)
     plot_cmr(ax[1], [0.5,1.0,2.0,4.0,8.0])
-    plt.show()
+    ax[1].text(tx,ty,' n = '+str(len(gg)),ha='left',va='center')
+
+    if save:
+        gfile = cv.graphics_path+'CFR_'+str(len(gg))+'.png'
+        plt.savefig(gfile,dpi=300)
+        plt.show(False)
+        plt.pause(5)
+            
+        print('Plot saved as',gfile)
+    else:
+        plt.show()
+
 
 
 
@@ -1326,7 +1386,21 @@ print('------- here ------')
 #BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #BCtest.read_BCHA_data()
 #BCtest.print_metadata()
-#BCtest.get_pdate()
+#BCtest.print_data()
 #BCtest.plot_prevalence(save=True,signature=True)
 
-plot_DC(Gfile='top500.csv')
+#plot_DC(Gfile='top500.csv')
+
+from scipy.stats import lognorm
+cfr = np.array(pd.read_csv('cfr500.txt'))
+print(cfr)
+print(len(cfr))
+fig, ax = plt.subplots(1,figsize=(6.5,6.5))
+ax.hist(cfr,50)
+s = 0.15
+mean, var, skew, kurt = lognorm.stats(s, moments='mvsk')
+print(mean, var, skew, kurt)
+rv = lognorm(s)
+
+ax.plot(cfr, rv.pdf(cfr),color='red')
+plt.show()
