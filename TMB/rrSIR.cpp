@@ -82,6 +82,9 @@ Type objective_function <Type>::operator()()
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
     PARAMETER_VECTOR(logmu);           // mortality rate of infection population
 
+    PARAMETER(priorloggamma);
+    PARAMETER(sigma_priorloggamma);
+
     // state variables
     vector <Type> logS(ntime+1);      // number of Suscectibles
     vector <Type> logEye(ntime+1);    // number of Infections
@@ -93,7 +96,7 @@ Type objective_function <Type>::operator()()
     Type sigma_loggamma = exp(logsigma_loggamma); 
 
     Type bias_logbeta = exp(logbias_logbeta); 
-    TTRACE(logbias_logbeta,bias_logbeta)
+//  TTRACE(logbias_logbeta,bias_logbeta)
     Type bias_logmu = exp(logbias_logmu); 
 //  TTRACE(bias_logbeta,bias_logmu)
     Type bias_loggamma = exp(logbias_loggamma); 
@@ -112,6 +115,8 @@ Type objective_function <Type>::operator()()
     Type var_logC = square(sigma_logC);
 //  Type var_logD = square(sigma_logD);
 
+    Type var_priorloggamma = square(sigma_priorloggamma);
+
     Type f = 0.0;
     Type betanll = 0.0;
     Type munll = 0.0;
@@ -119,6 +124,7 @@ Type objective_function <Type>::operator()()
     Type Pnll = 0.0;
     Type cnll = 0.0;
     Type dnll = 0.0;
+    Type pgammanll = 0.0;
 
     //  loop over time
     logS[0] = log(N0);
@@ -136,6 +142,8 @@ Type objective_function <Type>::operator()()
 
          // recovery rate random walk
          gammanll += isNaN(NLerr(loggamma(t-1)*bias_loggamma,loggamma(t),var_loggamma),__LINE__);
+
+         pgammanll += isNaN(NLerr(loggamma(t-1),priorloggamma,var_priorloggamma),__LINE__);
 
          // compute process error likelihood
          Type beta = exp(logbeta(t-1));
@@ -212,8 +220,10 @@ Type objective_function <Type>::operator()()
          dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
      }
 
+//   pmunll += isNaN(NLerr(logmu(ntime),priorlogmu,var_priorlogmu),__LINE__);
+
      // total likelihood
-     f += isNaN((betanll + munll + gammanll + Pnll + cnll + dnll),__LINE__);
+     f += isNaN((betanll + munll + gammanll + Pnll + cnll + dnll + pgammanll),__LINE__);
 
      REPORT(logS)
      REPORT(logEye)
@@ -238,6 +248,7 @@ Type objective_function <Type>::operator()()
      REPORT(Pnll);
      REPORT(cnll);
      REPORT(dnll);
+     REPORT(pgammanll);
 
      return isNaN(f,__LINE__);
 }

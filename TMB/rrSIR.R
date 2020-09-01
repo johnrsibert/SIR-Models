@@ -46,8 +46,11 @@ init = list(
 #   logsigma_logD = log(log(1.1)),
 
     logbeta = log(0.05),
-    loggamma = log(eps),
-    logmu = log(0.05)
+    loggamma = log(0.9),
+    logmu = -3.8, #log(0.05),
+
+    priorloggamma = log(0.9),
+    sigma_priorloggamma = 0.8
 )
 print("--init parameter values:")
 print(init)
@@ -70,7 +73,10 @@ par = list(
 
     logbeta = rep(init$logbeta,(data$ntime+1)),
     loggamma    = rep(init$loggamma,data$ntime+1),
-    logmu    = rep(init$logmu,data$ntime+1)
+    logmu    = rep(init$logmu,data$ntime+1),
+
+    priorloggamma = init$priorloggamma,
+    sigma_priorloggamma = init$sigma_priorloggamma
 )
 print(paste("---initial model parameters: ", length(par)))
 print(par)
@@ -89,8 +95,12 @@ map = list(
 
            "logprop_immune" = as.factor(NA),
 
-           "logsigma_logC" = as.factor(NA)
-#          "logsigma_logD" = as.factor(NA)
+           "logsigma_logC" = as.factor(NA),
+#          "logsigma_logD" = as.factor(NA),
+
+           
+            "priorloggamma" = as.factor(NA),
+            "sigma_priorloggamma" = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -172,10 +182,10 @@ nrun = 1
 if (nrun < 2) {
 #   sink('test.log', type = c("output", "message"))
 #   do_one_run(County="Los_AngelesCA")->fit
-#   do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY",do.plot=TRUE)->fit
-    do_one_run(County="BrowardFL",do.plot=TRUE)->fit
+#   do_one_run(County="BrowardFL",do.plot=TRUE)->fit
 #   sink()
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
