@@ -47,25 +47,42 @@ plot.log.state = function(fit) #,np=5)
     x11(width=width,height=height,title=title)#,xpos=100)
 
     old.par = par(no.readonly = TRUE) 
-    par(mar=c(2.0,4.0,0.5,0.5)+0.1)
+    par(mar=c(2.0,4.0,0.5,0.5)+0.1) #,oma = c(5,4,0,0) + 0.1)#mfcol=c(3,2),
  
     note.color='blue'
     point.symb = '+'
 
     lm = layout(matrix(c(1:8),ncol=2,byrow=FALSE))
     layout.show(lm)
+#   mtext(title,outer=TRUE,side=1)
+
 
     tt = seq(0,(length(dat$log_obs_cases)-1))
     ttext = 0.1*(length(dat$log_obs_cases)-1)
-    ylim=c(0.0,1.2*max(dat$log_obs_cases,obj$report()$logEye))
-    plot(tt,dat$log_obs_cases,ylab='ln cases,',ylim=ylim, pch=point.symb)
+
+    poplim = c(0.0,1.2*log(dat$N0)) #range(obj$report()$logS)
+    plot(tt,obj$report()$logS,ylab='ln S',ylim=poplim)#, pch=point.symb)
+#   err = SElogS
+#   logspace.plot.error(tt,obj$report()$logS,err)
+    gmlogS = median(obj$report()$logS)
+    abline(h=gmlogS,lty='dashed')
+
+#   ylim=c(0.0,1.2*max(dat$log_obs_cases,obj$report()$logEye))
+    plot(tt,dat$log_obs_cases,ylab='ln cases,',ylim=poplim, pch=point.symb)
     lines(tt,obj$report()$logEye,col='red')
     err = exp(get.error(par,opt,map,'logsigma_logC'))
     plot.error(tt,obj$report()$logEye,err)
-    ytext = make.ytext(ylim,0.9)
+    ytext = make.ytext(poplim,0.9)
     note = paste('sigma_logC ~',sprintf("%.5g",err))
     text(ttext,ytext,note,col=note.color,pos=4)
 #   title(main=title,sub='sub')
+
+#   ylim = range(obj$report()$logR)
+    plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, pch=point.symb)
+#   err = SElogR
+#   logspace.plot.error(tt,obj$report()$logR,err)
+    gmlogR = median(obj$report()$logR)
+    abline(h=gmlogR,lty='dashed')
 
     ylim=c(0.0,1.2*max(dat$log_obs_deaths,obj$report()$logD))
     plot(tt,log(dat$obs_deaths),ylab='ln deaths',ylim=ylim,pch=point.symb)
@@ -73,8 +90,14 @@ plot.log.state = function(fit) #,np=5)
     err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
     plot.error(tt,obj$report()$logD,err)
 
+#   rlim = c(0.8*min(unlist(obj$report()['logbeta'],obj$report()['logmu'],obj$report()['loggamma'])),
+#            1.2*max(unlist(obj$report()['logbeta'],obj$report()['logmu'],obj$report()['loggamma'])))
+    rlim = c(-9.0,1.0)
+#   print('rlim:')
+#   print(rlim)
+
     ylim = range(obj$report()$logbeta)
-    plot(tt,obj$report()$logbeta,ylab='ln beta',pch=point.symb)
+    plot(tt,obj$report()$logbeta,ylab='ln beta',ylim=rlim,pch=point.symb)
     ttext = 0.95*(length(dat$log_obs_cases)-1)
     ytext = make.ytext(ylim,0.9)
     text(ttext,ytext,bias.note("bias_logbeta"),col=note.color,pos=2) 
@@ -84,7 +107,8 @@ plot.log.state = function(fit) #,np=5)
     abline(h=gmlogbeta,lty='dashed')
  
     ylim = range(obj$report()$logmu)
-    plot(tt,obj$report()$logmu,ylab='ln mu',ylim=ylim, pch=point.symb)
+    print(ylim)
+    plot(tt,obj$report()$logmu,ylab='ln mu',ylim=rlim, pch=point.symb)
     ttext = 0.95*(length(dat$log_obs_cases)-1)
     ytext = make.ytext(ylim,0.9)
     text(ttext,ytext,bias.note("bias_logmu"),col=note.color,pos=2) 
@@ -93,23 +117,9 @@ plot.log.state = function(fit) #,np=5)
     gmlogmu = median(obj$report()$logmu)
     abline(h=gmlogmu,lty='dashed')
 
-    ylim = c(0.0,log(dat$N0)) #range(obj$report()$logS)
-    plot(tt,obj$report()$logS,ylab='ln S',ylim=ylim)#, pch=point.symb)
-#   err = SElogS
-#   logspace.plot.error(tt,obj$report()$logS,err)
-    gmlogS = median(obj$report()$logS)
-    abline(h=gmlogS,lty='dashed')
-
-    ylim = range(obj$report()$logR)
-    plot(tt,obj$report()$logR,ylab='ln R',ylim=ylim, pch=point.symb)
-#   err = SElogR
-#   logspace.plot.error(tt,obj$report()$logR,err)
-    gmlogR = median(obj$report()$logR)
-    abline(h=gmlogR,lty='dashed')
-
     ylim = range(obj$report()$loggamma)
-#   print(ylim)
-    plot(tt,obj$report()$loggamma,ylab='ln gamma',ylim=ylim, pch=point.symb)
+    print(ylim)
+    plot(tt,obj$report()$loggamma,ylab='ln gamma',ylim=rlim, pch=point.symb)
     ttext = 0.95*(length(dat$log_obs_cases)-1)
     ytext = make.ytext(ylim,0.9)
     text(ttext,ytext,bias.note("bias_loggamma"),col=note.color,pos=2) 
@@ -118,9 +128,12 @@ plot.log.state = function(fit) #,np=5)
     gmloggamma = median(obj$report()$loggamma)
     abline(h=gmloggamma,lty='dashed')
 
-    print(dev.cur())
-    dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
-    print(dev.cur())
+#   plot.new()
+#   mtext(title,outer=FALSE)
+
+#   print(dev.cur())
+#   dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
+#   print(dev.cur())
 
     par(old.par)
     detach(fit)
