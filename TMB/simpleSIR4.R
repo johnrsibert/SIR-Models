@@ -185,13 +185,13 @@ fit_examples = list(
 "AlamedaCA"
 )
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
-#   do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY")->fit
-    do_one_run(County="BrowardFL")->fit
+#   do_one_run(County="BrowardFL")->fit
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
    dp =paste(dat_path,'*.dat',sep='')

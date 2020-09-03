@@ -20,7 +20,7 @@ import js_covid as cv
 
 print('----------'+os.getcwd())
 #fit=pyreadr.read_r('NassauNY.RData')
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/NassauNY.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/AlamedaCA.RData')
 
 print('keys',fit.keys())
 diag = fit['diag']
@@ -45,6 +45,7 @@ print(like)
 
 ests = fit['ests']
 print('ests:',ests)
+print('exp(ests)[ests]:')
 print(np.exp(ests['est']))
 
 #rs = est['names'].isin(['logmu'])
