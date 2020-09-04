@@ -32,5 +32,5 @@ EndOfTime = datetime.strptime('2020-09-15','%Y-%m-%d')
 
 # "temporary" workaround issue with pyreadr.read_r(...)
 # reading TMB standard error objects
-pyreadr_kludge = True
+pyreadr_kludge = False
 

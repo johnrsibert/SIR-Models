@@ -4,7 +4,7 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     attach(fit)
 
     sdr = sdreport(obj)
-    SElogbeta = as.vector(as.list(sdr,"Std. Error")$logbeta,mode='numeric')
+    SElogbeta = as.list(sdr,"Std. Error")$logbeta
     SElogmu   = as.list(sdr,"Std. Error")$logmu
     print(head(SElogbeta))
     print(typeof(SElogbeta))
@@ -13,7 +13,7 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     print(length(SElogbeta))
     print(length(data$obs_cases))
 
-    diag = data.frame(#stringsAsFactors = FALSE,
+    diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
            obs_deaths = data$obs_deaths,
            log_obs_cases = data$log_obs_cases,
@@ -22,19 +22,17 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
            log_pred_deaths = obj$report()$logD,
            gamma = obj$report()$gamma,
            logbeta = obj$report()$logbeta,
-           logmu = obj$report()$logmu
+           logmu = obj$report()$logmu,
+	   SElogbeta = NA,
+           SElogmu = NA
     )
+ 
+    for (r in 1:nrow(diag))
+    {
+        diag[r,'SElogbeta'] = SElogbeta[r]
+        diag[r,'SElogmu'] = SElogmu[r]
+    }
 
-#   diag['SElogbeta'] = SElogbeta
-#          SElogbeta = SElogbeta,
-#          SElogmu = SElogmu
-#   )
-    print(length(diag))
-    print(head(diag))
-    print(tail(diag))
-#   print(typeof(diag))
-#   print(head(obj$report()$logbeta))
-#   print(typeof(obj$report()$logbeta))
 
     if (is.null(opt$value))
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
@@ -86,34 +84,17 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
                             names = like_names,
                             like = like)
 
-    stderror = data.frame(stringsAsFactors = FALSE,
-                           SElogbeta = SElogbeta,
-                           SElogmu   = SElogmu)
-#   print(dim(stderror))
-#   print(head(stderror))
-#   print(tail(stderror))
-
-    write.csv(diag,paste(fit_path,file_root,'_diag.csv',sep=''))
-
-    pyreadr_kludge = TRUE
+    pyreadr_kludge = FALSE
     if (pyreadr_kludge)
     {
+        stderror = data.frame(stringsAsFactors = FALSE,
+                              SElogbeta = SElogbeta,
+                              SElogmu   = SElogmu)
         csv.file=paste(fit_path,file_root,'_stderror.csv',sep='')
         print(paste('saving stderror:',csv.file))
         write.csv(stderror,csv.file)
-
-        junk = read.csv(csv.file)
-        print(head(junk))
-        diag['SElogbeta'] = junk['SElogbeta']
-        diag['SElogmu'] = junk['SElogmu']
-
-    #   t.file = paste(fit_path,file_root,'_stderror.RData',sep='')
-    #   print(t.file)
-    #   save(stderror,file=t.file)
-    #   t.file = paste(fit_path,file_root,'_diag.csv',sep='')
-    #   print(t.file)
-    #   write.csv(diag,tfile)
     }
+
 
     rd.file = paste(fit_path,file_root,'.RData',sep='')
     print(paste('saving fit:',rd.file))
