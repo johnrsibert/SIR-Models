@@ -88,11 +88,12 @@ plot.log.state = function(fit) #,np=5)
     plot(tt,log(dat$obs_deaths),ylab='ln deaths',ylim=ylim,pch=point.symb)
     lines(tt,obj$report()$logD,col='red')
 #   Poisson error
-#   err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
+    err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
+    note = 'lambda'
 #   Zero infltated log normal
-    err = exp(get.error(par,opt,map,'logsigma_logD'))
+#   err = exp(get.error(par,opt,map,'logsigma_logD'))
     ytext = make.ytext(ylim,0.9)
-    note = paste('sigma_logD ~',sprintf("%.5g",err))
+#   note = paste('sigma_logD ~',sprintf("%.5g",err))
     text(ttext,ytext,note,col=note.color,pos=4)
 
     plot.error(tt,obj$report()$logD,err)

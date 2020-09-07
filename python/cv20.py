@@ -801,7 +801,7 @@ def plot_DC(Gfile='top30.csv',save=True):
 
     print('Reading:',cv.cv_home+Gfile)
     gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#',
-                     encoding = "ISO-8859-1")
+                     encoding = "ISO-8859-3")
     print('Finished reading:',cv.cv_home+Gfile)
     print(gg.columns)
 
@@ -1319,13 +1319,16 @@ def update_everything():
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     plot_DC(Gfile='top500.csv')
-    print("Finished CFR plots')
+    print('Finished CFR plots')
     print('Finished Everything!')
 
 
 # --------------------------------------------------       
 print('------- here ------')
 def junk_func():
+    import math
+    import scipy.stats as stats
+    cfr = np.array(pd.read_csv('cfr500.txt'))
     logcfr = np.log(cfr+eps)
     #print(stats.describe(cfr))
     d_logcfr = stats.describe(logcfr)
@@ -1383,7 +1386,6 @@ def junk_func():
 #print('mean=',type(d_cfr.mean),'variance=',type(d_cfr.variance))
 
 #junk_func()
-
 #mean = d_cfr.mean[0]
 #sigma = math.sqrt(d_cfr.variance[0])
 #print(mean,sigma)
@@ -1463,3 +1465,4 @@ def junk_func():
 #plot_DC(Gfile='top500.csv')
 
 
+junk_func()

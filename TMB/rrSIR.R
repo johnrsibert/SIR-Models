@@ -40,18 +40,18 @@ init = list(
 
     logprop_immune = log(1.0),
 
-    logsigma_logC = log(log(1.25)),
-    logsigma_logD = log(log(1.1)),
+    logsigma_logC = log(2.3),
+#   logsigma_logD = log(log(5.0)),
 
     logbeta = log(0.05),
     logmu = -3.8, #log(0.05),
 
     priorlogmu = -4.0,
-    sigma_priorlogmu = 0.2
+    sigma_priorlogmu = 0.8,
 
-#   logsigma_loggamma = 0.2,
+    logsigma_loggamma = 0.2,
 #   logbias_loggamma = 0.0,
-#   loggamma = log(0.5) 
+    loggamma = log(0.5) 
 )
 print("--init parameter values:")
 print(init)
@@ -60,7 +60,7 @@ par = list(
     logsigma_logP = init$logsigma_logP,
 
     logsigma_logbeta = init$logsigma_logbeta,
-#   logsigma_loggamma = init$logsigma_loggamma,
+    logsigma_loggamma = init$logsigma_loggamma,
     logsigma_logmu = init$logsigma_logmu,
 
     logbias_logbeta = init$logbias_logbeta,
@@ -70,10 +70,10 @@ par = list(
     logprop_immune = init$logprop_immune,
 
     logsigma_logC = init$logsigma_logC,
-    logsigma_logD = init$logsigma_logD,
+#   logsigma_logD = init$logsigma_logD,
 
-    logbeta = rep(init$logbeta,(data$ntime+1)),
-#   loggamma    = rep(init$loggamma,data$ntime+1),
+    logbeta  = rep(init$logbeta,(data$ntime+1)),
+    loggamma = rep(init$loggamma,data$ntime+1),
     logmu    = rep(init$logmu,data$ntime+1),
 
     priorlogmu = init$priorlogmu,
@@ -83,12 +83,12 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-#          "loggamma" = rep(as.factor(NA),data$ntime+1),
+           "loggamma" = rep(as.factor(NA),data$ntime+1),
 
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
-#          "logsigma_loggamma" = as.factor(1),
-           "logsigma_logmu" = as.factor(NA),
+           "logsigma_loggamma" = as.factor(1),
+           "logsigma_logmu" = as.factor(1),
 
            "logbias_logbeta" = as.factor(NA),
 #          "logbias_loggamma" = as.factor(NA),
@@ -96,8 +96,8 @@ map = list(
 
            "logprop_immune" = as.factor(NA),
 
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA),
+           "logsigma_logC" = as.factor(1),
+#          "logsigma_logD" = as.factor(NA),
 
            
             "priorlogmu" = as.factor(NA),
@@ -187,8 +187,8 @@ if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
 #   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
-    do_one_run(County="NassauNY",do.plot=TRUE)->fit
-#   do_one_run(County="Miami-DadeFL",do.plot=TRUE)->fit
+#   do_one_run(County="NassauNY",do.plot=TRUE)->fit
+    do_one_run(County="Miami-DadeFL",do.plot=TRUE)->fit
 #   sink()
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
