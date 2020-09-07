@@ -6,12 +6,6 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     sdr = sdreport(obj)
     SElogbeta = as.list(sdr,"Std. Error")$logbeta
     SElogmu   = as.list(sdr,"Std. Error")$logmu
-    print(head(SElogbeta))
-    print(typeof(SElogbeta))
-    print(is.vector(SElogmu))
-    print(is.vector(obj$report()$gamma))
-    print(length(SElogbeta))
-    print(length(data$obs_cases))
 
     diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
@@ -101,9 +95,14 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     save(diag,meta,ests,like_comp,file=rd.file)
 
 
-#   save(diag,file="diag.RData")
-#   save(stderror,file="stderror.RData")
-#   write.csv(diag,"diag.csv")
+#   stderror = data.frame(stringsAsFactors = FALSE,
+#                             SElogbeta = as.vector(unlist(SElogbeta)),
+#                             SElogmu   = as.vector(unlist(SElogmu)))
+
+#   rd.file = paste(fit_path,'stderror.RData',sep='')
+#   print(paste('Now',rd.file))
+#   print(stderror)
+#   save(stderror,file=rd.file)
 
     detach(fit)
 }

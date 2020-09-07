@@ -1318,11 +1318,82 @@ def update_everything():
                      fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
+    plot_DC(Gfile='top500.csv')
+    print("Finished CFR plots')
     print('Finished Everything!')
 
 
 # --------------------------------------------------       
 print('------- here ------')
+def junk_func():
+    logcfr = np.log(cfr+eps)
+    #print(stats.describe(cfr))
+    d_logcfr = stats.describe(logcfr)
+    print('lmean=',d_logcfr.mean,'lvariance=',d_logcfr.variance)
+    print('lmean=',type(d_logcfr.mean),'lvariance=',type(d_logcfr.variance))
+    #print(stats.describe(logcfr))
+    
+    
+    
+    fig, ax = plt.subplots(2,figsize=(6.5,6.5))
+    
+    lmean = d_logcfr.mean[0]
+    print(lmean,type(lmean),np.exp(lmean))
+    lsigma = math.sqrt(d_logcfr.variance[0])
+    print(lsigma,type(lsigma),np.exp(lsigma))
+#   x = np.arange(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 0.1)
+    x = np.linspace(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 50) 
+    lpdf =stats.norm.pdf(x, lmean, lsigma)
+    ax[0].hist(logcfr,50,density=True)
+    ax[0].plot(x,lpdf) 
+    ax[0].plot((lmean,lmean),ax[0].get_ylim())
+    
+    
+    print('----------------')
+    weights = np.ones_like(cfr) / len(cfr)
+    nx, xbins, ptchs  = ax[1].hist(cfr,50,weights=weights)
+    #print('nx',nx)
+    #print('xbins',xbins)
+    #print('ptchs',ptchs)
+    ex = np.exp(x)
+    #weights = np.ones_like(np.exp(lpdf))/len(lpdf)
+    #ax[1].plot(ex, np.exp(lpdf)*weights)
+    
+    mean = np.log(lmean*lmean/np.sqrt(lmean*lmean-lsigma*lsigma))
+    print(mean,type(mean),np.exp(mean))
+    sigma = np.log(1.0-lsigma*lsigma/lmean*lmean)
+    print(sigma,type(sigma),np.exp(sigma))
+    mode = np.exp(mean-sigma*sigma)
+    print('mode',mode,np.log(mode))
+    pdf = lpdf/lpdf.sum()
+    ax[1].plot(ex,pdf)
+    ax[1].plot((np.exp(lmean),np.exp(lmean)),ax[1].get_ylim())
+#   ax[1].plot((mode,mode),ax[1].get_ylim())
+    
+    
+    plt.show()
+
+#import math
+#import scipy.stats as stats
+#cfr = np.array(pd.read_csv('cfr500.txt')
+##print(cfr)
+#print(len(cfr))
+#d_cfr = stats.describe(cfr)
+#print('mean=',d_cfr.mean,'variance=',d_cfr.variance)
+#print('mean=',type(d_cfr.mean),'variance=',type(d_cfr.variance))
+
+#junk_func()
+
+#mean = d_cfr.mean[0]
+#sigma = math.sqrt(d_cfr.variance[0])
+#print(mean,sigma)
+#x = np.linspace(mean - 3.0*sigma, mean + 3.0*sigma, 50) 
+#pdf =stats.norm.pdf(x, mean, sigma)
+#pdfsum = sum(pdf)
+#fig, ax = plt.subplots(1,figsize=(6.5,6.5))
+#ax.plot(x,pdf/pdf.sum())
+#ax.plot((mean,mean),ax.get_ylim())
+#plt.show()
 
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
@@ -1336,9 +1407,9 @@ print('------- here ------')
 #tfit.print_metadata()
 #tfit.plot(save=True,logscale=True)
 
-#tfit = Fit(cv.fit_path+'constrainID/'+'NassauNY.RData')
+#tfit = Fit(cv.fit_path+'AlamedaCA.RData')
 #tfit.plot_CMR()
-#tfit.plot(save=True,logscale=False)
+#tfit.plot(save=False,logscale=False)
 
 #update_everything()
 #web_update()
@@ -1392,72 +1463,3 @@ print('------- here ------')
 #plot_DC(Gfile='top500.csv')
 
 
-def junk_func():
-    logcfr = np.log(cfr+eps)
-    #print(stats.describe(cfr))
-    d_logcfr = stats.describe(logcfr)
-    print('lmean=',d_logcfr.mean,'lvariance=',d_logcfr.variance)
-    print('lmean=',type(d_logcfr.mean),'lvariance=',type(d_logcfr.variance))
-    #print(stats.describe(logcfr))
-    
-    
-    
-    fig, ax = plt.subplots(2,figsize=(6.5,6.5))
-    
-    lmean = d_logcfr.mean[0]
-    print(lmean,type(lmean),np.exp(lmean))
-    lsigma = math.sqrt(d_logcfr.variance[0])
-    print(lsigma,type(lsigma),np.exp(lsigma))
-#   x = np.arange(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 0.1)
-    x = np.linspace(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 50) 
-    lpdf =stats.norm.pdf(x, lmean, lsigma)
-    ax[0].hist(logcfr,50,density=True)
-    ax[0].plot(x,lpdf) 
-    ax[0].plot((lmean,lmean),ax[0].get_ylim())
-    
-    
-    print('----------------')
-    weights = np.ones_like(cfr) / len(cfr)
-    nx, xbins, ptchs  = ax[1].hist(cfr,50,weights=weights)
-    #print('nx',nx)
-    #print('xbins',xbins)
-    #print('ptchs',ptchs)
-    ex = np.exp(x)
-    #weights = np.ones_like(np.exp(lpdf))/len(lpdf)
-    #ax[1].plot(ex, np.exp(lpdf)*weights)
-    
-    mean = np.log(lmean*lmean/np.sqrt(lmean*lmean-lsigma*lsigma))
-    print(mean,type(mean),np.exp(mean))
-    sigma = np.log(1.0-lsigma*lsigma/lmean*lmean)
-    print(sigma,type(sigma),np.exp(sigma))
-    mode = np.exp(mean-sigma*sigma)
-    print('mode',mode,np.log(mode))
-    pdf = lpdf/lpdf.sum()
-    ax[1].plot(ex,pdf)
-    ax[1].plot((np.exp(lmean),np.exp(lmean)),ax[1].get_ylim())
-#   ax[1].plot((mode,mode),ax[1].get_ylim())
-    
-    
-    plt.show()
-
-import math
-import scipy.stats as stats
-cfr = np.array(pd.read_csv('cfr500.txt'))
-#print(cfr)
-print(len(cfr))
-d_cfr = stats.describe(cfr)
-print('mean=',d_cfr.mean,'variance=',d_cfr.variance)
-print('mean=',type(d_cfr.mean),'variance=',type(d_cfr.variance))
-
-junk_func()
-
-#mean = d_cfr.mean[0]
-#sigma = math.sqrt(d_cfr.variance[0])
-#print(mean,sigma)
-#x = np.linspace(mean - 3.0*sigma, mean + 3.0*sigma, 50) 
-#pdf =stats.norm.pdf(x, mean, sigma)
-#pdfsum = sum(pdf)
-#fig, ax = plt.subplots(1,figsize=(6.5,6.5))
-#ax.plot(x,pdf/pdf.sum())
-#ax.plot((mean,mean),ax.get_ylim())
-#plt.show()

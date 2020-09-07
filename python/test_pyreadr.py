@@ -48,6 +48,11 @@ print('ests:',ests)
 print('exp(ests)[ests]:')
 print(np.exp(ests['est']))
 
+#SE = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/stderror.RData')
+#print(SE)
+
+
+
 #rs = est['names'].isin(['logmu'])
 #print(rs)
 #if (rs):
