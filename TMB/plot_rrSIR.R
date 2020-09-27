@@ -25,7 +25,7 @@ plot.log.state = function(fit) #,np=5)
     bias.note = function(name,err=NA)
     {
         w = which(names(obj$report()) == name)
-        val = log(as.numeric(obj$report()[w]))
+        val = as.numeric(obj$report()[w])
         note = paste('b = ',signif(val,3),sep='')
         return(note)
     }

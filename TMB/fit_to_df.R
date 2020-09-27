@@ -27,7 +27,6 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
         diag[r,'SElogmu'] = SElogmu[r]
     }
 
-
     if (is.null(opt$value))
         data = c(data$county,data$update_stamp,data$N0,data$Date0,data$ntime,
                        data$prop_zero_deaths,opt$objective,opt$convergence,mod)

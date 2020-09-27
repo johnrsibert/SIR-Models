@@ -185,7 +185,7 @@ fit_examples = list(
 "AlamedaCA"
 )
                        
-nrun = 2
+nrun = 1
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
     do_one_run(County="AlamedaCA")->fit

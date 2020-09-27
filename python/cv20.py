@@ -17,13 +17,14 @@ import numpy as np
 import os
 import sys
 import pyreadr
-from io import StringIO
+from io import StringIO 
 import scipy.stats as stats
 from sigfig import round
 from tabulate import tabulate
 from collections import OrderedDict
 import glob
 import re
+import statistics
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 import js_covid as cv
@@ -786,6 +787,61 @@ class Fit(Geography):
 
 # ----------- end of class definitions--------------       
 
+def make_SD_tab(Gfile='top30.csv',save=True):
+
+    def robust_sd(a):
+        mask = [~np.isnan(a) & ~np.isinf(a)]
+        sd = statistics.stdev(a[mask])
+        return(sd)
+
+    print('Reading:',cv.cv_home+Gfile)
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#',
+                     encoding = "ISO-8859-3")
+    print('Finished reading:',cv.cv_home+Gfile)
+    print(gg.columns)
+
+    SD_columns=['County','Cases','Deaths','log Cases','log Deaths']
+    SD_tab = pd.DataFrame(columns=SD_columns, dtype=None)
+    row = pd.Series(index=SD_columns)
+
+    print('Processing',len(gg),'geographies')
+    for g in range(0,len(gg)):
+        print(g,gg['name'][g])
+        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
+                         code=gg['code'][g])
+        tmpG.read_nyt_data('county')
+
+        dt_cases = np.diff(tmpG.cases)
+        dt_deaths = np.diff(tmpG.deaths)
+        dt_log_cases = np.diff(np.log(tmpG.cases))
+        dt_log_deaths = np.diff(np.log(tmpG.deaths))
+
+        row['County'] = tmpG.name
+        row['Cases'] = robust_sd(dt_cases)
+        row['Deaths'] = robust_sd(dt_deaths)
+        row['log Cases'] = robust_sd(dt_log_cases)
+        row['log Deaths'] = robust_sd(dt_log_deaths)
+
+        SD_tab = SD_tab.append(row,ignore_index=True)
+
+#       print(type(dt_log_deaths),dt_log_deaths)
+#       nan_filter = [~np.isnan(dt_log_deaths) & ~np.isinf(dt_log_deaths)]
+#       print(type(nan_filter), nan_filter)
+#       tt = pd.DataFrame([dt_log_deaths,nan_filter])
+#       pd.set_option('display.max_rows', None)
+#       print(tt.transpose())
+#       print('sd',statistics.stdev(dt_log_deaths[nan_filter]))
+#       print('robust',robust_sd(dt_log_deaths))
+
+    print(SD_tab)    
+    row['County'] = 'Median'
+    row['Cases'] = median(SD_tab['Cases'])
+    row['Deaths'] = median(SD_tab['Deaths'])
+    row['log Cases'] = median(SD_tab['log Cases'])
+    row['log Deaths'] = median(SD_tab['log Deaths'])
+    SD_tab = SD_tab.append(row,ignore_index=True)
+    print(SD_tab)    
+
 def plot_DC(Gfile='top30.csv',save=True):
 
     def plot_cmr(a, rr=[2.0]):
@@ -1227,6 +1283,10 @@ def update_shared_plots():
 
     cv.graphics_path = save_path
 
+    os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
+    os.system('git push')
+
+
 def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
     gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
     print(gg.columns)
@@ -1465,4 +1525,5 @@ def junk_func():
 #plot_DC(Gfile='top500.csv')
 
 
-junk_func()
+#junk_func()
+make_SD_tab()

@@ -35,12 +35,12 @@ init = list(
     logsigma_logbeta = -1.5, #0.4,
     logsigma_logmu = -1.2, #0.2,
 
-    logbias_logbeta = 0.0,
-    logbias_logmu = 0.0,
+    bias_logbeta = 0.0,
+    bias_logmu = 0.0,
 
     logprop_immune = log(1.0),
 
-    logsigma_logC = log(2.3),
+    logsigma_logC = log(log(1.25)),
 #   logsigma_logD = log(log(5.0)),
 
     logbeta = log(0.05),
@@ -50,7 +50,6 @@ init = list(
     sigma_priorlogmu = 0.8,
 
     logsigma_loggamma = 0.2,
-#   logbias_loggamma = 0.0,
     loggamma = log(0.5) 
 )
 print("--init parameter values:")
@@ -63,9 +62,9 @@ par = list(
     logsigma_loggamma = init$logsigma_loggamma,
     logsigma_logmu = init$logsigma_logmu,
 
-    logbias_logbeta = init$logbias_logbeta,
-#   logbias_loggamma = init$logbias_loggamma,
-    logbias_logmu = init$logbias_logmu,
+    bias_logbeta = init$bias_logbeta,
+#   bias_loggamma = init$bias_loggamma,
+    bias_logmu = init$bias_logmu,
 
     logprop_immune = init$logprop_immune,
 
@@ -90,9 +89,9 @@ map = list(
            "logsigma_loggamma" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
-           "logbias_logbeta" = as.factor(NA),
-#          "logbias_loggamma" = as.factor(NA),
-           "logbias_logmu" = as.factor(NA),
+           "bias_logbeta" = as.factor(NA),
+#          "bias_loggamma" = as.factor(NA),
+           "bias_logmu" = as.factor(NA),
 
            "logprop_immune" = as.factor(NA),
 
@@ -132,9 +131,7 @@ print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Function objective =",opt$objective))
 print(paste("Function value =",opt$value))
 print(paste("Convergence ",opt$convergence))
-print(paste("Number of parameters = ",length(opt$
-
-par)),quote=FALSE)
+print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
 print("parameters:",quote=FALSE)
 print(opt$par)
 print("exp(parameters):",quote=FALSE)

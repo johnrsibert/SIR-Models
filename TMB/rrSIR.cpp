@@ -67,9 +67,9 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_loggamma);      // gamma randomwalk sd
     PARAMETER(logsigma_logmu);         // mu randomwalk sd
 
-    PARAMETER(logbias_logbeta);        // beta random walk bias
-//  PARAMETER(logbias_loggamma);       // gamma randomwalk bias
-    PARAMETER(logbias_logmu);          // mu randomwalk bias
+    PARAMETER(bias_logbeta);        // beta random walk bias
+//  PARAMETER(bias_loggamma);       // gamma randomwalk bias
+    PARAMETER(bias_logmu);          // mu randomwalk bias
 
     PARAMETER(logprop_immune);         // proprtion of infected recovered who are immune
 
@@ -94,9 +94,6 @@ Type objective_function <Type>::operator()()
     Type sigma_logmu = exp(logsigma_logmu); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
 
-    Type bias_logbeta = exp(logbias_logbeta); 
-    Type bias_logmu = exp(logbias_logmu); 
-//  Type bias_loggamma = exp(logbias_loggamma); 
     Type prop_immune = exp(logprop_immune);
 
     Type sigma_logP = exp(logsigma_logP);
@@ -130,7 +127,7 @@ Type objective_function <Type>::operator()()
     logR[0] = eps;
     for (int t = 1; t <= ntime; t++)
     {
-         TRACE(t)
+    //   TRACE(t)
 
          // infection rate random walk
          betanll += isNaN(NLerr(logbeta(t-1)*bias_logbeta,logbeta(t),var_logbeta),__LINE__);
@@ -154,9 +151,9 @@ Type objective_function <Type>::operator()()
          Type N   = S + Eye + R;
          Type D   = exp(logD(t-1));
          Type bison = beta * Eye * S/N;
-         TTRACE(bison,beta)
-         TTRACE(S,N)
-         TTRACE(gamma,mu)
+    //   TTRACE(bison,beta)
+    //   TTRACE(S,N)
+    //   TTRACE(gamma,mu)
 
          // susceptible process error
          Type deltaS = -bison + (1.0-prop_immune)*gamma*Eye;
@@ -171,13 +168,12 @@ Type objective_function <Type>::operator()()
          {
              Pnll += square(deltaS);
              TTRACE(nextS,deltaS)
-             TTRACE(gamma,Eye)
          }
 
          // cases process error
          Type deltaEye = bison - mu*Eye - gamma*Eye;
          //logEye(t) = isNaN(log(Eye + deltaEye),__LINE__);
-         TTRACE(Eye,deltaEye)
+         //TTRACE(Eye,deltaEye)
          Type nextEye = Eye + deltaEye;
          if (nextEye > 0.0)
          {
@@ -223,7 +219,7 @@ Type objective_function <Type>::operator()()
      for (int t = 0; t <= ntime; t++)
      {   
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
-         TTRACE(cnll,logEye(t))
+     //  TTRACE(cnll,logEye(t))
      //  Zero inflated log normal
      //  dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      //  Poisson error
