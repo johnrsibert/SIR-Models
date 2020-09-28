@@ -63,7 +63,8 @@ Type objective_function <Type>::operator()()
 //  DATA_SCALAR(mu_b)
 
 
-    PARAMETER(logsigma_logP);          // SIR process error
+    PARAMETER(logsigma_logCP);          // SIR process error
+    PARAMETER(logsigma_logDP);          // SIR process error
     PARAMETER(logsigma_logbeta);       // beta random walk sd
     PARAMETER(logsigma_logmu);         // mu randomwalk sd
     PARAMETER(logsigma_logC);          // cases observation error
@@ -93,13 +94,15 @@ Type objective_function <Type>::operator()()
 
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_logmu = exp(logsigma_logmu); 
-    Type sigma_logP = exp(logsigma_logP);
+    Type sigma_logCP = exp(logsigma_logCP);
+    Type sigma_logDP = exp(logsigma_logDP);
     Type sigma_logC = exp(logsigma_logC);
     Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
-    Type var_logP = square(sigma_logP);
+    Type var_logCP = square(sigma_logCP);
+    Type var_logDP = square(sigma_logDP);
     Type var_logC = square(sigma_logC);
     Type var_logD = square(sigma_logD);
 
@@ -124,7 +127,7 @@ Type objective_function <Type>::operator()()
          Type prevEye = exp(logEye(t-1));
          logEye(t) = log(prevEye*(1.0 + (exp(logbeta(t-1)) - gamma(t-1) - 
                          exp(logmu(t-1))))+eps);
-         Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
+         Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logCP),__LINE__);
 
      //  gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
          gamma(t) = 0.0;
@@ -132,7 +135,7 @@ Type objective_function <Type>::operator()()
          // deaths process error
          Type prevD = exp(logD(t-1));
          logD(t) = log(prevD + exp(logmu(t-1))*exp(logEye(t-1))+eps);
-         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logP, prop_zero_deaths),__LINE__);
+         Pnll += isNaN(ZILNerr(logD(t-1), logD(t), var_logDP, prop_zero_deaths),__LINE__);
 
      }
  
@@ -152,7 +155,8 @@ Type objective_function <Type>::operator()()
      REPORT(logbeta)
      REPORT(logmu)
 
-     REPORT(sigma_logP);
+     REPORT(sigma_logCP);
+     REPORT(sigma_logDP);
      REPORT(sigma_logbeta);
      REPORT(sigma_logmu);
      REPORT(gamma);

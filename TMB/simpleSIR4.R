@@ -26,19 +26,21 @@ print("-data:")
 print(data)
 
 init = list(
-    logsigma_logP = log(0.2),
+    logsigma_logCP = log(0.12),
+    logsigma_logDP = log(0.096),
     logsigma_logbeta = 0.4, #log(0.7),
     logsigma_logmu = 0.2, #log(2.0),
     logmu = log(0.00005),
-    logsigma_logC = log(log(1.25)),
-    logsigma_logD = log(log(1.1)),
+    logsigma_logC = log(log(1.25)), # log(0.1), 
+    logsigma_logD = log(log(1.1)), # log(0.05), 
     logbeta = log(0.05)
 )
 print("--init parameter values:")
 print(init)
 
 par = list(
-    logsigma_logP = init$logsigma_logP,
+    logsigma_logCP = init$logsigma_logCP,
+    logsigma_logDP = init$logsigma_logDP,
     logsigma_logbeta = init$logsigma_logbeta,
     logsigma_logmu = init$logsigma_logmu,
     logmu    = rep(init$logmu,data$ntime+1),
@@ -50,7 +52,8 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "logsigma_logP" = as.factor(1),
+           "logsigma_logCP" = as.factor(1),
+           "logsigma_logDP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
            "logsigma_logC" = as.factor(NA),
@@ -185,7 +188,7 @@ fit_examples = list(
 "AlamedaCA"
 )
                        
-nrun = 1
+nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
     do_one_run(County="AlamedaCA")->fit

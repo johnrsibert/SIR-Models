@@ -817,6 +817,7 @@ def make_SD_tab(Gfile='top30.csv',save=True):
         dt_log_deaths = np.diff(np.log(tmpG.deaths))
 
         row['County'] = tmpG.name
+   #    row['County'] = pretty_county(tmpG.name)
         row['Cases'] = robust_sd(dt_cases)
         row['Deaths'] = robust_sd(dt_deaths)
         row['log Cases'] = robust_sd(dt_log_cases)
@@ -1091,11 +1092,11 @@ def make_fit_table(ext = '.RData'):
 
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
-    es_cols = ['logsigma_logP'   , 'logsigma_logbeta'  , 'logsigma_logmu'  ,
+    es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
                'logsigma_logC','logsigma_logD','mbeta','mmu'] #,'mgamma']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
-              '$\sigma_\eta$','$\sigma_\\beta$','$\sigma_\\mu$',
+              '$\sigma_\eta_C$', '$\sigma_\eta_D$', '$\sigma_\\beta$','$\sigma_\\mu$',
               '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
             #,'$\\tilde\\gamma$']
 
@@ -1372,7 +1373,6 @@ def update_everything():
     make_fit_plots()
     print('Finished fit_plots')
     make_fit_table()
-    make_fit_table()
     make_rate_plots('logbeta',add_doubling_time = True,save=True)
     make_rate_plots('logbeta',add_doubling_time = True,save=True,
                      fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
@@ -1482,8 +1482,8 @@ def junk_func():
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
-#make_fit_plots()
-#make_fit_table()
+make_fit_table()
+make_fit_plots()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
 #make_rate_plots('logmu',save=True)
@@ -1526,4 +1526,4 @@ def junk_func():
 
 
 #junk_func()
-make_SD_tab()
+#make_SD_tab() #'top500.csv')
