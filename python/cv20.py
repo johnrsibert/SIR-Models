@@ -69,7 +69,7 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
                 color=c) #,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
-        i = len(x)-1 # or use [:-1]
+        i = len(x)-2
         mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
                 color=c) #,alpha=a)
                       # Set the alpha value used for blendingD - 
@@ -189,15 +189,17 @@ class Geography:
         Bronx, and Richmond counties to be compatible with NYTimes data
         """
         
-        nyc_pop = 26161672
+        nyc_pop = 8336817
         if (self.name == 'New York City'):
             return(nyc_pop)
 
-        dat = pd.read_csv(cv.census_data_path,header=0)#, encoding = "ISO-8859-1")
+        dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
+        #                 encoding = "ascii")
 
     #   get rid of Parish county designation in census data
         ccnames = dat['county']
         ccnames = ccnames.str.replace(' Parish', '', regex = True)
+        ccnames = ccnames.str.replace(' Municipality', '', regex = True)
         dat['county'] = ccnames
 
         state_filter = dat['state'].isin([self.enclosed_by])
@@ -795,8 +797,7 @@ def make_SD_tab(Gfile='top30.csv',save=True):
         return(sd)
 
     print('Reading:',cv.cv_home+Gfile)
-    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#',
-                     encoding = "ISO-8859-3")
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')#, encoding = "ISO-8859-3")
     print('Finished reading:',cv.cv_home+Gfile)
     print(gg.columns)
 
@@ -857,8 +858,8 @@ def plot_DC(Gfile='top30.csv',save=True):
             mark_ends(a,xr,yr,rstr,'r')
 
     print('Reading:',cv.cv_home+Gfile)
-    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#',
-                     encoding = "ISO-8859-3")
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
+    #                encoding = "ISO-8859-3")
     print('Finished reading:',cv.cv_home+Gfile)
     print(gg.columns)
 
@@ -889,6 +890,7 @@ def plot_DC(Gfile='top30.csv',save=True):
     dt = []
     ft = []
     print('Processing',len(gg),'geographies')
+    print(gg)
     for g in range(0,len(gg)):
         print(g,gg['name'][g])
         tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
@@ -1288,70 +1290,75 @@ def update_shared_plots():
     os.system('git push')
 
 
-def plot_multi_per_capita(mult = 1000,plot_dt=False,save=False):
-    gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
+def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
+#   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
+    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
+    #                encoding = "ISO-8859-3")
     print(gg.columns)
 #   print(gg)
 
     key_cols = ('key','name','code')
     key = pd.DataFrame(columns=key_cols)
 
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    fig, ax = plt.subplots(2,figsize=(6.5,9.0))
     firstDate = mdates.date2num(cv.FirstNYTDate)
     orderDate = mdates.date2num(cv.CAOrderDate)
     lastDate  = mdates.date2num(cv.EndOfTime)
-    if (plot_dt):
-        ax.set_ylabel('New Cases'+' per '+str(mult))
-    else:
-        ax.set_ylabel('Cases'+' per '+str(mult))
-    ax.set_xlim([firstDate,lastDate])
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-    ax.xaxis.set_major_locator(plt.MultipleLocator(30))
-    ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+    ax[0].set_ylim(0.0,100.0)
+    ax[1].set_ylim(0.0, 10.0)
+    for a in range(0,len(ax)):
+        ax[a].set_xlim([firstDate,lastDate])
+        ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+        ax[a].xaxis.set_major_locator(mdates.MonthLocator())
+        ax[a].xaxis.set_minor_locator(mdates.DayLocator())
+#   Newsome's shelter in place order
+        ax[a].plot((orderDate,orderDate),
+            (0, ax[a].get_ylim()[1]),color='0.5',
+            linewidth=3,alpha=0.5)
 
-    for g in range(0,len(gg)):
+
+    ax[0].set_ylabel('New Cases'+' per '+str(mult))
+    ax[1].set_ylabel('New Deaths'+' per '+str(mult))
+
+    nG = len(gg)
+    for g in range(0,nG):
         print(gg['name'][g])
         tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
                          code=gg['code'][g])
         tmpG.read_nyt_data('county')
-        cases =  mult*tmpG.cases/tmpG.population + eps
-        delta_cases = np.diff(cases)
+
+        delta_cases = mult*(np.diff(tmpG.cases))/tmpG.population
+        delta_deaths = mult*(np.diff(tmpG.deaths))/tmpG.population
         Date = tmpG.get_pdate()
-        if (plot_dt):
-            ax.plot(Date[1:], delta_cases, linewidth=1)#,alpha=0.75)
-        else:
-            ax.plot(Date, cases, linewidth=2)#,alpha=0.75)
+        ax[0].plot(Date[1:], delta_cases, linewidth=1)#,alpha=0.75)
+        ax[1].plot(Date[1:], delta_deaths, linewidth=1)#,alpha=0.75)
 
         sn = short_name(tmpG.moniker)
     #   print(tmpG.name,tmpG.moniker,sn)
         kr = pd.Series((sn,tmpG.name,tmpG.code),index=key_cols)
         key = key.append(kr,ignore_index=True)
 
-        if (plot_dt):
-            mark_ends(ax,Date,delta_cases,sn,'r')
-        else:
-            mark_ends(ax,Date,cases,sn,'r')
+    #   if (plot_dt):
+    #       mark_ends(ax,Date,delta_cases,sn,'r')
+    #   else:
+    #   if (~plot_dt):
+    #       mark_ends(ax,Date,cases,sn,'r')
 
-#   Newsome's shelter in place order
-    ax.plot((orderDate,orderDate),
-    #       (ax.get_ylim()[0], ax.get_ylim()[1]),color='black',
-            (0, ax.get_ylim()[1]),color='0.5',
-            linewidth=3,alpha=0.5)
 
 #   print(key)
     if save:
-        gfile = cv.graphics_path+'counties_per_capita.pdf'
+        gfile = cv.graphics_path+'counties_per_capita'+str(nG)+'.png'
         plt.savefig(gfile) #,dpi=300)
         plt.show(False)
         print('plot saved as',gfile)
 
-        kfile = cv.graphics_path+'short_name_key.csv'
-        key.sort_values(by='key',ascending=True,inplace=True)
-        print(key)
-        key.to_csv(kfile,index=False)
-        print('key names saved as',kfile)
+    #   kfile = cv.graphics_path+'short_name_key.csv'
+    #   key.sort_values(by='key',ascending=True,inplace=True)
+    #   print(key)
+    #   key.to_csv(kfile,index=False)
+    #   print('key names saved as',kfile)
 
-        plt.pause(3)
+        plt.pause(5)
         plt.close()
             
     else:
@@ -1363,7 +1370,7 @@ def update_everything():
     print('Finished web_update ...')
     os.system('rm -v '+ cv.dat_path + '*.dat')
     make_dat_files()
-    plot_multi_per_capita(plot_dt=False,save=True)
+#   plot_multi_per_capita(plot_dt=False,save=True)
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
@@ -1482,13 +1489,14 @@ def junk_func():
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
-make_fit_table()
-make_fit_plots()
+#make_fit_table()
+#make_fit_plots()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
 #make_rate_plots('logmu',save=True)
 #make_rate_plots('gamma',save=True)
-#plot_multi_per_capita(plot_dt=False,save=True)
+#plot_multi_prev(save=True,mult=100000)
+#plot_multi_prev(Gfile='top500.csv',save=True,mult=100000)
 
 #test = Geography(name='Nassau',enclosed_by='New York',code='NY')
 #test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')
@@ -1522,8 +1530,47 @@ make_fit_plots()
 #BCtest.print_data()
 #BCtest.plot_prevalence(save=True,signature=True)
 
-#plot_DC(Gfile='top500.csv')
-
+#plot_DC(Gfile='top500.csv')#'junk.csv')
 
 #junk_func()
 #make_SD_tab() #'top500.csv')
+
+def unique():
+
+    census_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    print(census_dat.columns)
+#   COUNTY_filter = census_dat['COUNTY']>0
+#   census_dat = census_dat[COUNTY_filter]
+    census_dat = census_dat[census_dat['COUNTY']>0]
+
+#   aggregate populations of NYC borroughs into NY Times convention for 
+    nyc_counties = ('Queens','Richmond','Kings','Bronx','New York')
+    nyc_c_filter = (  census_dat['county'].isin(nyc_counties) 
+                    & census_dat['state'].isin(['New York']))
+    print(census_dat[nyc_c_filter])
+#   print(census_dat[nyc_c_filter]['population'])
+    nyc_population = census_dat[nyc_c_filter]['population'].sum()
+    print('nyc_population =',nyc_population)
+
+#   remove nyc_counties from census data
+    census_dat = census_dat[~nyc_c_filter] 
+
+#   create unique instances of county & state combinations
+    county_state_pop = set(zip(census_dat['county'],census_dat['state'],census_dat['population']))
+    cs_pop = pd.DataFrame(county_state_pop,columns=('county','state','population'))
+
+#   append row for New York City population
+    nyc_row= pd.Series(['New York City','New York',nyc_population],index=cs_pop.columns)
+    cs_pop = cs_pop.append(nyc_row,ignore_index=True)
+    cs_pop = cs_pop.sort_values(by='population',ascending=False)
+    cs_pop.to_csv('cs_pop.csv',index=False)
+
+    nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
+    print(len(nyt_dat),nyt_dat.columns)
+#   county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state']))
+#   census_nyt = set(zip(cs_pop['county'],cs_pop['state'],nyt_dat['county'],nyt_dat['state']))
+
+#   cn_dat = pd.DataFrame(census_nyt,columns=('Ccounty','Cstate','Tcounty','Tstate'))
+#   print(len(cn_dat),cn_dat)
+
+unique()
