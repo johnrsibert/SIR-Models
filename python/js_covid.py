@@ -18,6 +18,7 @@ NYT_us = NYT_home + 'us.csv'
 
 cv_home = '/home/jsibert/Projects/SIR-Models/'
 census_data_path = cv_home+'co-est2019-pop.csv'
+#census_data_path = cv_home+'python/census_nyt.csv'
 large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'
@@ -29,6 +30,8 @@ BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-10-15','%Y-%m-%d')
+
+population_dat = None
 
 # "temporary" workaround issue with pyreadr.read_r(...)
 # reading TMB standard error objects

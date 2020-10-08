@@ -159,12 +159,14 @@ class Geography:
 
     def print_data(self):
         self.get_pdate()
-        if (self.deaths != None):
+    #   if (self.deaths != None):
+        if (len(self.deaths) > 0):
             print('date','cases','deaths','pdate')
         else:
             print('date','cases','pdate')
         for k in range(0,len(self.date)):
-            if (self.deaths != None):
+        #   if (self.deaths != None):
+            if (len(self.deaths) > 0):
                 print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
             else:
                 print(self.date[k],self.cases[k],self.pdate[k])
@@ -193,19 +195,22 @@ class Geography:
         if (self.name == 'New York City'):
             return(nyc_pop)
 
-        dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
+        dat = cv.population_dat
+        if (dat == None):
+            cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
         #                 encoding = "ascii")
+            dat = cv.population_dat
 
     #   get rid of Parish county designation in census data
-        ccnames = dat['county']
-        ccnames = ccnames.str.replace(' Parish', '', regex = True)
-        ccnames = ccnames.str.replace(' Municipality', '', regex = True)
-        dat['county'] = ccnames
+    #   ccnames = dat['county']
+    #   ccnames = ccnames.str.replace(' Parish', '', regex = True)
+    #   ccnames = ccnames.str.replace(' Municipality', '', regex = True)
+    #   dat['county'] = ccnames
 
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
-        COUNTY_filter = (dat['COUNTY']>0)
-        County_rows = state_filter & county_filter & COUNTY_filter
+    #   COUNTY_filter = (dat['COUNTY']>0)
+        County_rows = state_filter & county_filter #& COUNTY_filter
         try:
             population = int(pd.to_numeric(dat[County_rows]['population'].values))
         except:
@@ -1536,9 +1541,14 @@ def junk_func():
 #make_SD_tab() #'top500.csv')
 
 def unique():
+    """
+    Generate file with census population estimates and county names 
+    compatible with NYT Covit-19 data
+    """
 
     census_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
     print(census_dat.columns)
+    print(census_dat.tail())
 #   COUNTY_filter = census_dat['COUNTY']>0
 #   census_dat = census_dat[COUNTY_filter]
     census_dat = census_dat[census_dat['COUNTY']>0]
@@ -1547,10 +1557,9 @@ def unique():
     nyc_counties = ('Queens','Richmond','Kings','Bronx','New York')
     nyc_c_filter = (  census_dat['county'].isin(nyc_counties) 
                     & census_dat['state'].isin(['New York']))
-    print(census_dat[nyc_c_filter])
 #   print(census_dat[nyc_c_filter]['population'])
-    nyc_population = census_dat[nyc_c_filter]['population'].sum()
-    print('nyc_population =',nyc_population)
+    nyc_population = int(census_dat[nyc_c_filter]['population'].sum())
+#   print('nyc_population =',nyc_population)
 
 #   remove nyc_counties from census data
     census_dat = census_dat[~nyc_c_filter] 
@@ -1562,15 +1571,50 @@ def unique():
 #   append row for New York City population
     nyc_row= pd.Series(['New York City','New York',nyc_population],index=cs_pop.columns)
     cs_pop = cs_pop.append(nyc_row,ignore_index=True)
-    cs_pop = cs_pop.sort_values(by='population',ascending=False)
+#   get rid of Parish and other county designations in census data
+    cs_pop['county'] = cs_pop['county'].str.replace(' Municipality', '', regex = True)
+    cs_pop['county'] = cs_pop['county'].str.replace(' Borough', '', regex = True)
+    cs_pop['county'] = cs_pop['county'].str.replace(' Parish', '', regex = True)
+    cs_pop['county'] = cs_pop['county'].str.replace(' City and', '', regex = True)
+    cs_pop = cs_pop.sort_values(by=['state','county'],ascending=True)
+    print('cs_pop:')
+    print(cs_pop)
+
+#   cs_pop = cs_pop.sort_values(by='population',ascending=False)
     cs_pop.to_csv('cs_pop.csv',index=False)
 
     nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
-    print(len(nyt_dat),nyt_dat.columns)
-#   county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state']))
-#   census_nyt = set(zip(cs_pop['county'],cs_pop['state'],nyt_dat['county'],nyt_dat['state']))
+    print(nyt_dat.columns)
+    county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state']))
+    nyt_pop = pd.DataFrame(county_state_nyt,columns=('county','state')) #,'population'))
+#   nyt_pop['population'] = None
+    nyt_pop = nyt_pop.sort_values(by=['state','county'],ascending=True)
+    nyt_pop['code'] = None
+    nyt_pop['flag'] = int(0)
+    print('nyt_pop:')
+    print(nyt_pop)
 
-#   cn_dat = pd.DataFrame(census_nyt,columns=('Ccounty','Cstate','Tcounty','Tstate'))
-#   print(len(cn_dat),cn_dat)
+    gcodes = pd.read_csv(cv.cv_home+'geography_codes.csv',header=0,comment='#')
+    print(gcodes.shape) 
+#   print(gcodes)
+    for i in range(0,len(gcodes)):
+    #   print(i,gcodes['geography'].iloc[i],gcodes['code'].iloc[i])
+        geog = gcodes['geography'].iloc[i]
+        code = gcodes['code'].iloc[i]
+    #   print(i,geog,code)
+        gfilter = nyt_pop['state'].isin([geog])
+    #   print(gfilter)
+        nyt_pop['code'][gfilter] = code
+   
+#   cs_pop = cs_pop.astype({'population': int})
+    census_nyt = nyt_pop.merge(right=cs_pop,how='left')
+    census_nyt = census_nyt.sort_values(by=['population','state','county'],ascending=False)
+
+# convert column "a" to int64 dtype and "b" to complex type
+#df = df.astype({"a": int, "b": complex})
+#   census_nyt = census_nyt.astype({'code': int})
+    print('census_nyt:')
+    print(census_nyt)
+    census_nyt.to_csv('census_nyt.csv',index=False)
 
 unique()
