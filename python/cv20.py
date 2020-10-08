@@ -1547,10 +1547,6 @@ def unique():
     """
 
     census_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
-    print(census_dat.columns)
-    print(census_dat.tail())
-#   COUNTY_filter = census_dat['COUNTY']>0
-#   census_dat = census_dat[COUNTY_filter]
     census_dat = census_dat[census_dat['COUNTY']>0]
 
 #   aggregate populations of NYC borroughs into NY Times convention for 
@@ -1571,48 +1567,39 @@ def unique():
 #   append row for New York City population
     nyc_row= pd.Series(['New York City','New York',nyc_population],index=cs_pop.columns)
     cs_pop = cs_pop.append(nyc_row,ignore_index=True)
+
 #   get rid of Parish and other county designations in census data
     cs_pop['county'] = cs_pop['county'].str.replace(' Municipality', '', regex = True)
-    cs_pop['county'] = cs_pop['county'].str.replace(' Borough', '', regex = True)
     cs_pop['county'] = cs_pop['county'].str.replace(' Parish', '', regex = True)
-    cs_pop['county'] = cs_pop['county'].str.replace(' City and', '', regex = True)
+#   cs_pop['county'] = cs_pop['county'].str.replace(' City and', '', regex = True) # legit for AK
+#   cs_pop['county'] = cs_pop['county'].str.replace(' Borough', '', regex = True) # legit for AK
     cs_pop = cs_pop.sort_values(by=['state','county'],ascending=True)
-    print('cs_pop:')
-    print(cs_pop)
 
-#   cs_pop = cs_pop.sort_values(by='population',ascending=False)
     cs_pop.to_csv('cs_pop.csv',index=False)
 
     nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
-    print(nyt_dat.columns)
+#   create unique instances of county & state combinations
     county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state']))
     nyt_pop = pd.DataFrame(county_state_nyt,columns=('county','state')) #,'population'))
-#   nyt_pop['population'] = None
     nyt_pop = nyt_pop.sort_values(by=['state','county'],ascending=True)
     nyt_pop['code'] = None
     nyt_pop['flag'] = int(0)
-    print('nyt_pop:')
-    print(nyt_pop)
 
+#   insert state postal codes and other abbreviation
     gcodes = pd.read_csv(cv.cv_home+'geography_codes.csv',header=0,comment='#')
     print(gcodes.shape) 
-#   print(gcodes)
     for i in range(0,len(gcodes)):
-    #   print(i,gcodes['geography'].iloc[i],gcodes['code'].iloc[i])
         geog = gcodes['geography'].iloc[i]
         code = gcodes['code'].iloc[i]
-    #   print(i,geog,code)
         gfilter = nyt_pop['state'].isin([geog])
-    #   print(gfilter)
-        nyt_pop['code'][gfilter] = code
+    #   nyt_pop['code'][gfilter] = code
+    #   avoid 'SettingWithCopyWarning': 
+        nyt_pop.loc[gfilter,'code'] = code
    
-#   cs_pop = cs_pop.astype({'population': int})
+#   merge the two data frames using NYT county designations
     census_nyt = nyt_pop.merge(right=cs_pop,how='left')
     census_nyt = census_nyt.sort_values(by=['population','state','county'],ascending=False)
 
-# convert column "a" to int64 dtype and "b" to complex type
-#df = df.astype({"a": int, "b": complex})
-#   census_nyt = census_nyt.astype({'code': int})
     print('census_nyt:')
     print(census_nyt)
     census_nyt.to_csv('census_nyt.csv',index=False)
