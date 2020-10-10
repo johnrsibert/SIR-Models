@@ -1542,66 +1542,70 @@ def junk_func():
 
 def unique():
     """
-    Generate file with census population estimates and county names 
-    compatible with NYT Covit-19 data
+    Generate file with census population estimates 
+    and county names  updated from https://github.com/nytimes/covid-19-data.git
+    add two byte state postal codes
+    add 'flag' field for selecting favorites
+    add population estimate for New York City as per NYT practice
     """
 
     census_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
     census_dat = census_dat[census_dat['COUNTY']>0]
+    census_dat['fips'] = 0
+#   generate fips from concatenation of STATE and COUNTY fields in census records
+    for r in range(0,len(census_dat)):
+        fips = '{:02d}{:03d}'.format(census_dat['STATE'].iloc[r],census_dat['COUNTY'].iloc[r])
+    #   if (census_dat['county'].iloc[r] == 'Kalawao'):
+    #       print('----------Kalawao---------',census_dat['population'].iloc[r])
+    #       print(r,census_dat['COUNTY'].iloc[r],census_dat['STATE'].iloc[r],
+    #               census_dat['county'].iloc[r],census_dat['state'].iloc[r], fips)
+        census_dat['fips'].iloc[r] = int(fips)
 
 #   aggregate populations of NYC borroughs into NY Times convention for 
     nyc_counties = ('Queens','Richmond','Kings','Bronx','New York')
     nyc_c_filter = (  census_dat['county'].isin(nyc_counties) 
                     & census_dat['state'].isin(['New York']))
-#   print(census_dat[nyc_c_filter]['population'])
     nyc_population = int(census_dat[nyc_c_filter]['population'].sum())
-#   print('nyc_population =',nyc_population)
 
 #   remove nyc_counties from census data
     census_dat = census_dat[~nyc_c_filter] 
 
-#   create unique instances of county & state combinations
-    county_state_pop = set(zip(census_dat['county'],census_dat['state'],census_dat['population']))
-    cs_pop = pd.DataFrame(county_state_pop,columns=('county','state','population'))
+#   create unique instances of fips,population combinations using set(..)
+    county_state_pop = set(zip(census_dat['fips'],census_dat['population']))
+    cs_pop = pd.DataFrame(county_state_pop,columns=('fips','population'))
 
-#   append row for New York City population
-    nyc_row= pd.Series(['New York City','New York',nyc_population],index=cs_pop.columns)
-    cs_pop = cs_pop.append(nyc_row,ignore_index=True)
-
-#   get rid of Parish and other county designations in census data
-    cs_pop['county'] = cs_pop['county'].str.replace(' Municipality', '', regex = True)
-    cs_pop['county'] = cs_pop['county'].str.replace(' Parish', '', regex = True)
-#   cs_pop['county'] = cs_pop['county'].str.replace(' City and', '', regex = True) # legit for AK
-#   cs_pop['county'] = cs_pop['county'].str.replace(' Borough', '', regex = True) # legit for AK
-    cs_pop = cs_pop.sort_values(by=['state','county'],ascending=True)
-
-    cs_pop.to_csv('cs_pop.csv',index=False)
-
+#   get NYT data    
     nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
-#   create unique instances of county & state combinations
-    county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state']))
-    nyt_pop = pd.DataFrame(county_state_nyt,columns=('county','state')) #,'population'))
-    nyt_pop = nyt_pop.sort_values(by=['state','county'],ascending=True)
-    nyt_pop['code'] = None
-    nyt_pop['flag'] = int(0)
+    nyt_dat = nyt_dat.sort_values(by=['fips'],ascending=False)
+#   remove counties without fips code (mainly 'Unknown' counties
+    empty_fips_filter = pd.notna(nyt_dat['fips'])
+    nyt_dat = nyt_dat[empty_fips_filter]
+
+#   create unique instances of NYT county & state combinations
+    county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state'],nyt_dat['fips']))
+    nyt_counties = pd.DataFrame(county_state_nyt,columns=('county','state','fips'))
+    nyt_counties['code'] = None
+    nyt_counties['flag'] = int(0)
+    nyt_counties = nyt_counties.sort_values(by=['fips'],ascending=False)
 
 #   insert state postal codes and other abbreviation
     gcodes = pd.read_csv(cv.cv_home+'geography_codes.csv',header=0,comment='#')
-    print(gcodes.shape) 
     for i in range(0,len(gcodes)):
         geog = gcodes['geography'].iloc[i]
         code = gcodes['code'].iloc[i]
-        gfilter = nyt_pop['state'].isin([geog])
-    #   nyt_pop['code'][gfilter] = code
+        gfilter = nyt_counties['state'].isin([geog])
     #   avoid 'SettingWithCopyWarning': 
-        nyt_pop.loc[gfilter,'code'] = code
+        nyt_counties.loc[gfilter,'code'] = code
    
 #   merge the two data frames using NYT county designations
-    census_nyt = nyt_pop.merge(right=cs_pop,how='left')
-    census_nyt = census_nyt.sort_values(by=['population','state','county'],ascending=False)
+    nyt_census = nyt_counties.merge(right=cs_pop)
+#   append row for New York City population
+    nyc_row = pd.Series(['New York City','New York',36999,'NY',0,nyc_population],index=nyt_census.columns)
+    nyt_census = nyt_census.append(nyc_row,ignore_index=True)
+    nyt_census = nyt_census.sort_values(by=['population','state','county'],ascending=False)
 
-    print('census_nyt:')
-    print(census_nyt)
-    census_nyt.to_csv('census_nyt.csv',index=False)
+    print('nyt_census (Los Angeles, CA through Kenedy, TX):')
+    print(nyt_census)
+    nyt_census.to_csv('nyt_census.csv',index=False)
 
 unique()
