@@ -8,6 +8,7 @@ Created on Tue Jul  7 15:08:58 2020
 @author: jsibert
 """
 from datetime import datetime
+import pandas as pd
 
 # mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
 
@@ -17,8 +18,8 @@ NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
 
 cv_home = '/home/jsibert/Projects/SIR-Models/'
-census_data_path = cv_home+'co-est2019-pop.csv'
-#census_data_path = cv_home+'python/census_nyt.csv'
+#census_data_path = cv_home+'co-est2019-pop.csv'
+census_data_path = cv_home+'nyt_census.csv'
 large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'
@@ -31,7 +32,7 @@ FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-10-15','%Y-%m-%d')
 
-population_dat = None
+population_dat = pd.DataFrame(None)
 
 # "temporary" workaround issue with pyreadr.read_r(...)
 # reading TMB standard error objects

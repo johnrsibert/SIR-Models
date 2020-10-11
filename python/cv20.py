@@ -33,6 +33,74 @@ eps = 1e-5
 
 # ---------------- global utility functions ---------------------------
 
+def make_nyt_census_eat():
+    """
+    Generate file with census population estimates 
+    and county names  updated from https://github.com/nytimes/covid-19-data.git
+    add two byte state postal codes
+    add 'flag' field for selecting favorites
+    add population estimate for New York City as per NYT practice
+    """
+    census_dat_file = cv_home+'co-est2019-pop.csv'
+    census_dat = pd.read_csv(cv.census_dat_file,header=0,comment='#')
+    census_dat = census_dat[census_dat['COUNTY']>0]
+    census_dat['fips'] = 0
+#   generate fips from concatenation of STATE and COUNTY fields in census records
+    for r in range(0,len(census_dat)):
+        fips = '{:02d}{:03d}'.format(census_dat['STATE'].iloc[r],census_dat['COUNTY'].iloc[r])
+    #   if (census_dat['county'].iloc[r] == 'Kalawao'):
+    #       print('----------Kalawao---------',census_dat['population'].iloc[r])
+    #       print(r,census_dat['COUNTY'].iloc[r],census_dat['STATE'].iloc[r],
+    #               census_dat['county'].iloc[r],census_dat['state'].iloc[r], fips)
+        census_dat['fips'].iloc[r] = int(fips)
+
+#   aggregate populations of NYC borroughs into NY Times convention for 
+    nyc_counties = ('Queens','Richmond','Kings','Bronx','New York')
+    nyc_c_filter = (  census_dat['county'].isin(nyc_counties) 
+                    & census_dat['state'].isin(['New York']))
+    nyc_population = int(census_dat[nyc_c_filter]['population'].sum())
+
+#   remove nyc_counties from census data
+    census_dat = census_dat[~nyc_c_filter] 
+
+#   create unique instances of fips,population combinations using set(..)
+    county_state_pop = set(zip(census_dat['fips'],census_dat['population']))
+    cs_pop = pd.DataFrame(county_state_pop,columns=('fips','population'))
+
+#   get NYT data    
+    nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
+    nyt_dat = nyt_dat.sort_values(by=['fips'],ascending=False)
+#   remove counties without fips code (mainly 'Unknown' counties
+    empty_fips_filter = pd.notna(nyt_dat['fips'])
+    nyt_dat = nyt_dat[empty_fips_filter]
+
+#   create unique instances of NYT county & state combinations
+    county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state'],nyt_dat['fips']))
+    nyt_counties = pd.DataFrame(county_state_nyt,columns=('county','state','fips'))
+    nyt_counties['code'] = None
+    nyt_counties['flag'] = int(0)
+    nyt_counties = nyt_counties.sort_values(by=['fips'],ascending=False)
+
+#   insert state postal codes and other abbreviation
+    gcodes = pd.read_csv(cv.cv_home+'geography_codes.csv',header=0,comment='#')
+    for i in range(0,len(gcodes)):
+        geog = gcodes['geography'].iloc[i]
+        code = gcodes['code'].iloc[i]
+        gfilter = nyt_counties['state'].isin([geog])
+    #   avoid 'SettingWithCopyWarning': 
+        nyt_counties.loc[gfilter,'code'] = code
+   
+#   merge the two data frames using NYT county designations
+    nyt_census = nyt_counties.merge(right=cs_pop)
+#   append row for New York City population
+    nyc_row = pd.Series(['New York City','New York',36999,'NY',0,nyc_population],index=nyt_census.columns)
+    nyt_census = nyt_census.append(nyc_row,ignore_index=True)
+    nyt_census = nyt_census.sort_values(by=['population','state','county'],ascending=False)
+
+    print('nyt_census (Los Angeles, CA through Kenedy, TX):')
+    print(nyt_census)
+    nyt_census.to_csv('nyt_census.csv',index=False)
+
 def Strptime(x):
     """
     wrapper for datetime.strptime callable by map(..)
@@ -69,7 +137,7 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
                 color=c) #,alpha=a)
 
     if ( (end =='r') | (end == 'b')):
-        i = len(x)-2
+        i = len(x)-1
         mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
                 color=c) #,alpha=a)
                       # Set the alpha value used for blendingD - 
@@ -183,29 +251,16 @@ class Geography:
 
     def get_county_pop(self):
         """
-        Reads US Census populations estimates for 2019
-        Subset of orginal csv file saved in UTF-8 format. 
-        The word 'County' stipped from county names.
-
-        nyc_pop is the sum of census estimates for New York, Kings, Queens
-        Bronx, and Richmond counties to be compatible with NYTimes data
-        """
         
-        nyc_pop = 8336817
-        if (self.name == 'New York City'):
-            return(nyc_pop)
+        """
 
         dat = cv.population_dat
-        if (dat == None):
+        if (dat.empty):
+            print('Reading',cv.census_data_path)
             cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
-        #                 encoding = "ascii")
             dat = cv.population_dat
-
-    #   get rid of Parish county designation in census data
-    #   ccnames = dat['county']
-    #   ccnames = ccnames.str.replace(' Parish', '', regex = True)
-    #   ccnames = ccnames.str.replace(' Municipality', '', regex = True)
-    #   dat['county'] = ccnames
+    #   else:
+    #       print('Using current "dat" object')
 
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
@@ -849,7 +904,8 @@ def make_SD_tab(Gfile='top30.csv',save=True):
     SD_tab = SD_tab.append(row,ignore_index=True)
     print(SD_tab)    
 
-def plot_DC(Gfile='top30.csv',save=True):
+#def plot_DC(Gfile='top30.csv',save=True):
+def plot_DC(nG=30,save=True):
 
     def plot_cmr(a, rr=[2.0]):
         for r in rr:
@@ -859,14 +915,9 @@ def plot_DC(Gfile='top30.csv',save=True):
             for i in range(0,len(yr)):
                 xr[i] = a.get_xlim()[i]
                 yr[i] = xr[i]*r/100.0
-            a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
-            mark_ends(a,xr,yr,rstr,'r')
 
-    print('Reading:',cv.cv_home+Gfile)
-    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
-    #                encoding = "ISO-8859-3")
-    print('Finished reading:',cv.cv_home+Gfile)
-    print(gg.columns)
+            a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
+            mark_ends(a,xr,yr,rstr,'r',' ')
 
     plt.rcParams["scatter.marker"] = '.'
     plt.rcParams["lines.markersize"] = 3
@@ -894,12 +945,12 @@ def plot_DC(Gfile='top30.csv',save=True):
     ct = []
     dt = []
     ft = []
-    print('Processing',len(gg),'geographies')
-    print(gg)
-    for g in range(0,len(gg)):
-        print(g,gg['name'][g])
-        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
-                         code=gg['code'][g])
+    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    print('Processing',nG,'geographies')
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         ax[0].scatter(tmpG.cases,tmpG.deaths)
         nt = len(tmpG.cases)-1
@@ -913,9 +964,9 @@ def plot_DC(Gfile='top30.csv',save=True):
     if (nplot > 2):
 #       ax[2].plot(ax[2].get_xlim(),(0.02,0.02),color='0.5',alpha=0.5)
         cmr = np.array(ft)
-        print(len(cmr))
-        print(cmr)
-        print(cmr.min(),cmr.max())
+    #   print(len(cmr))
+    #   print(cmr)
+    #   print(cmr.min(),cmr.max())
     #   cmrbins=np.array([0.0,0.5,1.0,2.0,4.0,8.0,16.0])/100.0
     #   print(cmrbins)
         ax[2].hist(cmr,50)
@@ -932,14 +983,14 @@ def plot_DC(Gfile='top30.csv',save=True):
     tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
     logylim = np.log(ax[0].get_ylim())
     ty = np.exp(logylim[0]+0.9*(logylim[1]-logylim[0]))
-    ax[0].text(tx,ty,' n = '+str(len(gg)),ha='left',va='center')
+    ax[0].text(tx,ty,' n = '+str(nG),ha='left',va='center')
 
     ax[1].scatter(ct,dt)
     plot_cmr(ax[1], [0.5,1.0,2.0,4.0,8.0])
-    ax[1].text(tx,ty,' n = '+str(len(gg)),ha='left',va='center')
+    ax[1].text(tx,ty,' n = '+str(nG),ha='left',va='center')
 
     if save:
-        gfile = cv.graphics_path+'CFR_'+str(len(gg))+'.png'
+        gfile = cv.graphics_path+'CFR_'+str(nG)+'.png'
         plt.savefig(gfile,dpi=300)
         plt.show(False)
         plt.pause(5)
@@ -1233,19 +1284,15 @@ def web_update():
     os.system(cmd)
 
 def make_dat_files():
-#   gg = pd.read_csv(cv.cv_home+'UpdateList.csv',header=0,comment='#')
-    gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
-    names = gg.columns
-    gg = np.append(gg,np.array([
-                                ['Honolulu','Hawaii','HI'],
-                                ['Multnomah','Oregon','OR']
-                               ]),axis=0)
-    gg = pd.DataFrame(gg,columns=names)
-#   plt.rc('figure', max_open_warning = 0)
+    nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    gg_filter = nyt_counties['flag'] == 1
+    gg = nyt_counties[gg_filter]
+    print(gg)
+
     for g in range(0,len(gg)):
-        print(gg['name'][g])
-        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
-                         code=gg['code'][g])
+        print(gg['county'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True,per_capita=False)
@@ -1264,24 +1311,17 @@ def update_fits():
     print('current',os.getcwd())
 
 def update_shared_plots():
-    update_list = pd.DataFrame(np.array(
-       [['District of Columbia','District of Columbia','DC'],
-        ['Honolulu','Hawaii','HI'],
-        ['Multnomah','Oregon','OR'],
-        ['Tompkins','New York','NY'],
-        ['Plumas','California','CA'],
-        ['Sonoma','California','CA'],
-        ['Marin','California','CA'],
-        ['Alameda','California','CA']]),
-        columns=['name','enclosed_by','code']) 
-    gg = update_list
+    nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    gg_filter = nyt_counties['flag'] == 2
+    gg = nyt_counties[gg_filter]
+    print(gg)
     save_path = cv.graphics_path
     cv.graphics_path = cv.cv_home+'PlotsToShare/'
     plt.rc('figure', max_open_warning = 0)
     for g in range(0,len(gg)):
-        print(gg['name'][g])
-        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
-                         code=gg['code'][g])
+        print(gg['county'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(signature = True, save=True)
 
@@ -1469,12 +1509,15 @@ def junk_func():
 #ax.plot((mean,mean),ax.get_ylim())
 #plt.show()
 
+# -------------------------------------------------
+
+#unique()
+
 #alam = Geography(name='Alameda',enclosed_by='California',code='CA')
 #alam.read_nyt_data('county')
-#alam.plot_prevalence(save=True,signature=True)
-#alam.get_pdate()
 #alam.print_metadata()
 #alam.print_data()
+#alam.plot_prevalence(save=True,signature=True)
 
 #cv.fit_path = cv.fit_path+'constrainID/'
 #tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
@@ -1490,6 +1533,7 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
+plot_DC(750)
 
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
@@ -1535,77 +1579,7 @@ def junk_func():
 #BCtest.print_data()
 #BCtest.plot_prevalence(save=True,signature=True)
 
-#plot_DC(Gfile='top500.csv')#'junk.csv')
 
 #junk_func()
 #make_SD_tab() #'top500.csv')
 
-def unique():
-    """
-    Generate file with census population estimates 
-    and county names  updated from https://github.com/nytimes/covid-19-data.git
-    add two byte state postal codes
-    add 'flag' field for selecting favorites
-    add population estimate for New York City as per NYT practice
-    """
-
-    census_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
-    census_dat = census_dat[census_dat['COUNTY']>0]
-    census_dat['fips'] = 0
-#   generate fips from concatenation of STATE and COUNTY fields in census records
-    for r in range(0,len(census_dat)):
-        fips = '{:02d}{:03d}'.format(census_dat['STATE'].iloc[r],census_dat['COUNTY'].iloc[r])
-    #   if (census_dat['county'].iloc[r] == 'Kalawao'):
-    #       print('----------Kalawao---------',census_dat['population'].iloc[r])
-    #       print(r,census_dat['COUNTY'].iloc[r],census_dat['STATE'].iloc[r],
-    #               census_dat['county'].iloc[r],census_dat['state'].iloc[r], fips)
-        census_dat['fips'].iloc[r] = int(fips)
-
-#   aggregate populations of NYC borroughs into NY Times convention for 
-    nyc_counties = ('Queens','Richmond','Kings','Bronx','New York')
-    nyc_c_filter = (  census_dat['county'].isin(nyc_counties) 
-                    & census_dat['state'].isin(['New York']))
-    nyc_population = int(census_dat[nyc_c_filter]['population'].sum())
-
-#   remove nyc_counties from census data
-    census_dat = census_dat[~nyc_c_filter] 
-
-#   create unique instances of fips,population combinations using set(..)
-    county_state_pop = set(zip(census_dat['fips'],census_dat['population']))
-    cs_pop = pd.DataFrame(county_state_pop,columns=('fips','population'))
-
-#   get NYT data    
-    nyt_dat = pd.read_csv(cv.NYT_counties,header=0)
-    nyt_dat = nyt_dat.sort_values(by=['fips'],ascending=False)
-#   remove counties without fips code (mainly 'Unknown' counties
-    empty_fips_filter = pd.notna(nyt_dat['fips'])
-    nyt_dat = nyt_dat[empty_fips_filter]
-
-#   create unique instances of NYT county & state combinations
-    county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state'],nyt_dat['fips']))
-    nyt_counties = pd.DataFrame(county_state_nyt,columns=('county','state','fips'))
-    nyt_counties['code'] = None
-    nyt_counties['flag'] = int(0)
-    nyt_counties = nyt_counties.sort_values(by=['fips'],ascending=False)
-
-#   insert state postal codes and other abbreviation
-    gcodes = pd.read_csv(cv.cv_home+'geography_codes.csv',header=0,comment='#')
-    for i in range(0,len(gcodes)):
-        geog = gcodes['geography'].iloc[i]
-        code = gcodes['code'].iloc[i]
-        gfilter = nyt_counties['state'].isin([geog])
-    #   avoid 'SettingWithCopyWarning': 
-        nyt_counties.loc[gfilter,'code'] = code
-   
-#   merge the two data frames using NYT county designations
-    nyt_census = nyt_counties.merge(right=cs_pop)
-#   append row for New York City population
-    nyc_row = pd.Series(['New York City','New York',36999,'NY',0,nyc_population],index=nyt_census.columns)
-    nyt_census = nyt_census.append(nyc_row,ignore_index=True)
-    nyt_census = nyt_census.sort_values(by=['population','state','county'],ascending=False)
-
-    print('nyt_census (Los Angeles, CA through Kenedy, TX):')
-    print(nyt_census)
-    nyt_census.to_csv('nyt_census.csv',index=False)
-
-unique()
