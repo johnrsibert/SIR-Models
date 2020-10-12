@@ -30,7 +30,7 @@ BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-10-15','%Y-%m-%d')
+EndOfTime = datetime.strptime('2020-10-22','%Y-%m-%d')
 
 population_dat = pd.DataFrame(None)
 

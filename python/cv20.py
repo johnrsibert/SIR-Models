@@ -33,7 +33,7 @@ eps = 1e-5
 
 # ---------------- global utility functions ---------------------------
 
-def make_nyt_census_eat():
+def make_nyt_census_dat():
     """
     Generate file with census population estimates 
     and county names  updated from https://github.com/nytimes/covid-19-data.git
@@ -41,8 +41,8 @@ def make_nyt_census_eat():
     add 'flag' field for selecting favorites
     add population estimate for New York City as per NYT practice
     """
-    census_dat_file = cv_home+'co-est2019-pop.csv'
-    census_dat = pd.read_csv(cv.census_dat_file,header=0,comment='#')
+    census_dat_file = cv.cv_home+'co-est2019-pop.csv'
+    census_dat = pd.read_csv(census_dat_file,header=0,comment='#')
     census_dat = census_dat[census_dat['COUNTY']>0]
     census_dat['fips'] = 0
 #   generate fips from concatenation of STATE and COUNTY fields in census records
@@ -78,7 +78,7 @@ def make_nyt_census_eat():
     county_state_nyt = set(zip(nyt_dat['county'],nyt_dat['state'],nyt_dat['fips']))
     nyt_counties = pd.DataFrame(county_state_nyt,columns=('county','state','fips'))
     nyt_counties['code'] = None
-    nyt_counties['flag'] = int(0)
+    nyt_counties['flag'] = ' '
     nyt_counties = nyt_counties.sort_values(by=['fips'],ascending=False)
 
 #   insert state postal codes and other abbreviation
@@ -93,8 +93,10 @@ def make_nyt_census_eat():
 #   merge the two data frames using NYT county designations
     nyt_census = nyt_counties.merge(right=cs_pop)
 #   append row for New York City population
-    nyc_row = pd.Series(['New York City','New York',36999,'NY',0,nyc_population],index=nyt_census.columns)
+    nyc_row = pd.Series(['New York City','New York',36999,'NY',' ',nyc_population],index=nyt_census.columns)
     nyt_census = nyt_census.append(nyc_row,ignore_index=True)
+#   df.astype({'col1': 'int32'}).dtype
+    nyt_census = nyt_census.astype({'fips':'int64'})
     nyt_census = nyt_census.sort_values(by=['population','state','county'],ascending=False)
 
     print('nyt_census (Los Angeles, CA through Kenedy, TX):')
@@ -1285,7 +1287,8 @@ def web_update():
 
 def make_dat_files():
     nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
-    gg_filter = nyt_counties['flag'] == 1
+#   gg_filter = nyt_counties['flag'] == 1
+    gg_filter = nyt_counties['flag'].str.contains('m')
     gg = nyt_counties[gg_filter]
     print(gg)
 
@@ -1312,7 +1315,8 @@ def update_fits():
 
 def update_shared_plots():
     nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
-    gg_filter = nyt_counties['flag'] == 2
+    gg_filter = nyt_counties['flag'].str.contains('s')
+    print(gg_filter)
     gg = nyt_counties[gg_filter]
     print(gg)
     save_path = cv.graphics_path
@@ -1430,7 +1434,7 @@ def update_everything():
                      fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
-    plot_DC(Gfile='top500.csv')
+    plot_DC(750)
     print('Finished CFR plots')
     print('Finished Everything!')
 
@@ -1530,11 +1534,12 @@ def junk_func():
 
 #update_everything()
 #web_update()
-#make_dat_files()
+make_dat_files()
 #update_fits()
 #update_shared_plots()
-plot_DC(750)
+#plot_DC(750)
 
+#make_nyt_census_dat()
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
