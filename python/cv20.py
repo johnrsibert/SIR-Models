@@ -1534,7 +1534,7 @@ def junk_func():
 
 #update_everything()
 #web_update()
-make_dat_files()
+#make_dat_files()
 #update_fits()
 #update_shared_plots()
 #plot_DC(750)
@@ -1586,5 +1586,68 @@ make_dat_files()
 
 
 #junk_func()
-#make_SD_tab() #'top500.csv')
+#make_SD_tab()
 
+def make_cfr_histo_ts():
+    nG = 30
+    interval = 30
+    bins = 10    
+#   CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
+#   EndOfTime = datetime.strptime('2020-10-22','%Y-%m-%d')
+    startDate = datetime.strptime('2020-03-01','%Y-%m-%d')
+    endDate   = mdates.date2num(datetime.strptime('2020-11-01','%Y-%m-%d'))
+    print('endDate', endDate)
+    tdate = mdates.date2num(startDate)
+#   print('tdate:',tdate)
+    hdate = [tdate]
+#   hdate = hdate.append([tdate])
+    while tdate <= endDate:
+        print(tdate,mdates.num2date(tdate).date())
+        tdate += interval
+        hdate.append(tdate)
+
+    print('hdate:',hdate)
+    print(hdate)
+
+#   cfr by geography and period filled with zeros 
+    cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
+    print('cfrG 0:')
+    print(cfrG)
+
+    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    print('Processing',nG,'geographies')
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        tmpG.read_nyt_data('county')
+    #   tmpG.print_metadata()
+    #   print(tmpG.get_pdate())
+        cf = pd.DataFrame(index=tmpG.get_pdate(), columns=('cases','deaths'))
+        cf['cases'] = tmpG.cases
+        cf['deaths'] = tmpG.deaths
+    #   print('cf:')
+    #   print(cf)
+
+    #   fill rows with cfr for each period
+        row = pd.Series(0.0,index=cfrG.columns)
+        for t in range(0,len(cfrG.columns)-1):
+            csum = float(cf['cases'][hdate[t]:hdate[t+1]].sum())
+            dsum = float(cf['deaths'][hdate[t]:hdate[t+1]].sum())
+        #   print(t,hdate[t],csum,dsum)
+            if (csum > 0.0):
+                row[hdate[t]] = dsum/csum
+            else:
+                row[hdate[t]] = -1.0
+
+        cfrG = cfrG.append(row, ignore_index=True)
+
+    print('cfrG 1:')
+    print(cfrG)
+
+#   hist, bin_edges = np.histogram(a, density=True)
+    hist, bin_edges = np.histogram(cfrG, density=False)
+    print(hist)
+    print(bin_edges)
+
+make_cfr_histo_ts()
