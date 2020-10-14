@@ -278,15 +278,21 @@ class Geography:
         
     def read_nyt_data(self,gtype='county'):
         self.gtype = gtype
+        mtime = 0.0
         if (gtype == 'county'):
-            cspath = cv.NYT_counties
+            dat = cv.nyt_county_dat
+            if (dat.empty):
+               cspath = cv.NYT_counties
+               print('Reading',cspath)
+               cv.nyt_county_dat = pd.read_csv(cspath,header=0)
+               dat = cv.nyt_county_dat
+               mtime = os.path.getmtime(cspath)
         else:
             sys.exit('No data for',gtype)
         
-        
-        dat = pd.read_csv(cspath,header=0)
+    #   dat = pd.read_csv(cspath,header=0)
 
-        mtime = os.path.getmtime(cspath)
+    #   mtime = os.path.getmtime(cspath)
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
         self.population = self.get_county_pop()
@@ -1589,8 +1595,9 @@ def junk_func():
 #make_SD_tab()
 
 def make_cfr_histo_ts():
+    from mpl_toolkits.mplot3d import Axes3D
     nG = 30
-    interval = 30
+    interval = 15
     bins = 10    
 #   CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 #   EndOfTime = datetime.strptime('2020-10-22','%Y-%m-%d')
@@ -1606,7 +1613,7 @@ def make_cfr_histo_ts():
         tdate += interval
         hdate.append(tdate)
 
-    print('hdate:',hdate)
+    print('hdate:',len(hdate),hdate)
     print(hdate)
 
 #   cfr by geography and period filled with zeros 
@@ -1645,9 +1652,52 @@ def make_cfr_histo_ts():
     print('cfrG 1:')
     print(cfrG)
 
-#   hist, bin_edges = np.histogram(a, density=True)
-    hist, bin_edges = np.histogram(cfrG, density=False)
-    print(hist)
-    print(bin_edges)
+#   hist, bin_edges = np.histogram(cfrG, density=False)
+#   print(hist)
+#   print(bin_edges)
+
+#   plot one histogram for each period
+#   for p in cfrG.columns:
+#       n, bins, patches = plt.hist(cfrG[p],bins=bins,density=False)
+#       print('n:',n)
+#       hist, bin_edges = np.histogram(cfrG[p], bins=bins,density=False)
+#       print('hist:',hist)
+#       plt.title(mdates.num2date(p).date())
+#       plt.show()
+
+
+#   print(type(cfrG.columns),len(cfrG.columns),cfrG.columns)
+    cfr_histo = pd.DataFrame(columns=hdate)
+    print('cfr_histo 0:',cfr_histo.shape,cfr_histo)
+#   hist = pd.Series(0.0,index=hdate)
+#   print('hist:',type(hist),len(hist),hist)
+ 
+    for p in cfrG.columns:
+        print(cfrG[p])
+        phist, bin_edges = np.histogram(cfrG[p], bins=bins,density=False)
+        print('bin_edges:',len(bin_edges),bin_edges)
+        print('phist:',len(phist),phist)
+        hist = pd.Series(phist)#,index=hdate)
+    #   print(hist)
+        cfr_histo = cfr_histo.append(hist,ignore_index=True)
+        
+    print('cfr_histo 1:',cfr_histo.shape,cfr_histo)
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    print('hdate:',len(hdate),hdate)
+    X = hdate #np.arange(-5, 5, 0.25)
+    Y = np.arange(0.0, 0.09,0.01) # np.arange(-5, 5, 0.25)
+    X, Y = np.meshgrid(X, Y)
+    print('X:',X.shape,X)
+    print('Y:',Y.shape,Y)
+#   Z = np.transpose(cfr_histo)
+    Z = cfr_histo
+    print('Z:',Z.shape,Z)
+    surf = ax.plot_surface(X, Y, Z, # cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+    plt.show()
 
 make_cfr_histo_ts()

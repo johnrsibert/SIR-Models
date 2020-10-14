@@ -33,6 +33,7 @@ CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 EndOfTime = datetime.strptime('2020-10-22','%Y-%m-%d')
 
 population_dat = pd.DataFrame(None)
+nyt_county_dat = pd.DataFrame(None)
 
 # "temporary" workaround issue with pyreadr.read_r(...)
 # reading TMB standard error objects
