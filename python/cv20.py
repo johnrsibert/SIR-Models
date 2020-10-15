@@ -1596,27 +1596,29 @@ def junk_func():
 
 def make_cfr_histo_ts():
     from mpl_toolkits.mplot3d import Axes3D
-    nG = 30
-    interval = 15
-    bins = 10    
+    nG = 750
+    interval = 7
+    bins = np.linspace(0.0,0.1,50)
+    density = False
+    save = True
+
 #   CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 #   EndOfTime = datetime.strptime('2020-10-22','%Y-%m-%d')
     startDate = datetime.strptime('2020-03-01','%Y-%m-%d')
-    endDate   = mdates.date2num(datetime.strptime('2020-11-01','%Y-%m-%d'))
-    print('endDate', endDate)
-    tdate = mdates.date2num(startDate)
-#   print('tdate:',tdate)
+    endDate   = mdates.date2num(datetime.strptime('2020-10-01','%Y-%m-%d'))
+    tdate = int(mdates.date2num(startDate))
     hdate = [tdate]
-#   hdate = hdate.append([tdate])
+    period_labels = [str(mdates.num2date(tdate).date().month)+'/'+str(mdates.num2date(tdate).date().day)]
     while tdate <= endDate:
         print(tdate,mdates.num2date(tdate).date())
         tdate += interval
         hdate.append(tdate)
+     #  period_labels.append(str(mdates.num2date(tdate).date()))
+        period_labels.append(str(mdates.num2date(tdate).date().month)+'/'+str(mdates.num2date(tdate).date().day))
 
     print('hdate:',len(hdate),hdate)
-    print(hdate)
+    print('labels:',period_labels)
 
-#   cfr by geography and period filled with zeros 
     cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
     print('cfrG 0:')
     print(cfrG)
@@ -1629,74 +1631,82 @@ def make_cfr_histo_ts():
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
     #   tmpG.print_metadata()
-    #   print(tmpG.get_pdate())
+    #   tmpG.print_data()
         cf = pd.DataFrame(index=tmpG.get_pdate(), columns=('cases','deaths'))
         cf['cases'] = tmpG.cases
         cf['deaths'] = tmpG.deaths
-    #   print('cf:')
-    #   print(cf)
 
     #   fill rows with cfr for each period
         row = pd.Series(0.0,index=cfrG.columns)
         for t in range(0,len(cfrG.columns)-1):
-            csum = float(cf['cases'][hdate[t]:hdate[t+1]].sum())
+        #   print(cf['deaths'][hdate[t]:hdate[t+1]])
+        #   print(cf['deaths'][hdate[t]:hdate[t+1]].sum())
+            csum = float(cf['cases'] [hdate[t]:hdate[t+1]].sum())
             dsum = float(cf['deaths'][hdate[t]:hdate[t+1]].sum())
-        #   print(t,hdate[t],csum,dsum)
             if (csum > 0.0):
                 row[hdate[t]] = dsum/csum
             else:
                 row[hdate[t]] = -1.0
+        #   print('row:',hdate[t],row[hdate[t]])
+#       if (1):
+#           sys.exit('X')
 
+#   cfr by geography and period filled with zeros 
         cfrG = cfrG.append(row, ignore_index=True)
 
-    print('cfrG 1:')
-    print(cfrG)
-
-#   hist, bin_edges = np.histogram(cfrG, density=False)
-#   print(hist)
-#   print(bin_edges)
-
-#   plot one histogram for each period
-#   for p in cfrG.columns:
-#       n, bins, patches = plt.hist(cfrG[p],bins=bins,density=False)
-#       print('n:',n)
-#       hist, bin_edges = np.histogram(cfrG[p], bins=bins,density=False)
-#       print('hist:',hist)
-#       plt.title(mdates.num2date(p).date())
-#       plt.show()
-
-
-#   print(type(cfrG.columns),len(cfrG.columns),cfrG.columns)
-    cfr_histo = pd.DataFrame(columns=hdate)
-    print('cfr_histo 0:',cfr_histo.shape,cfr_histo)
-#   hist = pd.Series(0.0,index=hdate)
-#   print('hist:',type(hist),len(hist),hist)
- 
+    cfr_histo = pd.DataFrame(columns=bins)
+#   fig, ax = plt.subplots(1,figsize=(6.5,6.5))
     for p in cfrG.columns:
-        print(cfrG[p])
-        phist, bin_edges = np.histogram(cfrG[p], bins=bins,density=False)
-        print('bin_edges:',len(bin_edges),bin_edges)
-        print('phist:',len(phist),phist)
-        hist = pd.Series(phist)#,index=hdate)
-    #   print(hist)
+    #   plt.hist(cfrG[p],bins=bins,density=density)
+        phist, bin_edges = np.histogram(cfrG[p], bins=bins,density=density)
+    #   print(phist)
+        hist = pd.Series(phist,index=bins[:-1])
+        hist = hist.fillna(0.0)
+    #   print(hist.values)
         cfr_histo = cfr_histo.append(hist,ignore_index=True)
-        
-    print('cfr_histo 1:',cfr_histo.shape,cfr_histo)
+    ##  ax.plot(bin_edges[:-1],phist)
+    ##  plt.show()
+
+#   print('cfr_histo: 1:', cfr_histo)
+    cfr_histo = cfr_histo.dropna(axis=1)
+#   print('cfr_histo: 2:', cfr_histo)
+    cfr_histo = cfr_histo.dropna(axis=0)
+#   print('cfr_histo: 3', cfr_histo)
+#   #                 df.to_numpy().max() 
+    hist_max = cfr_histo.to_numpy().max()
+#   print('hist_max:',hist_max)
+#   cfr_histo = cfr_histo/hist_max
+#   print('cfr_histo 4:', cfr_histo )
+    cfr_histo.to_csv('cfr_histo.csv',index=False)
+
+#   if (1):
+#       sys.exit('X')
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
 
     print('hdate:',len(hdate),hdate)
-    X = hdate #np.arange(-5, 5, 0.25)
-    Y = np.arange(0.0, 0.09,0.01) # np.arange(-5, 5, 0.25)
+    X = hdate[:-1]
+    Y = bins[:-1]
     X, Y = np.meshgrid(X, Y)
     print('X:',X.shape,X)
     print('Y:',Y.shape,Y)
-#   Z = np.transpose(cfr_histo)
-    Z = cfr_histo
+    Z = np.transpose(cfr_histo)
+#   Z = cfr_histo
     print('Z:',Z.shape,Z)
-    surf = ax.plot_surface(X, Y, Z, # cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
+    surf = ax.plot_surface(X, Y, Z)#, # cmap=cm.coolwarm, linewidth=0, antialiased=False)
+    print('ax.get_zlim():')
+    print(ax.get_zlim())
+#   ax.set_zlim(0.0,0.2)
+    ax.set_zlim(0.0,50.0)
+    ax.set_zlabel('Proportion')
+    ax.set_ylabel('Case Fatality Ratio')
+    ax.set_xlabel('Period')
+    ax.set_xticklabels(period_labels)
+
+    if save:
+        gfile = 'CFR_3Dhist'+str(nG)+'.png'
+        plt.savefig(gfile,dpi=300)
 
     plt.show()
 
