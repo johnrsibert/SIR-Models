@@ -241,6 +241,15 @@ class Geography:
             else:
                 print(self.date[k],self.cases[k],self.pdate[k])
             
+    def to_DataFrame(self):
+        self.get_pdate()
+        Gdf = pd.DataFrame(columns=('date','pdate','cases','deaths'))
+        Gdf['date'] = self.date
+        Gdf['pdate'] = self.pdate
+        Gdf['cases'] = self.cases
+        Gdf['deaths'] = self.deaths
+        return(Gdf)
+
     def get_pdate(self):
         if (self.pdate != None):
             return(self.pdate)
@@ -953,6 +962,7 @@ def plot_DC(nG=30,save=True):
     ct = []
     dt = []
     ft = []
+    recent = pd.DataFrame(columns = ('moniker','cases','deaths','cfr'))
     gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
     print('Processing',nG,'geographies')
     for g in range(0,nG):
@@ -960,33 +970,38 @@ def plot_DC(nG=30,save=True):
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
+     #  gdf = tmpG.to_DataFrame()
+     #  gdf = gdf.sort_values(by='cases',ascending=False)
+     #  print(gdf)
+        
         ax[0].scatter(tmpG.cases,tmpG.deaths)
         nt = len(tmpG.cases)-1
         ct.append(tmpG.cases[nt])
         dt.append(tmpG.deaths[nt])
-        ft.append(tmpG.deaths[nt]/tmpG.cases[nt])
+        cfrt =tmpG.deaths[nt]/tmpG.cases[nt]
+        ft.append(cfrt)
+        row = pd.Series(index=recent.columns)
+        row['moniker'] = tmpG.moniker
+        row['cases'] = tmpG.cases[nt]
+        row['deaths'] = tmpG.deaths[nt]
+        row['cfr'] = cfrt
+        recent = recent.append(row, ignore_index=True)
+
         if (nplot > 2):
            ratio = tmpG.deaths/tmpG.cases
            ax[2].scatter(tmpG.cases,ratio,color='blue',alpha=0.2)
 
+    recent = recent.sort_values(by='cases',ascending=False)
+    recent.to_csv('recent_cfr.csv',index=False)
+    print(recent)
+
     if (nplot > 2):
-#       ax[2].plot(ax[2].get_xlim(),(0.02,0.02),color='0.5',alpha=0.5)
-        cmr = np.array(ft)
-    #   print(len(cmr))
-    #   print(cmr)
-    #   print(cmr.min(),cmr.max())
-    #   cmrbins=np.array([0.0,0.5,1.0,2.0,4.0,8.0,16.0])/100.0
-    #   print(cmrbins)
-        ax[2].hist(cmr,50)
-    #   ax[2].set_xscale('log')
+        ax[2].hist(ft,50)
         ax[2].set_xlim(0.0,0.1)
-        ax[2].set_xlabel('Case Fatality Ratio')
+        ax[2].set_xlabel('Most Recent Case Fatality Ratio')
         ax[2].set_ylabel('Number')
-        np.savetxt('cfr'+str(len(cmr))+'.txt',cmr, delimiter= ' ') 
-       # savetxt("foo.csv", a, delimiter=",")e
 
     plot_cmr(ax[0], [0.5,1.0,2.0,4.0,8.0])
-
     logxlim = np.log(ax[0].get_xlim())
     tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
     logylim = np.log(ax[0].get_ylim())
@@ -995,7 +1010,7 @@ def plot_DC(nG=30,save=True):
 
     ax[1].scatter(ct,dt)
     plot_cmr(ax[1], [0.5,1.0,2.0,4.0,8.0])
-    ax[1].text(tx,ty,' n = '+str(nG),ha='left',va='center')
+    ax[1].text(tx,ty,' n = '+str(nG)+', most recent',ha='left',va='center')
 
     if save:
         gfile = cv.graphics_path+'CFR_'+str(nG)+'.png'
@@ -1543,7 +1558,7 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
-#plot_DC(750)
+plot_DC(1000)
 
 #make_nyt_census_dat()
 
@@ -1645,4 +1660,4 @@ def make_cfr_histo_ts():
 #   tRtg = np.transpose(Rtg)
 #   tRtg.to_csv('Rtg.csv')
 
-make_cfr_histo_ts()
+#make_cfr_histo_ts()

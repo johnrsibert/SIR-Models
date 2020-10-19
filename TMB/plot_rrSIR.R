@@ -136,6 +136,16 @@ plot.log.state = function(fit) #,np=5)
     gmloggamma = median(obj$report()$loggamma)
     abline(h=gmloggamma,lty='dashed')
 
+    prd_cfr = exp(obj$report()$logD - obj$report()$logEye)
+#   obs_cfr = exp(dat$log_obs_deaths - dat$log_obs_cases)
+    obs_cfr = dat$obs_deaths / dat$obs_cases
+    print(length(dat$log_obs_cases))
+    print(length(obs_cfr))
+    print(length(obj$report()$logEye))
+    print(length(prd_cfr))
+    plot(obs_cfr,prd_cfr,xlab='Obs CFR',ylab='Pred CFr')
+
+
 #   plot.new()
 #   mtext(title,outer=FALSE)
 

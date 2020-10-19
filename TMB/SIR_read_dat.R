@@ -29,8 +29,8 @@ read.dat.file=function(dat.file = "")
    data$ntime = get.numeric.field() # number of dat records
    ntime = data$ntime
    nobs  = ntime + 1
-   data$obs_cases  = vector(len=ntime)
-   data$obs_deaths = vector(len=ntime)
+   data$obs_cases  = vector(len=ntime,mode="numeric")
+   data$obs_deaths = vector(len=ntime,mode="numeric")
 #  for (t in 0:ntime)
    for (t in 1:nobs)
    {

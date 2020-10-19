@@ -95,7 +95,7 @@ map = list(
 
            "logprop_immune" = as.factor(NA),
 
-           "logsigma_logC" = as.factor(1),
+           "logsigma_logC" = as.factor(NA),
 #          "logsigma_logD" = as.factor(NA),
 
            
