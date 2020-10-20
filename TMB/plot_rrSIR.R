@@ -26,7 +26,7 @@ plot.log.state = function(fit) #,np=5)
     {
         w = which(names(obj$report()) == name)
         val = as.numeric(obj$report()[w])
-        note = paste('b = ',signif(val,3),sep='')
+        note = paste('bias = ',signif(val,3),sep='')
         return(note)
     }
 
@@ -61,7 +61,7 @@ plot.log.state = function(fit) #,np=5)
     ttext = 0.1*(length(dat$log_obs_cases)-1)
 
     poplim = c(0.0,1.2*log(dat$N0)) #range(obj$report()$logS)
-    plot(tt,obj$report()$logS,ylab='ln S',ylim=poplim)#, pch=point.symb)
+    plot(tt,obj$report()$logS,ylab='ln S',ylim=poplim, pch=point.symb)
 #   err = SElogS
 #   logspace.plot.error(tt,obj$report()$logS,err)
     gmlogS = median(obj$report()$logS)
@@ -87,13 +87,19 @@ plot.log.state = function(fit) #,np=5)
     ylim=c(0.0,1.2*max(dat$log_obs_deaths,obj$report()$logD))
     plot(tt,log(dat$obs_deaths),ylab='ln deaths',ylim=ylim,pch=point.symb)
     lines(tt,obj$report()$logD,col='red')
-#   Poisson error
-    err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
-    note = 'lambda'
-#   Zero infltated log normal
-#   err = exp(get.error(par,opt,map,'logsigma_logD'))
-    ytext = make.ytext(ylim,0.9)
-#   note = paste('sigma_logD ~',sprintf("%.5g",err))
+    if (hasName(par,'logsigma_logD'))
+    {
+#       Zero infltated log normal
+        err = exp(get.error(par,opt,map,'logsigma_logD'))
+        ytext = make.ytext(ylim,0.9)
+        note = paste('sigma_logD ~',sprintf("%.5g",err))
+    }
+    else
+    {
+    #   Poisson error
+        err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
+        note = 'lambda'
+    }
     text(ttext,ytext,note,col=note.color,pos=4)
 
     plot.error(tt,obj$report()$logD,err)
@@ -137,14 +143,9 @@ plot.log.state = function(fit) #,np=5)
     abline(h=gmloggamma,lty='dashed')
 
     prd_cfr = exp(obj$report()$logD - obj$report()$logEye)
-#   obs_cfr = exp(dat$log_obs_deaths - dat$log_obs_cases)
     obs_cfr = dat$obs_deaths / dat$obs_cases
-    print(length(dat$log_obs_cases))
-    print(length(obs_cfr))
-    print(length(obj$report()$logEye))
-    print(length(prd_cfr))
-    plot(obs_cfr,prd_cfr,xlab='Obs CFR',ylab='Pred CFr')
-
+    plot(tt, obs_cfr,ylab='Deaths/Cases',ylim=(c(0.0,0.4)), pch=point.symb)
+    lines(tt, prd_cfr,col='red')
 
 #   plot.new()
 #   mtext(title,outer=FALSE)

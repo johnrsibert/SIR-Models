@@ -32,24 +32,24 @@ print(data)
 init = list(
     logsigma_logP = log(0.1),
 
-    logsigma_logbeta = -1.5, #0.4,
-    logsigma_logmu = -1.2, #0.2,
+    logsigma_logbeta = log(0.2),
+    logsigma_logmu = log(0.2),
 
     bias_logbeta = 0.0,
     bias_logmu = 0.0,
 
     logprop_immune = log(1.0),
 
-    logsigma_logC = log(log(1.25)),
-#   logsigma_logD = log(log(5.0)),
+    logsigma_logC = log(0.223),
+    logsigma_logD = log(0.105),
 
-    logbeta = log(0.05),
-    logmu = -3.8, #log(0.05),
+    logbeta = -0.4, #log(0.05),
+    logmu = -7.0, #log(0.05),
 
     priorlogmu = -4.0,
     sigma_priorlogmu = 0.8,
 
-    logsigma_loggamma = 0.2,
+    logsigma_loggamma = log(0.2),
     loggamma = log(0.5) 
 )
 print("--init parameter values:")
@@ -69,7 +69,7 @@ par = list(
     logprop_immune = init$logprop_immune,
 
     logsigma_logC = init$logsigma_logC,
-#   logsigma_logD = init$logsigma_logD,
+    logsigma_logD = init$logsigma_logD,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
@@ -96,7 +96,7 @@ map = list(
            "logprop_immune" = as.factor(NA),
 
            "logsigma_logC" = as.factor(NA),
-#          "logsigma_logD" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA),
 
            
             "priorlogmu" = as.factor(NA),

@@ -74,7 +74,7 @@ Type objective_function <Type>::operator()()
     PARAMETER(logprop_immune);         // proprtion of infected recovered who are immune
 
     PARAMETER(logsigma_logC);          // cases observation error
-//  PARAMETER(logsigma_logD);          // deaths observation error
+    PARAMETER(logsigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
 //  vector <Type> gamma(ntime+1);        // recovery rate of infection population
@@ -98,7 +98,7 @@ Type objective_function <Type>::operator()()
 
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
-//  Type sigma_logD = exp(logsigma_logD);
+    Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logmu = square(sigma_logmu);
@@ -106,7 +106,7 @@ Type objective_function <Type>::operator()()
     Type var_logP = square(sigma_logP);
 
     Type var_logC = square(sigma_logC);
-//  Type var_logD = square(sigma_logD);
+    Type var_logD = square(sigma_logD);
 
     Type var_priorlogmu = square(sigma_priorlogmu);
 
@@ -148,8 +148,8 @@ Type objective_function <Type>::operator()()
          Type S   = exp(logS(t-1));
          Type Eye = exp(logEye(t-1));
          Type R   = exp(logR(t-1));
-         Type N   = S + Eye + R;
          Type D   = exp(logD(t-1));
+         Type N   = S + Eye + R - D;
          Type bison = beta * Eye * S/N;
     //   TTRACE(bison,beta)
     //   TTRACE(S,N)
@@ -212,8 +212,8 @@ Type objective_function <Type>::operator()()
      }
 
 //   pmunll += isNaN(NLerr(logmu(ntime),priorlogmu,var_priorlogmu),__LINE__);
-     TTRACE(betanll,munll)
-     TTRACE(Pnll,pmunll)
+//   TTRACE(betanll,munll)
+//   TTRACE(Pnll,pmunll)
  
      // compute observation likelihoods
      for (int t = 0; t <= ntime; t++)
@@ -221,11 +221,11 @@ Type objective_function <Type>::operator()()
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
      //  TTRACE(cnll,logEye(t))
      //  Zero inflated log normal
-     //  dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
+         dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      //  Poisson error
-         dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
+     //  dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
      }
-     TTRACE(cnll,dnll)
+//   TTRACE(cnll,dnll)
 
      // total likelihood
      f += isNaN((betanll + munll + Pnll + cnll + dnll + pmunll),__LINE__);
