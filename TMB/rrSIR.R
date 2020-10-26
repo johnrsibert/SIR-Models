@@ -26,31 +26,26 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
+
+data$cfr_weight =  1000.0
 print("-data:")
 print(data)
 
 init = list(
     logsigma_logP = log(0.1),
 
-    logsigma_logbeta = log(0.2),
-    logsigma_logmu = log(0.2),
+#   logsigma_logbeta = log(0.02),
+    logsigma_logbeta = 0.4,
+    logsigma_loggamma = log(0.693), #0.4,
 
-    bias_logbeta = 0.0,
-    bias_logmu = 0.0,
 
-    logprop_immune = log(1.0),
+    logsigma_logC = log(0.693),
+    logsigma_logD = log(0.223),
 
-    logsigma_logC = log(0.223),
-    logsigma_logD = log(0.105),
-
-    logbeta = -0.4, #log(0.05),
-    logmu = -7.0, #log(0.05),
-
-    priorlogmu = -4.0,
-    sigma_priorlogmu = 0.8,
-
-    logsigma_loggamma = log(0.2),
-    loggamma = log(0.5) 
+    logbeta  = log(0.02),
+    loggamma = log(0.02),
+#   logmu    = log(0.001),
+    logmu    = log(0.02)
 )
 print("--init parameter values:")
 print(init)
@@ -60,47 +55,28 @@ par = list(
 
     logsigma_logbeta = init$logsigma_logbeta,
     logsigma_loggamma = init$logsigma_loggamma,
-    logsigma_logmu = init$logsigma_logmu,
-
-    bias_logbeta = init$bias_logbeta,
-#   bias_loggamma = init$bias_loggamma,
-    bias_logmu = init$bias_logmu,
-
-    logprop_immune = init$logprop_immune,
 
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
-    logmu    = rep(init$logmu,data$ntime+1),
-
-    priorlogmu = init$priorlogmu,
-    sigma_priorlogmu = init$sigma_priorlogmu
+    logmu    = init$logmu
 )
+
 print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "loggamma" = rep(as.factor(NA),data$ntime+1),
+           "loggamma" = rep(as.factor(1),data$ntime+1),
+           "logmu" = as.factor(1),
 
            "logsigma_logP" = as.factor(1),
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(1),
-           "logsigma_logmu" = as.factor(1),
-
-           "bias_logbeta" = as.factor(NA),
-#          "bias_loggamma" = as.factor(NA),
-           "bias_logmu" = as.factor(NA),
-
-           "logprop_immune" = as.factor(NA),
+           "logsigma_loggamma" = as.factor(NA),
 
            "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA),
-
-           
-            "priorlogmu" = as.factor(NA),
-            "sigma_priorlogmu" = as.factor(NA)
+           "logsigma_logD" = as.factor(NA) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -115,7 +91,8 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
+#obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
+obj = MakeADFun(data,par,random=c("logbeta","loggamma"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -141,8 +118,8 @@ mlogbeta = median(obj$report()$logbeta)
 print(paste("median logbeta:",mlogbeta))
 mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
-mgamma = median(obj$report()$gamma)
-print(paste("median gamma:",mgamma))
+mloggamma = median(obj$report()$loggamma)
+print(paste("median loggamma:",mloggamma))
 
 #print('data')
 #print(data)

@@ -1337,7 +1337,7 @@ def update_fits():
 def update_shared_plots():
     nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
-    print(gg_filter)
+#   print(gg_filter)
     gg = nyt_counties[gg_filter]
     print(gg)
     save_path = cv.graphics_path
@@ -1455,7 +1455,7 @@ def update_everything():
                      fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
-    plot_DC(750)
+    plot_DC(1000)
     print('Finished CFR plots')
     print('Finished Everything!')
 
@@ -1558,7 +1558,7 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
-plot_DC(1000)
+#plot_DC(1000)
 
 #make_nyt_census_dat()
 
