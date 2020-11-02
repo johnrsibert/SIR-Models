@@ -310,7 +310,7 @@ class Geography:
         county_filter = dat['county'].isin([self.name])
         County_rows = state_filter & county_filter
         if (len(County_rows) < 1):
-            sys.exit(' * * * no records fround for',self.name,self.surrounded_by)
+            sys.exit(' * * * no records found for',self.name,self.surrounded_by)
 
    #    tmp = dat[County_rows]['date'].map(Strptime)
    #    self.pdate  = np.array(mdates.date2num(tmp))
@@ -1213,14 +1213,15 @@ def make_fit_table(ext = '.RData'):
     #   row['N0'] = int(get_metadata('N0',meta))
         row['C'] = fit.get_metadata_item('convergence')
         row['ntime'] = int(fit.get_metadata_item('ntime'))
-        row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
+    #   row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
+        row['prop_zero_deaths'] = float(fit.get_metadata_item('prop_zero_deaths'))
         tt = tt.append(row,ignore_index=True)
         func = np.append(func,float(fit.get_metadata_item('fn')))
         beta = np.exp(diag['logbeta'])
         mbeta = np.append(mbeta,median(beta))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
-    #   gamma = diag['gamma']
+    #   gamma = diag['gamma'
     #   mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
@@ -1228,12 +1229,23 @@ def make_fit_table(ext = '.RData'):
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
 
+    mtime = os.path.getmtime(cv.NYT_counties)
+    dtime = datetime.fromtimestamp(mtime)
+    ft_name = cv.fit_path+'fit_table_'+str(dtime.date())
+
+    csv = ft_name+'.csv'
+    tt.to_csv(csv,index=False)
+    print('Fit table data written to file',csv)
+
+
     tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
 
-    for c in range(3,len(tt.columns)):
-        for r in range(0,tt.shape[0]):
+    for r in range(0,tt.shape[0]):
+        for c in range(3,len(tt.columns)):
            if (tt.iloc[r,c] != None):
                tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
+        c = 2
+        tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
 
     row = pd.Series(None,index=tt.columns)
     row['county'] = 'Median'
@@ -1243,10 +1255,8 @@ def make_fit_table(ext = '.RData'):
             row[n] = mn
     tt = tt.append(row,ignore_index=True)
 
-    mtime = os.path.getmtime(cv.NYT_counties)
-    dtime = datetime.fromtimestamp(mtime)
 
-    tex = cv.fit_path+'fit_table.tex'
+    tex = ft_name+'.tex'
     ff = open(tex, 'w')
     caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with $\gamma = 0$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git.\n"
 
@@ -1564,7 +1574,7 @@ def junk_func():
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
-#make_fit_table()
+make_fit_table()
 #make_fit_plots()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])

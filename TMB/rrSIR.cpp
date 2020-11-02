@@ -102,9 +102,9 @@ Type objective_function <Type>::operator()()
 
     //  loop over time
     logS[0] = log(N0);
-    logEye[0] = 0.0;
-    logD[0] = 0.0;
-    logR[0] = 0.0;
+    logEye[0] = log_obs_cases[0];
+//  logD[0] = eps;
+//  logR[0] = eps;
     for (int t = 1; t <= ntime; t++)
     {
     //   TRACE(t)
@@ -212,12 +212,12 @@ Type objective_function <Type>::operator()()
          {
              Type pred_cfr = exp(logD(t)-logEye(t));
              cfrdev += square(obs_cfr-pred_cfr);
-             TTRACE(t,cfrdev)
-             TTRACE(pred_cfr,obs_cfr)
+         //  TTRACE(t,cfrdev)
+         //  TTRACE(pred_cfr,obs_cfr)
          }
      }
      Type cfrpen = cfr_weight*cfrdev;
-     TTRACE(cfrdev,cfrpen)
+//   TTRACE(cfrdev,cfrpen)
 
      // total likelihood
      f += isNaN((betanll + Pnll + cnll + dnll + cfrpen),__LINE__);

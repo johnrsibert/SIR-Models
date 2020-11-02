@@ -7,8 +7,9 @@ Created on Tue Jul  7 15:08:58 2020
 
 @author: jsibert
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
+import os
 
 # mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
 
@@ -30,8 +31,12 @@ BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
 
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-EndOfTime = datetime.strptime('2020-10-28','%Y-%m-%d')
-
+#EndOfTime = datetime.strptime('2020-10-28','%Y-%m-%d')
+mtime = os.path.getmtime(NYT_home+'us-counties.csv')
+dtime = datetime.fromtimestamp(mtime)
+EndOfTime = dtime.date()+timedelta(days=14)
+print('Current EndOfTime =',EndOfTime)
+   
 population_dat = pd.DataFrame(None)
 nyt_county_dat = pd.DataFrame(None)
 

@@ -27,19 +27,18 @@ print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
 
-data$cfr_weight =  1000.0
+data$cfr_weight =  10.0
 print("-data:")
 print(data)
 
 init = list(
     logsigma_logP = log(0.1),
 
-#   logsigma_logbeta = log(0.02),
-    logsigma_logbeta = 0.4,
-    logsigma_loggamma = log(0.693), #0.4,
+    logsigma_logbeta = log(0.223), #0.4,
+    logsigma_loggamma = log(0.223), #0.4,
 
 
-    logsigma_logC = log(0.693),
+    logsigma_logC = log(0.223),
     logsigma_logD = log(0.223),
 
     logbeta  = log(0.02),
@@ -68,15 +67,17 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "loggamma" = rep(as.factor(1),data$ntime+1),
-           "logmu" = as.factor(1),
-
            "logsigma_logP" = as.factor(1),
-           "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(NA),
+
+           "logsigma_logbeta" = as.factor(NA),
+           "logsigma_loggamma" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA) 
+           "logsigma_logD" = as.factor(NA),
+
+           "logbeta" = rep(as.factor(NA),data$ntime+1),
+           "loggamma" = rep(as.factor(NA),data$ntime+1),
+           "logmu" = as.factor(1) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -115,11 +116,11 @@ print("exp(parameters):",quote=FALSE)
 print(exp(opt$par))
 
 mlogbeta = median(obj$report()$logbeta)
-print(paste("median logbeta:",mlogbeta))
+print(paste("median logbeta:",mlogbeta,exp(mlogbeta)))
 mlogmu = median(obj$report()$logmu)
-print(paste("median logmu:",mlogmu))
+print(paste("median logmu:",mlogmu,exp(mlogmu)))
 mloggamma = median(obj$report()$loggamma)
-print(paste("median loggamma:",mloggamma))
+print(paste("median loggamma:",mloggamma,exp(mloggamma)))
 
 #print('data')
 #print(data)

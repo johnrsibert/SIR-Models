@@ -65,8 +65,8 @@ print(map)
 
 cpp.name = paste(model.name,'.cpp',sep='')
 
-print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
-compile(cpp.name)
+#print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
+#compile(cpp.name)
 print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
@@ -206,7 +206,7 @@ if (nrun < 2) {
        County = sub("\\.dat","",c)
        c = basename(County)
        print(paste("starting",c))
-       do_one_run(County=c,do.plot=TRUE)->fit
+       do_one_run(County=c,do.plot=FALSE)->fit
    }
    sink()
 }
