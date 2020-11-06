@@ -970,6 +970,7 @@ def plot_DC(nG=30,save=True):
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
+        print(tmpG.moniker+'.RData')
      #  gdf = tmpG.to_DataFrame()
      #  gdf = gdf.sort_values(by='cases',ascending=False)
      #  print(gdf)
@@ -1568,13 +1569,13 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
-#plot_DC(1000)
+#plot_DC(10) #00)
 
 #make_nyt_census_dat()
 
 #cv.fit_path = cv.fit_path+'unconstrained/'
 #update_fits()
-make_fit_table()
+#make_fit_table()
 #make_fit_plots()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
@@ -1619,55 +1620,118 @@ make_fit_table()
 #junk_func()
 #make_SD_tab()
 
-def make_cfr_histo_ts():
+def make_cfr_histo_ts(nG = 500):
+    FirstNYTDate = datetime.strptime('2020-01-01','%Y-%m-%d')
+    EndOfTime = datetime.strptime('2020-11-01','%Y-%m-%d')
+    firstDate = mdates.date2num(FirstNYTDate)
+    lastDate  = mdates.date2num(EndOfTime)
 
-    firstDate = mdates.date2num(cv.FirstNYTDate)
-    lastDate  = mdates.date2num(cv.EndOfTime)
-    nG = 5
-
+    interval = 31 #days
     tdate = int(firstDate)
     hdate = [tdate]
+    period_labels = [mdates.num2date(tdate).strftime('%b')]
+ 
     while tdate <= lastDate:
-    #   print(tdate,mdates.num2date(tdate).date())
-        tdate += 1
+        print(tdate,mdates.num2date(tdate).date())
+        tdate += interval
         hdate.append(tdate)
+        period_labels.append(mdates.num2date(tdate).strftime('%b'))
 
     print('hdate:',len(hdate))
-
-    Rtg = pd.DataFrame(columns=hdate)
-    print(Rtg)
+    print('labels:',period_labels,len(period_labels))
+    cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
+#   print('cfrG 0:')
+#   print(cfrG)
+ 
     gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
     print('Processing',nG,'geographies')
+    nobs = 0
     for g in range(0,nG):
         print(g,gg['county'].iloc[g])
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.get_pdate()
-    #   tmpG.print_data()
 
-        row = pd.Series(0.0,index=Rtg.columns)
-        cf = pd.DataFrame(columns=('cases','deaths','pdate'))
+        cf = pd.DataFrame(index=tmpG.get_pdate(),columns=('cases','deaths','pdate'))
         cf['cases'] = tmpG.cases
         cf['deaths'] = tmpG.deaths
         cf['pdate'] = np.int64(tmpG.pdate)
-    #   print(cf)
-        for d in range(0,len(cf)-1):
-            try:
-               cfr = float(cf['deaths'][d])/float(cf['cases'][d])
-            except:
-               cfr = 0.0
-  
-        #   print(d,cf['pdate'][d],cf['cases'][d],cfr)
-            row[cf.pdate] = cfr
 
-    #   print(row)
-        Rtg = Rtg.append(row, ignore_index=True)
+        row = pd.Series(0.0,index=cfrG.columns)
+        for t in range(0,len(cfrG.columns)-1):
+            csum = float(cf['cases'] [hdate[t]:hdate[t+1]].sum())
+            dsum = float(cf['deaths'][hdate[t]:hdate[t+1]].sum())
+            if (csum > 0.0):
+                row[hdate[t]] = dsum/csum
+                nobs += 1
+        #   else:
+        #       row[hdate[t]] = 0.0
 
-    print(Rtg)
-#   Rtg = Rtg.replace(np.nan, 0.0)
-#   print(Rtg)
-#   tRtg = np.transpose(Rtg)
-#   tRtg.to_csv('Rtg.csv')
+        cfrG = cfrG.append(row, ignore_index=True)
 
-#make_cfr_histo_ts()
+    print('cfrG:')
+#   print(cfrG)
+#   print(np.ones_like(cfrG))
+    print(cfrG.shape,cfrG.size)
+    print('cfrG.min:')
+    print(cfrG.min().max())
+
+    logcfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
+    logcfrG =np.log(cfrG + eps)
+#   print('logcfrG"')
+#   print(logcfrG)
+#   df[df.replace([np.inf, -np.inf], np.nan).notnull().all(axis=1)] 
+#   logcfrG[logcfrG.replace([np.inf, -np.inf], np.nan,inplace=True).notnull().all(axis=1)] 
+#   df.replace([np.inf, -np.inf], np.nan).dropna(axis=1)
+#   logfcfrG = pd.DataFrame(logcfrG.replace([np.inf, -np.inf], np.nan,inplace=True)).dropna(axis=1)
+#   print(logcfrG)
+
+    bins = np.linspace(0.0,0.1,50)
+    bins[0] = 0.8*cfrG.min().max() #0.001
+    print(bins)
+    fig, ax = plt.subplots(2,1,figsize=(6.5,6.5))
+#   ax[0].set_ylim(0.0,0.2)
+#   ax[1].set_ylim(0.0,0.2)
+#   gweights = np.ones_like(cfrG) / float(cfrG.size)
+    for k,p in enumerate(cfrG.columns):
+    #   phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=gweights[:,k],
+    #                                   density=False)
+        weights = np.ones_like(cfrG[p]) / float(cfrG[p].size)
+        phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=weights,
+                                        density=False)
+        psum = phist.sum()
+#       print('psum:',psum)
+        ax[0].plot(bin_edges[:-1],phist,linewidth=2)
+        mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
+ 
+    axlim = ax[0].get_xlim()
+    tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
+    aylim = ax[0].get_ylim()
+    ty = aylim[0]+0.9*(aylim[1]-aylim[0])
+    ax[0].text(tx,ty,' n = '+str(nG),ha='right',va='center')
+
+    logbins = np.log(bins)
+    for k,p in enumerate(cfrG.columns):
+        weights = np.ones_like(logcfrG[p]) / float(logcfrG[p].size)
+        phist, bin_edges = np.histogram(logcfrG[p], density=False, bins=logbins, weights=weights)
+        psum = phist.sum()
+#       print('psum:',psum)
+        ax[1].plot(bin_edges[:-1],phist,linewidth=2)
+        mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
+ 
+    axlim = ax[1].get_xlim()
+    tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
+    aylim = ax[1].get_ylim()
+    ty = aylim[0]+0.9*(aylim[1]-aylim[0])
+    ax[1].text(tx,ty,' n = '+str(nG),ha='right',va='center')
+
+
+    gfile = cv.graphics_path+'monthly_CFR_histo_'+str(nG)+'.png'
+    plt.savefig(gfile,dpi=300)
+    print('Plot saved as',gfile)
+    plt.show()
+
+
+
+make_cfr_histo_ts()
