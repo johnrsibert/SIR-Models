@@ -9,7 +9,8 @@ Created on Thu Jul  2 09:04:11 2020
 """
 
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib import rc
@@ -129,6 +130,15 @@ def short_name(s):
     else:
         sn = w[0][0]+w[1][0]+s[-2:]
     return(sn)  
+
+def mark_peak(ax,x,y,label):
+    c = ax.get_lines()[-1].get_color()
+    a = ax.get_lines()[-1].get_alpha()
+    i = pd.Series(y).idxmax()
+    if (i>0):
+      mark = ax.text(x[i],y[i],label,ha='center',va='bottom',fontsize=8, 
+                     color=c) #,alpha=a)
+      mark.set_alpha(a) # not supported on all backends
 
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
@@ -1620,29 +1630,41 @@ def junk_func():
 #junk_func()
 #make_SD_tab()
 
-def make_cfr_histo_ts(nG = 500):
-    FirstNYTDate = datetime.strptime('2020-01-01','%Y-%m-%d')
-    EndOfTime = datetime.strptime('2020-11-01','%Y-%m-%d')
-    firstDate = mdates.date2num(FirstNYTDate)
-    lastDate  = mdates.date2num(EndOfTime)
-
-    interval = 31 #days
-    tdate = int(firstDate)
+def make_cfr_histo_ts(nG = 1000,save=True):
+    firstDate = date(2020,1,1)
+#   print(firstDate, mdates.date2num(firstDate))
+    lastDate = datetime.fromtimestamp(os.path.getmtime(cv.NYT_home+'us-counties.csv')).date()
+#   print('lastDate:',lastDate)
+    nextDate = firstDate
+    p = 0
+    tdate = int(mdates.date2num(firstDate))
     hdate = [tdate]
     period_labels = [mdates.num2date(tdate).strftime('%b')]
+    Period_Labels = [mdates.num2date(tdate).strftime('%B')]
+    
+    while nextDate < lastDate:
+        p += 1
+        nextDate = nextDate + relativedelta(months=+1)
+    #   print(p,nextDate, mdates.date2num(nextDate))
+        if (p>1):
+            tdate = int(mdates.date2num(nextDate))
+            hdate.append(tdate)
+            period_labels.append(mdates.num2date(tdate).strftime('%b'))
+            Period_Labels.append(mdates.num2date(tdate).strftime('%B'))
+    
+    
+    
+    #print(hdate)
+    #print(period_labels)
+    periods = pd.DataFrame(columns=('pd','pl','PL'))
+    periods['pd']=hdate
+    periods['pl']=period_labels
+    periods['PL']=Period_Labels
+    print(periods)
  
-    while tdate <= lastDate:
-        print(tdate,mdates.num2date(tdate).date())
-        tdate += interval
-        hdate.append(tdate)
-        period_labels.append(mdates.num2date(tdate).strftime('%b'))
-
-    print('hdate:',len(hdate))
-    print('labels:',period_labels,len(period_labels))
     cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
 #   print('cfrG 0:')
 #   print(cfrG)
- 
     gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
     print('Processing',nG,'geographies')
     nobs = 0
@@ -1657,25 +1679,31 @@ def make_cfr_histo_ts(nG = 500):
         cf['cases'] = tmpG.cases
         cf['deaths'] = tmpG.deaths
         cf['pdate'] = np.int64(tmpG.pdate)
+    #   print('cf:')
+    #   print(cf)
 
         row = pd.Series(0.0,index=cfrG.columns)
         for t in range(0,len(cfrG.columns)-1):
             csum = float(cf['cases'] [hdate[t]:hdate[t+1]].sum())
             dsum = float(cf['deaths'][hdate[t]:hdate[t+1]].sum())
+        #   print(hdate[t],hdate[t+1],csum,dsum)
             if (csum > 0.0):
                 row[hdate[t]] = dsum/csum
                 nobs += 1
-        #   else:
-        #       row[hdate[t]] = 0.0
+            else:
+                row[hdate[t]] = 0.0
 
         cfrG = cfrG.append(row, ignore_index=True)
 
-    print('cfrG:')
+#   print('cfrG nG:')
 #   print(cfrG)
+
 #   print(np.ones_like(cfrG))
-    print(cfrG.shape,cfrG.size)
-    print('cfrG.min:')
-    print(cfrG.min().max())
+#   print(cfrG.shape,cfrG.size)
+#   print('cfrG.min:')
+#   print(cfrG.min().max())
+#   print('cfrG.max:')
+#   print(cfrG.max())
 
     logcfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
     logcfrG =np.log(cfrG + eps)
@@ -1688,22 +1716,22 @@ def make_cfr_histo_ts(nG = 500):
 #   print(logcfrG)
 
     bins = np.linspace(0.0,0.1,50)
-    bins[0] = 0.8*cfrG.min().max() #0.001
-    print(bins)
+#   print(bins)
+    bins[0] =  0.001 #0.1*cfrG.min().max()
+#   print(bins)
     fig, ax = plt.subplots(2,1,figsize=(6.5,6.5))
 #   ax[0].set_ylim(0.0,0.2)
 #   ax[1].set_ylim(0.0,0.2)
 #   gweights = np.ones_like(cfrG) / float(cfrG.size)
     for k,p in enumerate(cfrG.columns):
-    #   phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=gweights[:,k],
-    #                                   density=False)
         weights = np.ones_like(cfrG[p]) / float(cfrG[p].size)
         phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=weights,
                                         density=False)
         psum = phist.sum()
-#       print('psum:',psum)
+    #   print('psum:',psum)
         ax[0].plot(bin_edges[:-1],phist,linewidth=2)
-        mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
+#       mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
+        mark_peak(ax[0],bin_edges[:-1],phist,str(period_labels[k]))
  
     axlim = ax[0].get_xlim()
     tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
@@ -1711,14 +1739,15 @@ def make_cfr_histo_ts(nG = 500):
     ty = aylim[0]+0.9*(aylim[1]-aylim[0])
     ax[0].text(tx,ty,' n = '+str(nG),ha='right',va='center')
 
-    logbins = np.log(bins)
+    logbins = np.log(bins)#+eps)
     for k,p in enumerate(cfrG.columns):
         weights = np.ones_like(logcfrG[p]) / float(logcfrG[p].size)
         phist, bin_edges = np.histogram(logcfrG[p], density=False, bins=logbins, weights=weights)
-        psum = phist.sum()
+#       psum = phist.sum()
 #       print('psum:',psum)
         ax[1].plot(bin_edges[:-1],phist,linewidth=2)
-        mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
+#       mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
+        mark_peak(ax[1],bin_edges[:-1],phist,period_labels[k])
  
     axlim = ax[1].get_xlim()
     tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
@@ -1726,12 +1755,31 @@ def make_cfr_histo_ts(nG = 500):
     ty = aylim[0]+0.9*(aylim[1]-aylim[0])
     ax[1].text(tx,ty,' n = '+str(nG),ha='right',va='center')
 
+    if (save):
+        gfile = cv.graphics_path+'monthly_CFR_histo_'+str(nG)+'.png'
+        plt.savefig(gfile,dpi=300)
+        print('Plot saved as',gfile)
 
-    gfile = cv.graphics_path+'monthly_CFR_histo_'+str(nG)+'.png'
-    plt.savefig(gfile,dpi=300)
-    print('Plot saved as',gfile)
-    plt.show()
+    plt.show()#block=False)
+
+    if (1):
+        sys.exit(1)
+    figb, bx = plt.subplots(4,3,figsize=(9.0,6.5))
+    bxf = bx.flatten('C')
+#   print(bxf)
+    for k,p in enumerate(cfrG.columns):
+        weights = np.ones_like(cfrG[p]) / float(cfrG[p].size)
+        phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=weights,
+                                        density=False)
+        bxf[k].bar(bin_edges[:-1],phist)
+        bxf[k].plot(bin_edges[:-1],phist,linewidth=2)
+        axlim = bxf[k].get_xlim()
+        tx = axlim[0] + 0.9*(axlim[1]-axlim[0])
+        aylim = bxf[k].get_ylim()
+        ty = aylim[0]+0.9*(aylim[1]-aylim[0])
+        bxf[k].text(tx,ty,period_labels[k],ha='left',va='center')
 
 
+    plt.show()#block=False)
 
 make_cfr_histo_ts()
