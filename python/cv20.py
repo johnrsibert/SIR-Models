@@ -131,6 +131,16 @@ def short_name(s):
         sn = w[0][0]+w[1][0]+s[-2:]
     return(sn)  
 
+def none_reported(ax,what):
+    lim = ax.get_xlim()
+    tx = lim[0] + 0.5*(lim[1]-lim[0])
+    lim = ax.get_ylim()
+    ty = 0.5*lim[1] #lim[0] + 0.5*(lim[1]-lim[0])
+    note = 'No '+what+' Reported'
+    print(note)
+    ax.text(tx,ty,note,ha='center',va='center',fontstyle='italic')
+
+
 def mark_peak(ax,x,y,label):
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
@@ -407,8 +417,9 @@ class Geography:
 
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
-                        window=[11], plot_dt = False, annotation = True,
-                        signature = False, save = True):
+                        window=[11], plot_dt = False, cumulative = True,
+                        show_order_date = True,
+                        annotation = True, signature = False, save = True):
         
         """ 
         Plots cases and deaths vs calendar date 
@@ -422,10 +433,9 @@ class Geography:
         save : save plot as file
         """
         mult = 1000
-    
-    #   firstDate = mdates.date2num(cv.FirstNYTDate)
+
+        firstDate = datetime.strptime('2020-03-01','%Y-%m-%d')
         orderDate = mdates.date2num(cv.CAOrderDate)
-    #   lastDate  = mdates.date2num(cv.EndOfTime)
 
         if (self.deaths is None):
             nax = 1
@@ -450,11 +460,12 @@ class Geography:
     
         ax2 = []
         for a in range(0,nax):
-            self.make_date_axis(ax[a])
+            self.make_date_axis(ax[a],firstDate)
 
             ax[a].set_yscale(yscale)
-            ax2.append(ax[a].twinx())
-            ax2[a].set_ylabel('Cumulative')
+            if (cumulative):
+                ax2.append(ax[a].twinx())
+                ax2[a].set_ylabel('Cumulative')
         
         if (per_capita):
             cases =  mult*self.cases/self.population + eps
@@ -467,46 +478,55 @@ class Geography:
             deaths =  self.deaths
         
         nn = self.ntime-1
+        max_cases = cases[nn]
+        max_deaths = deaths[nn]
 
         Date = self.get_pdate()
 
         delta_cases = np.diff(cases)
         ax[0].bar(Date[1:], delta_cases)
 
- #      aug1 = mdates.date2num(datetime.strptime('2020-08-01','%Y-%m-%d').date())
- #      ax[0].plot((aug1,aug1),ax[0].get_ylim(),color='black',linewidth=1)
-
-        for w in range(0,len(window)):
-            adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
-            ax[0].plot(Date[1:],adc,linewidth=2)
-            mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
+        if (max_cases < 1.0):
+            none_reported(ax[0],'Cases')
+        else:
+            for w in range(0,len(window)):
+                adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
+                ax[0].plot(Date[1:],adc,linewidth=2)
+                mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
         
-        ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
-        mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
+            if (cumulative):
+                ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
+                mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
 
-        if ((yscale == 'log') & (plot_dt)):
-            ax[0] = self.plot_dtslopes(ax[0])
+            if ((yscale == 'log') & (plot_dt)):
+                ax[0] = self.plot_dtslopes(ax[0])
                 
         if (nax > 1):
-            ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-            mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
+            if (cumulative):
+                ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
+                mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
 
-            delta_deaths = np.diff(deaths)
-            ax[1].bar(Date[1:],delta_deaths)
-            for w in range(0,len(window)):
-                add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
-                ax[1].plot(Date[1:],add,linewidth=2)
-                mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
+            if (max_deaths > 0.0):
+                delta_deaths = np.diff(deaths)
+                ax[1].bar(Date[1:],delta_deaths)
+                for w in range(0,len(window)):
+                    add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
+                    ax[1].plot(Date[1:],add,linewidth=2)
+                    mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
+            else:
+                none_reported(ax[1],'Deaths')
     
         for a in range(0,nax):
         #   Adjust length of y axis
             ax[a].set_ylim(0,ax[a].get_ylim()[1])
             if (delta_ts):
-                ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
+                if (cumulative):
+                    ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
         #   Newsome's shelter in place order
-            ax[a].plot((orderDate,orderDate),
-                       (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),color='black',
-                        linewidth=3,alpha=0.5)
+            if (show_order_date):
+                ax[a].plot((orderDate,orderDate),
+                           (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),
+                           color='black', linewidth=3,alpha=0.5)
         #   ax[a].legend()
     
         if (annotation):
@@ -541,8 +561,12 @@ class Geography:
             plt.show()
 
 
-    def make_date_axis(self,ax):
-        firstDate = mdates.date2num(cv.FirstNYTDate)
+    def make_date_axis(self, ax, first_prev_date = None):
+        if (first_prev_date is None):
+            firstDate = mdates.date2num(cv.FirstNYTDate)
+        else:
+            firstDate = first_prev_date
+        
         lastDate  = mdates.date2num(cv.EndOfTime)
         ax.set_xlim([firstDate,lastDate])
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
@@ -1614,9 +1638,11 @@ def junk_func():
 #cv.NYT_counties = cv.NYT_home + 'us-counties.csv'
 #cv.dat_path = cv.NYT_home
 #print(cv.NYT_home,cv.dat_path)
-#test = Geography(name='Nassau',enclosed_by='New York',code='NY')
-#test.read_nyt_data()
-#test.plot_prevalence(save=False,signature=True)
+
+test = Geography(name='Nassau',enclosed_by='New York',code='NY')
+test = Geography(name='Plumas',enclosed_by='California',code='CA')
+test.read_nyt_data()
+test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
 #test.write_dat_file()
 
 #web_update()
@@ -1782,4 +1808,4 @@ def make_cfr_histo_ts(nG = 1000,save=True):
 
     plt.show()#block=False)
 
-make_cfr_histo_ts()
+#make_cfr_histo_ts()
