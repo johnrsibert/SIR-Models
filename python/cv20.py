@@ -434,7 +434,7 @@ class Geography:
         """
         mult = 1000
 
-        firstDate = datetime.strptime('2020-03-01','%Y-%m-%d')
+        firstDate = datetime.strptime(self.date[0],'%Y-%m-%d')
         orderDate = mdates.date2num(cv.CAOrderDate)
 
         if (self.deaths is None):
@@ -479,7 +479,10 @@ class Geography:
         
         nn = self.ntime-1
         max_cases = cases[nn]
-        max_deaths = deaths[nn]
+        if (self.deaths is None):
+            max_deaths = 0.0
+        else:
+            max_deaths = deaths[nn]
 
         Date = self.get_pdate()
 
@@ -1393,11 +1396,13 @@ def update_shared_plots():
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
-        tmpG.plot_prevalence(signature = True, save=True)
+        tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
+                             show_order_date=False)
 
     tmpG = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
     tmpG.read_BCHA_data()
-    tmpG.plot_prevalence(save=True,signature=True)
+    tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
+                         show_order_date=False)
 
     cv.graphics_path = save_path
 
@@ -1602,7 +1607,7 @@ def junk_func():
 #web_update()
 #make_dat_files()
 #update_fits()
-#update_shared_plots()
+update_shared_plots()
 #plot_DC(10) #00)
 
 #make_nyt_census_dat()
@@ -1639,10 +1644,9 @@ def junk_func():
 #cv.dat_path = cv.NYT_home
 #print(cv.NYT_home,cv.dat_path)
 
-test = Geography(name='Nassau',enclosed_by='New York',code='NY')
-test = Geography(name='Plumas',enclosed_by='California',code='CA')
-test.read_nyt_data()
-test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
+#test = Geography(name='Plumas',enclosed_by='California',code='CA')
+#test.read_nyt_data()
+#test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
 #test.write_dat_file()
 
 #web_update()
