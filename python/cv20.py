@@ -19,6 +19,8 @@ import os
 import sys
 import pyreadr
 from io import StringIO 
+from io import BytesIO
+import base64
 import scipy.stats as stats
 from sigfig import round
 from tabulate import tabulate
@@ -214,7 +216,7 @@ class Geography:
         if self.name is None:
             self.moniker = None
         else:
-            self.moniker = self.name+self.code
+            self.moniker = str(self.name+self.code)
             self.moniker =  self.moniker.replace(' ','_',5) 
     #   self.TMB_fit = None
     #   self.ADMB_fit = None
@@ -419,7 +421,8 @@ class Geography:
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[11], plot_dt = False, cumulative = True,
                         show_order_date = True,
-                        annotation = True, signature = False, save = True):
+                        annotation = True, signature = False, 
+                        save = True, dashboard = False):
         
         """ 
         Plots cases and deaths vs calendar date 
@@ -552,16 +555,23 @@ class Geography:
             fig.text(0.0,0.025,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
             fig.text(1.0,0.025,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
     
-        if save:
-            gfile = cv.graphics_path+self.moniker+'_prevalence.png'
-            plt.savefig(gfile,dpi=300)
-            plt.show(False)
-            plt.pause(3)
-            plt.close()
-            
-            print('plot saved as',gfile)
+        if (dashboard):
+            out_img = BytesIO()
+            plt.savefig(out_img, format='png')
+            out_img.seek(0)  # rewind file
+            encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
+            return "data:image/png;base64,{}".format(encoded)
+
         else:
-            plt.show()
+            if save:
+                gfile = cv.graphics_path+self.moniker+'_prevalence.png'
+                plt.savefig(gfile,dpi=300)
+                plt.show(False)
+                plt.pause(3)
+                plt.close()
+                print('plot saved as',gfile)
+            else:
+                plt.show()
 
 
     def make_date_axis(self, ax, first_prev_date = None):
@@ -1367,7 +1377,7 @@ def make_dat_files():
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
-        tmpG.plot_prevalence(save=True,per_capita=False)
+        tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False)
 
 def update_fits():
     save_wd = os.getcwd()
@@ -1607,7 +1617,7 @@ def junk_func():
 #web_update()
 #make_dat_files()
 #update_fits()
-update_shared_plots()
+#update_shared_plots()
 #plot_DC(10) #00)
 
 #make_nyt_census_dat()

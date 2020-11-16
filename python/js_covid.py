@@ -35,7 +35,6 @@ CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 mtime = os.path.getmtime(NYT_home+'us-counties.csv')
 dtime = datetime.fromtimestamp(mtime)
 EndOfTime = dtime.date()+timedelta(days=14)
-print('Current EndOfTime =',EndOfTime)
    
 population_dat = pd.DataFrame(None)
 nyt_county_dat = pd.DataFrame(None)
