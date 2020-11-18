@@ -464,7 +464,6 @@ class Geography:
         ax2 = []
         for a in range(0,nax):
             self.make_date_axis(ax[a],firstDate)
-
             ax[a].set_yscale(yscale)
             if (cumulative):
                 ax2.append(ax[a].twinx())
@@ -556,11 +555,15 @@ class Geography:
             fig.text(1.0,0.025,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
     
         if (dashboard):
-            out_img = BytesIO()
-            plt.savefig(out_img, format='png')
-            out_img.seek(0)  # rewind file
-            encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
-            return "data:image/png;base64,{}".format(encoded)
+        #   out_img = BytesIO()
+        #   plt.savefig(out_img, format='png')
+        #   out_img.seek(0)  # rewind file
+        #   encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
+        #   return "data:image/png;base64,{}".format(encoded)
+            print('saving fig for dash; file',cv.graphics_path+'test.png')
+            plt.savefig(cv.graphics_path+'test.png',dpi=300)
+            plt.close()
+            print('saved')
 
         else:
             if save:
@@ -581,6 +584,7 @@ class Geography:
             firstDate = first_prev_date
         
         lastDate  = mdates.date2num(cv.EndOfTime)
+    #   print('firstDate,lastDate:',firstDate,lastDate)
         ax.set_xlim([firstDate,lastDate])
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
         ax.xaxis.set_major_locator(mdates.MonthLocator())

@@ -10,7 +10,7 @@ Created on Tue Jul  7 15:08:58 2020
 from datetime import datetime, timedelta
 import pandas as pd
 import os
-
+import matplotlib.dates as mdates
 # mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
 
 NYT_home = '/home/other/nytimes-covid-19-data/'
@@ -35,6 +35,7 @@ CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 mtime = os.path.getmtime(NYT_home+'us-counties.csv')
 dtime = datetime.fromtimestamp(mtime)
 EndOfTime = dtime.date()+timedelta(days=14)
+#print('EndOfTime:',EndOfTime,mdates.date2num(EndOfTime))
    
 population_dat = pd.DataFrame(None)
 nyt_county_dat = pd.DataFrame(None)
