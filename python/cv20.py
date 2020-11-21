@@ -116,6 +116,12 @@ def Strptime(x):
 def prop_scale(lim,prop):
     s = lim[0] + prop*(lim[1]-lim[0])
     return(s)
+
+def SD_lim(x, mult):
+    M = statistics.mean(x)
+    S = statistics.stdev(x)
+    multS = mult*S
+    return([M-multS,M+multS])
     
 def pretty_county(s):
     ls = len(s)
@@ -521,9 +527,12 @@ class Geography:
             else:
                 none_reported(ax[1],'Deaths')
     
+    #   Adjust length of y axis
+        ax[0].set_ylim(0,SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
+        if (max_deaths > 0.0):
+            ax[1].set_ylim(0,SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
+
         for a in range(0,nax):
-        #   Adjust length of y axis
-            ax[a].set_ylim(0,ax[a].get_ylim()[1])
             if (delta_ts):
                 if (cumulative):
                     ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
@@ -560,8 +569,10 @@ class Geography:
         #   out_img.seek(0)  # rewind file
         #   encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
         #   return "data:image/png;base64,{}".format(encoded)
-            print('saving fig for dash; file',cv.graphics_path+'test.png')
-            plt.savefig(cv.graphics_path+'test.png',dpi=300)
+            gfile = cv.graphics_path+'test.png'
+            
+            print('saving fig for dash:',gfile)
+            plt.savefig(gfile,format='png',dpi=300)
             plt.close()
             print('saved')
 
@@ -1196,7 +1207,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.pdf'
         fig.savefig(gfile)
         print('plot saved as',gfile)
-        plt.show(True)
+        plt.show(False)
     else:
         plt.show(True)
 
@@ -1504,7 +1515,7 @@ def update_everything():
     print('Finished web_update ...')
     os.system('rm -v '+ cv.dat_path + '*.dat')
     make_dat_files()
-#   plot_multi_per_capita(plot_dt=False,save=True)
+    plot_multi_per_capita(plot_dt=False,save=True)
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
@@ -1621,7 +1632,7 @@ def junk_func():
 #web_update()
 #make_dat_files()
 #update_fits()
-#update_shared_plots()
+update_shared_plots()
 #plot_DC(10) #00)
 
 #make_nyt_census_dat()
@@ -1644,7 +1655,7 @@ def junk_func():
 #test.write_dat_file()
 #test.print_metadata()
 #test.plot_per_capita_curvature()
-#test.plot_prevalence(per_capita=True,save=False)#yscale='log',plot_dt=True)
+#test.plot_prevalence(save=False,cumulative=False, show_order_date=False)
 
 #plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
@@ -1668,7 +1679,7 @@ def junk_func():
 #BCtest.read_BCHA_data()
 #BCtest.print_metadata()
 #BCtest.print_data()
-#BCtest.plot_prevalence(save=True,signature=True)
+#BCtest.plot_prevalence(save=True,signature=True,cumulative=False, show_order_date=False)
 
 
 #junk_func()
