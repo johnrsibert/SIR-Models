@@ -120,8 +120,11 @@ def prop_scale(lim,prop):
 def SD_lim(x, mult):
     M = statistics.mean(x)
     S = statistics.stdev(x)
-    multS = mult*S
-    return([M-multS,M+multS])
+    if (S > 0.0):
+        multS = mult*S
+        return([M-multS,M+multS])
+    else:
+        return(min(x),max(x))
     
 def pretty_county(s):
     ls = len(s)
@@ -399,31 +402,6 @@ class Geography:
         
 
 
-    def dow_count(self,mult = 1000.0):
-        """
-        Accumulate first differences of cases and deaths by day of week
-        Scale by mult/population
-        """
-        names = ['Mo','Tu','We','Th','Fr','Sa','Su','moniker']
-        Ccount = pd.Series(0.0,index=names)
-        Dcount = pd.Series(0.0,index=names)
-        d1_cases = np.diff(self.cases)
-        d1_deaths = np.diff(self.deaths)
-    
-        for k in range(0,len(self.date)-1):            
-            j = datetime.strptime(self.date[k],'%Y-%m-%d').weekday()
-            Ccount[j] += d1_cases[k]
-            Dcount[j] += d1_deaths[k]
-
-        scale = mult/self.population
-        Ccount = Ccount * scale
-        Dcount = Dcount * scale
-        Ccount['moniker'] = self.moniker
-        Dcount['moniker'] = self.moniker
-        counts = [Ccount,Dcount]
-        return(counts)
-
-
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[11], plot_dt = False, cumulative = True,
                         show_order_date = True,
@@ -528,9 +506,9 @@ class Geography:
                 none_reported(ax[1],'Deaths')
     
     #   Adjust length of y axis
-        ax[0].set_ylim(0,SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
+        ax[0].set_ylim(0.0,SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
         if (max_deaths > 0.0):
-            ax[1].set_ylim(0,SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
+            ax[1].set_ylim(0.0,SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
 
         for a in range(0,nax):
             if (delta_ts):
@@ -1331,44 +1309,69 @@ def make_fit_table(ext = '.RData'):
 #               na_rep='',column_format='lrrrrrrrrrrr')
     print('Fit table written to file',tex)
 
-        
-def make_dow_table(mult=1000):        
-    """
-    accumulate dow counts by geography as table rows
-    """
-    names = ['Mo','Tu','We','Th','Fr','Sa','Su']
-    csdat = pd.read_csv(cv.large_county_path,header=0)
-    cases_count  = pd.DataFrame(dtype=float)
-    deaths_count = pd.DataFrame(dtype=float)
-   
-    for cs in range(0,len(csdat)):
-        tmpG = Geography(csdat['county'][cs],csdat['state'][cs],csdat['ST'][cs])
-        tmpG.read_nyt_data('county')
-        row = tmpG.dow_count(mult)
-    #   print(tmpG.moniker,type(row),len(row))
-        cases_count  = cases_count.append(row[0],ignore_index=True)
-        deaths_count = deaths_count.append(row[1],ignore_index=True)
-      
-    cases_count = cases_count.set_index('moniker')
-    deaths_count = deaths_count.set_index('moniker')
-    cases_count = cases_count.reindex(columns=names)
-    deaths_count = deaths_count.reindex(columns=names)
-    return[cases_count,deaths_count]
-    
-def plot_dow_boxes(mult=1000):
-    counts = make_dow_table(mult)
-    labels = counts[0].columns
-    title = str(counts[0].shape[0])+' most populous US counties'
+def plot_dow_boxes(nG=10):
+    cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    gg = cv.population_dat
 
-    fig, ax = plt.subplots(2,1,figsize=(6.5,4.5))
-    fig.text(0.5,0.9,title,ha='center',va='bottom')
-    ax[0].set_ylabel('Cases'+' per '+str(mult))
-    ax[0].boxplot(counts[0].transpose(),labels=labels)
-    ax[1].set_ylabel('Deaths'+' per '+str(mult))
-    ax[1].boxplot(counts[1].transpose(),labels=labels)
+    dow_names = ['Mo','Tu','We','Th','Fr','Sa','Su']
+    if nG > 5:
+        rows = 2
+        cols = 1
+        ht = 2.25
+        Cweight = 100000
+        Dweight =  10000
+    else:
+        rows = nG
+        cols = 2
+        ht = 9.0/rows
+
+    fig, ax = plt.subplots(rows,cols,figsize=(6.5,ht*rows))
+
+    for g in range(0,nG):
+    #   print(gg['county'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        tmpG.read_nyt_data('county')
+        Ccount = pd.Series([0.0]*len(dow_names),index=dow_names)
+        Dcount = pd.Series([0.0]*len(dow_names),index=dow_names)
+        d1_cases = np.diff(tmpG.cases)
+        d1_deaths = np.diff(tmpG.deaths)
+        for k in range(0,len(tmpG.date)-1):            
+            j = datetime.strptime(tmpG.date[k],'%Y-%m-%d').weekday()
+            Ccount[j] += d1_cases[k]
+            Dcount[j] += d1_deaths[k]
+
+        Ccount = Ccount.reindex(index=dow_names)
+        Dcount = Dcount.reindex(index=dow_names)
+        if nG > 5:
+            Ccount = (Cweight/tmpG.population)*Ccount/Ccount.sum()
+            Dcount = (Dweight/tmpG.population)*Dcount/Dcount.sum()
+            ax[0].bar(dow_names,Ccount)
+            ax[0].set_ylabel('Cases per '+str(int(Cweight/1000))+'K')
+            ax[1].bar(dow_names,Dcount)
+            ax[1].set_ylabel('Deaths per '+str(int(Dweight/1000))+'K')
+
+        else:
+            Ccount = Ccount/Ccount.sum()
+            Dcount = Dcount/Dcount.sum()
+       
+            ax[g,0].bar(dow_names,Ccount)
+            ax[g,0].set_ylabel('Cases')
+            ax[g,1].bar(dow_names,Dcount)
+            ax[g,1].set_ylabel('Deaths')
+            tx = prop_scale(ax[g,0].get_xlim(),0.1)
+            ty = prop_scale(ax[g,0].get_ylim(),1.0)
+            ax[g,0].text(tx,ty,tmpG.moniker,ha='center',fontsize=8)
+        
   
-    plt.savefig('days_of_week.png',dpi=300)
+    gfile = cv.graphics_path+'days_of_week_'+str(nG)+'.png'
+    plt.savefig(gfile,dpi=300)
     plt.show()
+ 
+        
+    
+
+        
   
 def web_update():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
@@ -1515,7 +1518,6 @@ def update_everything():
     print('Finished web_update ...')
     os.system('rm -v '+ cv.dat_path + '*.dat')
     make_dat_files()
-    plot_multi_per_capita(plot_dt=False,save=True)
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
@@ -1613,11 +1615,11 @@ def junk_func():
 
 #unique()
 
-#alam = Geography(name='Alameda',enclosed_by='California',code='CA')
-#alam.read_nyt_data('county')
-#alam.print_metadata()
-#alam.print_data()
-#alam.plot_prevalence(save=True,signature=True)
+#tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
+#tgeog.read_nyt_data('county')
+#tgeog.print_metadata()
+#tgeog.print_data()
+#tgeog.plot_prevalence(save=True,cumulative=False, show_order_date=False,signature=True)
 
 #cv.fit_path = cv.fit_path+'constrainID/'
 #tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
@@ -1632,7 +1634,7 @@ def junk_func():
 #web_update()
 #make_dat_files()
 #update_fits()
-update_shared_plots()
+#update_shared_plots()
 #plot_DC(10) #00)
 
 #make_nyt_census_dat()
@@ -1657,7 +1659,7 @@ update_shared_plots()
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(save=False,cumulative=False, show_order_date=False)
 
-#plot_dow_boxes()
+plot_dow_boxes()
 #plot_multi_per_capita(plot_dt=False,save=True)
 #get_mu_atD1()
 
