@@ -1309,11 +1309,12 @@ def make_fit_table(ext = '.RData'):
 #               na_rep='',column_format='lrrrrrrrrrrr')
     print('Fit table written to file',tex)
 
-def plot_dow_boxes(nG=10):
+def plot_dow_boxes(nG=5):
     cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
     gg = cv.population_dat
 
     dow_names = ['Mo','Tu','We','Th','Fr','Sa','Su']
+    week = [0,1,2,3,4,5,6]
     if nG > 5:
         rows = 2
         cols = 1
@@ -1326,14 +1327,20 @@ def plot_dow_boxes(nG=10):
         ht = 9.0/rows
 
     fig, ax = plt.subplots(rows,cols,figsize=(6.5,ht*rows))
+    ecol = 'black' # '#008fd5' # 'mediumblue'
+    fcol = '#008fd5' # 'cornflowerblue'
+
+    allCcount =pd.DataFrame(columns=week)
+    allDcount =pd.DataFrame(columns=week)
+    population = pd.Series([]*nG)
 
     for g in range(0,nG):
     #   print(gg['county'].iloc[g])
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
-        Ccount = pd.Series([0.0]*len(dow_names),index=dow_names)
-        Dcount = pd.Series([0.0]*len(dow_names),index=dow_names)
+        Ccount = pd.Series([0.0]*len(dow_names)) #,index=dow_names)
+        Dcount = pd.Series([0.0]*len(dow_names)) #,index=dow_names)
         d1_cases = np.diff(tmpG.cases)
         d1_deaths = np.diff(tmpG.deaths)
         for k in range(0,len(tmpG.date)-1):            
@@ -1341,37 +1348,42 @@ def plot_dow_boxes(nG=10):
             Ccount[j] += d1_cases[k]
             Dcount[j] += d1_deaths[k]
 
-        Ccount = Ccount.reindex(index=dow_names)
-        Dcount = Dcount.reindex(index=dow_names)
-        if nG > 5:
-            Ccount = (Cweight/tmpG.population)*Ccount/Ccount.sum()
-            Dcount = (Dweight/tmpG.population)*Dcount/Dcount.sum()
-            ax[0].bar(dow_names,Ccount)
-            ax[0].set_ylabel('Cases per '+str(int(Cweight/1000))+'K')
-            ax[1].bar(dow_names,Dcount)
-            ax[1].set_ylabel('Deaths per '+str(int(Dweight/1000))+'K')
+        population[g] = tmpG.population
+    #   print(g,tmpG.moniker,tmpG.population,Ccount.sum(),Dcount.sum())
+    #   counties with zero reported deaths cause NaNs
+        Ccount = Ccount/(Ccount.sum()+eps)
+        Dcount = Dcount/(Dcount.sum()+eps)
+        allCcount = allCcount.append(Ccount,ignore_index=True)
+        allDcount = allDcount.append(Dcount,ignore_index=True)
+    #   verify final day of week is correct with respect to calander
+    #   k  = len(tmpG.date)-1
+    #   print(tmpG.date[k],j,dow_names[j])
 
-        else:
-            Ccount = Ccount/Ccount.sum()
-            Dcount = Dcount/Dcount.sum()
-       
-            ax[g,0].bar(dow_names,Ccount)
+        if nG <= 5:
+            ax[g,0].bar(week,Ccount,tick_label=dow_names,color=fcol,edgecolor=ecol)
             ax[g,0].set_ylabel('Cases')
-            ax[g,1].bar(dow_names,Dcount)
+            ax[g,1].bar(week,Dcount,tick_label=dow_names,color=fcol,edgecolor=ecol)
             ax[g,1].set_ylabel('Deaths')
             tx = prop_scale(ax[g,0].get_xlim(),0.1)
             ty = prop_scale(ax[g,0].get_ylim(),1.0)
             ax[g,0].text(tx,ty,tmpG.moniker,ha='center',fontsize=8)
+
         
+    if nG > 5:
+    #   for g in range(0,nG):
+    #       allCcount.iloc[g] = (Cweight/population[g])*allCcount.iloc[g]
+    #       allDcount.iloc[g] = (Dweight/population[g])*allDcount.iloc[g]
+        title = str(nG)+' most populous US counties'
+        fig.text(0.5,0.9,title,ha='center',va='bottom')
+        ax[0].boxplot(allCcount.transpose(),labels=dow_names)
+        ax[0].set_ylabel('Cases') # per '+str(int(Cweight/1000))+'K')
+        ax[1].boxplot(allDcount.transpose(),labels=dow_names)
+        ax[1].set_ylabel('Deaths') # per '+str(int(Dweight/1000))+'K')
+        ax[1].set_ylim(0.0,1.0) #ax[0].get_ylim())
   
     gfile = cv.graphics_path+'days_of_week_'+str(nG)+'.png'
     plt.savefig(gfile,dpi=300)
     plt.show()
- 
-        
-    
-
-        
   
 def web_update():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
@@ -1659,7 +1671,7 @@ def junk_func():
 #test.plot_per_capita_curvature()
 #test.plot_prevalence(save=False,cumulative=False, show_order_date=False)
 
-plot_dow_boxes()
+#plot_dow_boxes(1000)
 #plot_multi_per_capita(plot_dt=False,save=True)
 #get_mu_atD1()
 
