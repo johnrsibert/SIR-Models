@@ -3,20 +3,18 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import base64
+import flask
 
 import pandas as pd
 import js_covid as cv
 import cv20
+
 cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
 
+image_filename = 'default.png'
+static_image_route = '/static/'
+
 app = dash.Dash()
-
-image_filename = cv.graphics_path+'test.png' # replace with your own image
-
-encoded_image = base64.b64encode(open(image_filename, 'rb').read())
-#encoded_image = bytearray()
-#img = base64.b64encode(open(image_filename, 'rb').read())
-#img = bytearray()
 
 app.layout = html.Div([
     html.Div(['Geography: ',
@@ -24,18 +22,21 @@ app.layout = html.Div([
     html.Div(['Surrounded By: ',
               dcc.Input(id='SurroundedBy-state', type='text', value='California')]),
     html.Button(id='submit-button-state', n_clicks=0, children='Submit'),
-#   html.Img(src='data:image/png;base64,{}'.format(encoded_image.decode()), style={'height':'50%', 'width':'50%'})
-    html.Div([
-              html.Img(id='prevalence-graphic',src='data:image/png;base64,{}'.format(encoded_image.decode()), 
-                       alt='Time series plot of Covid 19 prevalence',
-                       style={'height':'4.5in', 'width':'6.5in'})])
+    html.Img(id='prevalence-graphic', style={'height':'4.5in', 'width':'6.5in'})
+#   html.Img(id='prevalence-graphic',src='data:image/png;base64,{}'.format(base64.b64encode(
+#            open(cv.graphics_path+image_filename, 'rb').read()).decode()), 
+#            style={'height':'4.5in', 'width':'6.5in'})
 ])
 
-@app.callback(Output('prevalence-graphic', component_property='children'),
+@app.callback(Output('prevalence-graphic','src'),
               [Input('submit-button-state', 'n_clicks')],
-               State('Geog-state', 'value'),
-               State('SurroundedBy-state', 'value') 
-)
+              [State('Geog-state', 'value'),
+               State('SurroundedBy-state', 'value')])
+def update_image_src(value):
+    return static_image_route + value
+
+
+
 def update_output(n_clicks, gname, surrounding):
     if (n_clicks > 0):
         print('got',gname,surrounding)
@@ -66,11 +67,6 @@ def update_output(n_clicks, gname, surrounding):
                             annotation = True, signature = True, 
                             save = False, dashboard = True)
     
-                encoded_image = base64.b64encode(open(image_filename, 'rb').read())
-                img ='data:image/png;base64,{}'.format(encoded_image.decode()), 
-                print('returning')
-                return img
-    
             except:
                 print('plot_prevalence() failed for:')
                 print(test.moniker,gname,surrounding)
@@ -79,6 +75,11 @@ def update_output(n_clicks, gname, surrounding):
             print('get_county_pop() failed for:')
             print(gname,surrounding)
             population = 0
+
+        image_name = 'test.png'
+        print('returning',image_name,cv.graphics_path)
+     #  return flask.send_from_directory(image_directory, image_name)
+        return flask.send_from_directory(cv.graphics_path, image_name)
 
 
 #    moniker = str(gname+code)
