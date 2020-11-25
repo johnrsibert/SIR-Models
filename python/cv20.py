@@ -482,6 +482,7 @@ class Geography:
                 adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
                 ax[0].plot(Date[1:],adc,linewidth=2)
                 mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
+                max_adc = adc.max()
         
             if (cumulative):
                 ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
@@ -502,13 +503,14 @@ class Geography:
                     add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
                     ax[1].plot(Date[1:],add,linewidth=2)
                     mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
+                    max_add = add.max()
             else:
                 none_reported(ax[1],'Deaths')
     
     #   Adjust length of y axis
-        ax[0].set_ylim(0.0,SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
+        ax[0].set_ylim(0.0,1.2*max_adc) #SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
         if (max_deaths > 0.0):
-            ax[1].set_ylim(0.0,SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
+            ax[1].set_ylim(0.0,1.2*max_add) #SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
 
         for a in range(0,nax):
             if (delta_ts):
@@ -1684,6 +1686,8 @@ def junk_func():
 #print(cv.NYT_home,cv.dat_path)
 
 #test = Geography(name='Plumas',enclosed_by='California',code='CA')
+#test = Geography(name='San Diego',enclosed_by='California',code='CA')
+#test = Geography(name='Cook',enclosed_by='Illinois',code='IL')
 #test.read_nyt_data()
 #test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
 #test.write_dat_file()
