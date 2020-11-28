@@ -1391,6 +1391,8 @@ def web_update():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
     
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
+#               http://www.bccdc.ca/Health-Info-Site/Documents/
+#                    BCCDC_COVID19_Dashboard_Case_Details.csv
     cmd = 'wget http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
          ' -O '+cv.cv_home+BC_cases_file
     print(cmd)
@@ -1688,6 +1690,8 @@ def junk_func():
 #test = Geography(name='Plumas',enclosed_by='California',code='CA')
 #test = Geography(name='San Diego',enclosed_by='California',code='CA')
 #test = Geography(name='Cook',enclosed_by='Illinois',code='IL')
+#test = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+#test.read_BCHA_data()
 #test.read_nyt_data()
 #test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
 #test.write_dat_file()
