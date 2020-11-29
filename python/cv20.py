@@ -1184,7 +1184,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         dtax.set_yticklabels(labels)
 
     if save:
-        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.pdf'
+        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.png'
         fig.savefig(gfile)
         print('plot saved as',gfile)
         plt.show(False)
@@ -1652,6 +1652,10 @@ def junk_func():
 #update_fits()
 #update_shared_plots()
 #plot_DC(10) #00)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,
+#               fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+#make_rate_plots('logmu',save=True)
 
 #make_nyt_census_dat()
 
