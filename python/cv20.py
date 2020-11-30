@@ -1453,6 +1453,16 @@ def update_shared_plots():
     os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
     os.system('git push')
 
+def update_assets():
+    asset_files = ['CFR_1000.png', 'logbeta_summary_4.png', 'logbeta_summary_g.png',
+                   'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
+                   'New_York_CityNY_prevalence.png']
+    for file in asset_files:
+        cmd = 'cp -p '+cv.graphics_path+file+' '+cv.assets_path
+        os.system(cmd)
+
+    os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
+    os.system('git push')
 
 def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
 #   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
@@ -1550,6 +1560,8 @@ def update_everything():
     print('Finished rate_plots')
     plot_DC(1000)
     print('Finished CFR plots')
+    update_assets()
+    print('Finishing update asset directory')
     print('Finished Everything!')
 
 
@@ -1651,6 +1663,7 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
+update_assets()
 #plot_DC(10) #00)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,

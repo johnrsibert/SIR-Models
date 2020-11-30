@@ -25,6 +25,7 @@ large_county_path = cv_home + 'county-state.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'
 graphics_path = cv_home + 'Graphics/'
+assets_path = cv_home + 'assets/'
 TMB_path = cv_home + 'TMB/'
 
 BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
