@@ -699,7 +699,7 @@ class Fit(Geography):
             return(None)
        
     def plot(self,logscale=True, per_capita=False, delta_ts=False,
-             npl = 4, save = True):
+             npl = 4, save = True, show_median = False):
         """ 
         """
     
@@ -795,11 +795,12 @@ class Fit(Geography):
             plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
-            med = median(np.exp(log_beta))
-            logmed = np.log(med)
-            medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
-            ax[2].text(ax[2].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
-            ax[2].plot(ax[2].get_xlim(),[logmed,logmed])
+            if (show_median):
+                med = median(np.exp(log_beta))
+                logmed = np.log(med)
+                medstr = '%s = %.3g'%('$\\tilde{\\beta}$',med)
+                ax[2].text(ax[2].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
+                ax[2].plot(ax[2].get_xlim(),[logmed,logmed])
 
         #   increase frequcncy of tick marks
             start, end = ax[2].get_ylim()
@@ -845,11 +846,12 @@ class Fit(Geography):
             plot_error(ax[3],pdate,logmu,SElogmu,logscale=True)
             ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
-            med = median(np.exp(self.diag['logmu']))
-            logmed = np.log(med)
-            medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
-            ax[3].text(ax[3].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
-            ax[3].plot(ax[3].get_xlim(),[logmed,logmed])
+            if (show_median):
+                med = median(np.exp(self.diag['logmu']))
+                logmed = np.log(med)
+                medstr = '%s = %.3g'%('$\\tilde{\\mu}$',med)
+                ax[3].text(ax[3].get_xlim()[0],logmed,medstr,ha='left',va='bottom',fontsize=10)
+                ax[3].plot(ax[3].get_xlim(),[logmed,logmed])
     
         title = self.moniker #self.name+' County, '+self.enclosed_by
         fig.text(0.5,0.95,title ,ha='center',va='bottom')
@@ -858,7 +860,7 @@ class Fit(Geography):
             gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates'
             if (not logscale):
                 gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates_a'
-            fig.savefig(gfile+'.pdf')#,dpi=300)
+            fig.savefig(gfile+'.png',dpi=300)
             plt.show(False)
             print('plot saved as',gfile)
             plt.pause(3)
@@ -898,7 +900,7 @@ class Fit(Geography):
 
         fig.text(0.5,0.95,'Case Mortality Ratio' ,ha='center',va='bottom')
         if (save):
-            gfile = cv.graphics_path+self.moniker+'_CMR.pdf'
+            gfile = cv.graphics_path+self.moniker+'_CMR.png'
             fig.savefig(gfile)
             plt.show(False)
             print('plot saved as',gfile)
@@ -1149,7 +1151,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
         sn = short_name(fit.moniker)
         if (yvarname == 'logbeta'):
-            mark_ends(ax,pdate,yvar,sn,'r')
+            mark_ends(ax,pdate,yvar,sn,'b')
         else:
             mark_ends(ax,pdate,yvar,sn,'b')
 
@@ -1203,6 +1205,10 @@ def make_fit_plots(ext = '.RData'):
     fit = Fit(cv.fit_path+'NassauNY'+ext)
     fit.plot(save=True,logscale=False)
     fit = Fit(cv.fit_path+'Miami-DadeFL'+ext)
+    fit.plot(save=True,logscale=False)
+    fit = Fit(cv.fit_path+'New_York_CityNY'+ext)
+    fit.plot(save=True,logscale=False)
+    fit = Fit(cv.fit_path+'Los_AngelesCA'+ext)
     fit.plot(save=True,logscale=False)
 
 
@@ -1663,11 +1669,11 @@ def junk_func():
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
-update_assets()
+#update_assets()
 #plot_DC(10) #00)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,
-#               fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+make_rate_plots('logbeta',add_doubling_time = True,save=True,
+               fit_files=['Los_AngelesCA','New_York_CityNY'])
 #make_rate_plots('logmu',save=True)
 
 #make_nyt_census_dat()
