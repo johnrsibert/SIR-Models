@@ -162,6 +162,7 @@ def mark_peak(ax,x,y,label):
       mark.set_alpha(a) # not supported on all backends
 
 def mark_ends(ax,x,y,label,end='b',spacer=' '):
+#   print('len(ax.get_lines())',len(ax.get_lines()))
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
 #   print('color, alpha:',c,a)
@@ -965,9 +966,19 @@ def make_SD_tab(Gfile='top30.csv',save=True):
     SD_tab = SD_tab.append(row,ignore_index=True)
     print(SD_tab)    
 
-#def plot_DC(Gfile='top30.csv',save=True):
 def plot_DC(nG=30,save=True):
 
+    def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
+        c = coll.get_facecolor()[0]
+        if ( (end =='l') | (end == 'b')):
+            mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',fontsize=8,
+                    color=c)
+
+        if ( (end =='r') | (end == 'b')):
+            i = len(x)-1
+            mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
+                    color=c)
+   
     def plot_cmr(a, rr=[2.0]):
         for r in rr:
             rstr = str(r)
@@ -993,16 +1004,6 @@ def plot_DC(nG=30,save=True):
         ax[i].set_xlabel('Cases')
         ax[i].set_xlim(10,1e6)
 
-
-#   if (nplot > 2):
-#      i = 2
-#      ax[i].set_yscale('log')
-#      ax[i].set_ylim(0.0025,0.16)
-#      ax[i].set_ylabel('Fatality/Cases')
-#      ax[i].set_xscale('log')
-#      ax[i].set_xlabel('Cases')
-#      ax[i].set_xlim(10,1e6)
-
     ct = []
     dt = []
     ft = []
@@ -1014,12 +1015,14 @@ def plot_DC(nG=30,save=True):
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
-        print(tmpG.moniker+'.RData')
-     #  gdf = tmpG.to_DataFrame()
-     #  gdf = gdf.sort_values(by='cases',ascending=False)
-     #  print(gdf)
         
-        ax[0].scatter(tmpG.cases,tmpG.deaths)
+        coll = ax[0].scatter(tmpG.cases,tmpG.deaths)
+        if (nG < 6):
+            sn = short_name(tmpG.moniker)
+        #   mark_ends(ax[0],tmpG.cases,tmpG.deaths,sn,'r')
+            mark_points(coll,ax[0],tmpG.cases,tmpG.deaths,sn,'r')
+
+
         nt = len(tmpG.cases)-1
         ct.append(tmpG.cases[nt])
         dt.append(tmpG.deaths[nt])
@@ -1460,7 +1463,7 @@ def update_shared_plots():
     os.system('git push')
 
 def update_assets():
-    asset_files = ['CFR_1000.png', 'logbeta_summary_4.png', 'logbeta_summary_g.png',
+    asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
                    'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
                    'New_York_CityNY_prevalence.png']
     for file in asset_files:
@@ -1561,7 +1564,8 @@ def update_everything():
     make_fit_table()
     make_rate_plots('logbeta',add_doubling_time = True,save=True)
     make_rate_plots('logbeta',add_doubling_time = True,save=True,
-                     fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+                    fit_files=['Los_AngelesCA','New_York_CityNY'])
+#                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     plot_DC(1000)
@@ -1670,10 +1674,10 @@ def junk_func():
 #update_fits()
 #update_shared_plots()
 #update_assets()
-#plot_DC(10) #00)
+plot_DC(5) #00)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
-make_rate_plots('logbeta',add_doubling_time = True,save=True,
-               fit_files=['Los_AngelesCA','New_York_CityNY'])
+#make_rate_plots('logbeta',add_doubling_time = True,save=True,
+#               fit_files=['Los_AngelesCA','New_York_CityNY'])
 #make_rate_plots('logmu',save=True)
 
 #make_nyt_census_dat()
