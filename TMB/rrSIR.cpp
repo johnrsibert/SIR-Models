@@ -59,19 +59,22 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(prop_zero_deaths)
     DATA_VECTOR(log_obs_cases)
     DATA_VECTOR(log_obs_deaths)
+    DATA_VECTOR(log_obs_R)
     DATA_SCALAR(cfr_weight)
 
     PARAMETER(logsigma_logP);          // SIR process error
 
     PARAMETER(logsigma_logbeta);       // beta random walk sd
     PARAMETER(logsigma_loggamma);      // gamma randomwalk sd
+    PARAMETER(logsigma_logmu);         // mu randomwalk sd
 
     PARAMETER(logsigma_logC);          // cases observation error
+    PARAMETER(logsigma_logR);          // recoveries observation error
     PARAMETER(logsigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
-    PARAMETER(logmu);           // mortality rate of infection population
+    PARAMETER_VECTOR(logmu);           // mortality rate of infection population
 
     // state variables
     vector <Type> logS(ntime+1);      // number of Suscectibles
@@ -81,23 +84,29 @@ Type objective_function <Type>::operator()()
 
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
+    Type sigma_logmu = exp(logsigma_logmu); 
 
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
+    Type sigma_logR = exp(logsigma_logR);
     Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_loggamma = square(sigma_loggamma);
+    Type var_logmu = square(sigma_logmu);
     Type var_logP = square(sigma_logP);
 
     Type var_logC = square(sigma_logC);
+    Type var_logR = square(sigma_logR);
     Type var_logD = square(sigma_logD);
 
     Type f = 0.0;
     Type betanll = 0.0;
     Type gammanll = 0.0;
+    Type munll = 0.0;
     Type Pnll = 0.0;
     Type cnll = 0.0;
+    Type rnll = 0.0;
     Type dnll = 0.0;
 
     //  loop over time
@@ -114,11 +123,14 @@ Type objective_function <Type>::operator()()
 
          // recovery rate random walk
          gammanll += isNaN(NLerr(loggamma(t-1),loggamma(t),var_loggamma),__LINE__);
+ 
+         // mortality rate random walk
+         munll += isNaN(NLerr(logmu(t-1),logmu(t),var_logmu),__LINE__);
 
          // compute process error likelihood
          Type beta = exp(logbeta(t-1));
          Type gamma = exp(loggamma(t-1));
-         Type mu = exp(logmu);
+         Type mu = exp(logmu(t-1));
 
          Type S   = exp(logS(t-1));
          Type Eye = exp(logEye(t-1));
@@ -193,6 +205,8 @@ Type objective_function <Type>::operator()()
          cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
      //  TTRACE(cnll,logEye(t))
 
+         rnll += isNaN(  NLerr(log_obs_R(t),logR(t),var_logR),__LINE__);
+
      //  Zero inflated log normal
          dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
      //  dnll += isNaN(  NLerr(log_obs_deaths(t),logD(t),var_logD),__LINE__);
@@ -220,7 +234,7 @@ Type objective_function <Type>::operator()()
 //   TTRACE(cfrdev,cfrpen)
 
      // total likelihood
-     f += isNaN((betanll + Pnll + cnll + dnll + cfrpen),__LINE__);
+     f += isNaN((betanll + Pnll + cnll + dnll + rnll + cfrpen),__LINE__);
 
      REPORT(logS)
      REPORT(logEye)
@@ -239,6 +253,7 @@ Type objective_function <Type>::operator()()
      REPORT(gammanll);
      REPORT(Pnll);
      REPORT(cnll);
+     REPORT(rnll);
      REPORT(dnll);
      REPORT(cfrpen);
      /*

@@ -78,7 +78,8 @@ plot.log.state = function(fit) #,np=5)
 #   title(main=title,sub='sub')
 
 #   ylim = range(obj$report()$logR)
-    plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, pch=point.symb)
+    plot(tt,dat$log_obs_R,ylab='ln R',ylim=poplim, pch=point.symb)
+#   lines(tt,obj$report()$logR,col='red')
 #   err = SElogR
 #   logspace.plot.error(tt,obj$report()$logR,err)
     gmlogR = median(obj$report()$logR)

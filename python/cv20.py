@@ -1674,7 +1674,7 @@ def junk_func():
 #update_fits()
 #update_shared_plots()
 #update_assets()
-plot_DC(5) #00)
+#plot_DC(5) #00)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])

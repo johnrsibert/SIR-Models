@@ -26,25 +26,27 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
+data$log_obs_R = log(data$obs_cases-data$obs_deaths)
 
-data$cfr_weight =  10.0
+data$cfr_weight =  00.0
 print("-data:")
 print(data)
 
 init = list(
-    logsigma_logP = log(0.1),
+    logsigma_logP = 0.5,
 
-    logsigma_logbeta = log(0.223), #0.4,
-    logsigma_loggamma = log(0.223), #0.4,
+    logsigma_logbeta = 0.4,
+    logsigma_loggamma = 0.4,
+    logsigma_logmu = 0.4,
 
 
     logsigma_logC = log(0.223),
-    logsigma_logD = log(0.223),
+    logsigma_logR = log(0.223),
+    logsigma_logD = log(log(1.25)),
 
-    logbeta  = log(0.02),
-    loggamma = log(0.02),
-#   logmu    = log(0.001),
-    logmu    = log(0.02)
+    logbeta  = 0.5,
+    loggamma = 0.5,
+    logmu    = 0.5
 )
 print("--init parameter values:")
 print(init)
@@ -54,13 +56,15 @@ par = list(
 
     logsigma_logbeta = init$logsigma_logbeta,
     logsigma_loggamma = init$logsigma_loggamma,
+    logsigma_logmu = init$logsigma_logmu,
 
     logsigma_logC = init$logsigma_logC,
+    logsigma_logR = init$logsigma_logR,
     logsigma_logD = init$logsigma_logD,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
-    logmu    = init$logmu
+    logmu    = rep(init$logmu,data$ntime+1) 
 )
 
 print(paste("---initial model parameters: ", length(par)))
@@ -69,15 +73,17 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
 
-           "logsigma_logbeta" = as.factor(NA),
+           "logsigma_logbeta" = as.factor(1),
            "logsigma_loggamma" = as.factor(1),
+           "logsigma_logmu" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
+           "logsigma_logR" = as.factor(NA),
            "logsigma_logD" = as.factor(NA),
 
-           "logbeta" = rep(as.factor(NA),data$ntime+1),
-           "loggamma" = rep(as.factor(NA),data$ntime+1),
-           "logmu" = as.factor(1) 
+           "logbeta" = rep(as.factor(1),data$ntime+1),
+           "loggamma" = rep(as.factor(1),data$ntime+1),
+           "logmu" = rep(as.factor(1),data$ntime+1) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -93,7 +99,7 @@ dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
 #obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
-obj = MakeADFun(data,par,random=c("logbeta","loggamma"), 
+obj = MakeADFun(data,par,random=c("logbeta","logmu","loggamma"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -102,8 +108,8 @@ lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 print("Starting minimization-------------------------",quote=FALSE)
-#opt = nlminb(obj$par,obj$fn,obj$gr)
-opt = optim(obj$par,obj$fn,obj$gr)
+opt = nlminb(obj$par,obj$fn,obj$gr)
+#opt = optim(obj$par,obj$fn,obj$gr)
 
 print("Done minimization-----------------------------",quote=FALSE)
 print(paste("Function objective =",opt$objective))
@@ -160,10 +166,10 @@ nrun = 1
 if (nrun < 2) {
 #   sink('test.log', type = c("output", "message"))
 #   do_one_run(County="Los_AngelesCA")->fit
-#   do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY",do.plot=TRUE)->fit
-    do_one_run(County="Miami-DadeFL",do.plot=TRUE)->fit
+#   do_one_run(County="Miami-DadeFL",do.plot=TRUE)->fit
 #   sink()
 } else {
    sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
