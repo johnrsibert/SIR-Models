@@ -28,25 +28,25 @@ data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
 data$log_obs_R = log(data$obs_cases-data$obs_deaths)
 
-data$cfr_weight =  00.0
+data$cfr_weight =  1.0
 print("-data:")
 print(data)
 
 init = list(
-    logsigma_logP = 0.5,
+    logsigma_logP = log(0.1),#logsigma_logP = 0.5,
 
-    logsigma_logbeta = 0.4,
-    logsigma_loggamma = 0.4,
+    logsigma_logbeta = log(0.223), #0.4,
+    logsigma_loggamma = log(0.223), #0.4,
     logsigma_logmu = 0.4,
 
 
     logsigma_logC = log(0.223),
     logsigma_logR = log(0.223),
-    logsigma_logD = log(log(1.25)),
+    logsigma_logD = log(0.223),
 
-    logbeta  = 0.5,
-    loggamma = 0.5,
-    logmu    = 0.5
+    logbeta  = log(0.02),#0.5,
+    loggamma =  log(0.02),#0.5,
+    logmu    = log(0.02)
 )
 print("--init parameter values:")
 print(init)
@@ -81,8 +81,8 @@ map = list(
            "logsigma_logR" = as.factor(NA),
            "logsigma_logD" = as.factor(NA),
 
-           "logbeta" = rep(as.factor(1),data$ntime+1),
            "loggamma" = rep(as.factor(1),data$ntime+1),
+           "logbeta" = rep(as.factor(1),data$ntime+1),
            "logmu" = rep(as.factor(1),data$ntime+1) 
 )
 
