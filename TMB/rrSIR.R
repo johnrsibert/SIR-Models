@@ -44,9 +44,9 @@ init = list(
     logsigma_logR = log(0.223),
     logsigma_logD = log(0.223),
 
-    logbeta  = log(0.02),#0.5,
-    loggamma =  log(0.02),#0.5,
-    logmu    = log(0.02)
+    logbeta  = log(0.05),#0.5,
+    loggamma =  log(0.1),#0.5,
+    logmu    = log(0.001)
 )
 print("--init parameter values:")
 print(init)
@@ -73,7 +73,7 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
 
-           "logsigma_logbeta" = as.factor(1),
+           "logsigma_logbeta" = as.factor(NA),
            "logsigma_loggamma" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
@@ -155,7 +155,7 @@ if (do.plot){
 
 #rd.file = paste(fit_path,data$county,'.RData',sep='')
 #save.fit(data,obj,opt,map,init,rd.file)
-#save.fit(fit,file=data$county)#   rd.file) #"t.RData")
+#save.fit(fit,file="t.RData")
 
 return(fit)
 

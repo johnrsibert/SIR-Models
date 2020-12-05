@@ -15,7 +15,28 @@ get.error = function(par,opt,map,tn)
         err = opt$par[tn] 
     } 
 
+    print(paste(tn,err))
     return(as.numeric(err))
+}
+
+plot.rv = function(x, obs_y, pred_y, ylab, err, err_name, ylim,pch='+', 
+                   obs_col='red', note_col='blue')
+{
+    plot(x, obs_y, ylab=ylab, ylim=ylim, pch=pch)
+    lines(x, pred_y, col=obs_col,lwd=3)
+    plot.error(x, pred_y, err)
+    ytext = make.ytext(ylim,0.9)
+#   print(paste('mean(err)',mean(err)))
+    print(paste(ylab,err_name,err))
+    if (err > 0.0)
+    {
+        note = paste(err_name,'~',sprintf("%.5g",err))
+    }
+    else
+        note = err_name
+
+    ttext = 0.1*(length(obs_y)-1)
+    text(ttext,ytext,note,col=note_col,pos=4)
 }
 
 plot.log.state = function(fit) #,np=5)
@@ -30,10 +51,13 @@ plot.log.state = function(fit) #,np=5)
         return(note)
     }
 
-    sdr = sdreport(obj)
-    SElogbeta = as.list(sdr,"Std. Error")$logbeta
-    SEloggamma   = as.list(sdr,"Std. Error")$loggamma
-    SElogmu   = as.list(sdr,"Std. Error")$logmu
+#   sdr = sdreport(obj)
+#   SElogbeta = as.list(sdr,"Std. Error")$logbeta
+#   SEloggamma   = as.list(sdr,"Std. Error")$loggamma
+#   SElogmu   = as.list(sdr,"Std. Error")$logmu
+#   print(paste(SElogbeta,SEloggamma,SElogmu))
+#   print(SElogbeta)
+#   print(mean(SElogbeta))
 
     fn = opt$value
     if (is.null(fn))
@@ -67,95 +91,49 @@ plot.log.state = function(fit) #,np=5)
     gmlogS = median(obj$report()$logS)
     abline(h=gmlogS,lty='dashed')
 
-#   ylim=c(0.0,1.2*max(dat$log_obs_cases,obj$report()$logEye))
-    plot(tt,dat$log_obs_cases,ylab='ln cases,',ylim=poplim, pch=point.symb)
-    lines(tt,obj$report()$logEye,col='red')
-    err = exp(get.error(par,opt,map,'logsigma_logC'))
-    plot.error(tt,obj$report()$logEye,err)
-    ytext = make.ytext(poplim,0.9)
-    note = paste('sigma_logC ~',sprintf("%.5g",err))
-    text(ttext,ytext,note,col=note.color,pos=4)
-#   title(main=title,sub='sub')
 
-#   ylim = range(obj$report()$logR)
-    plot(tt,dat$log_obs_R,ylab='ln R',ylim=poplim, pch=point.symb)
-    lines(tt,obj$report()$logR,col='red')
-#   err = SElogR
+    err = exp(get.error(par,opt,map,'logsigma_logC'))
+    plot.rv(tt,dat$log_obs_cases, obj$report()$logEye,
+            ylab='ln cases,', err, err_name='sigma_logC',ylim=poplim)
+
     err = exp(get.error(par,opt,map,'logsigma_logR'))
-    plot.error(tt,obj$report()$logR,err)
-    ytext = make.ytext(poplim,0.9)
-    note = paste('sigma_logR ~',sprintf("%.5g",err))
-    text(ttext,ytext,note,col=note.color,pos=4)
-#   gmlogR = median(obj$report()$logR)
-#   abline(h=gmlogR,lty='dashed')
+    plot.rv(tt,dat$log_obs_R, obj$report()$logR,
+            ylab='ln R', err, err_name='sigma_logR',ylim=poplim)
 
     ylim=c(0.0,1.2*max(dat$log_obs_deaths,obj$report()$logD))
-    plot(tt,log(dat$obs_deaths),ylab='ln deaths',ylim=ylim,pch=point.symb)
-    lines(tt,obj$report()$logD,col='red')
     if (hasName(par,'logsigma_logD'))
     {
-#       Zero infltated log normal
+    #   Zero infltated log normal
         err = exp(get.error(par,opt,map,'logsigma_logD'))
-        ytext = make.ytext(ylim,0.9)
-        note = paste('sigma_logD ~',sprintf("%.5g",err))
+        ename = 'sigma_logD'
     }
     else
     {
     #   Poisson error
-        err = exp(sqrt(obj$report()$logD)/dat$ntime) # Poisson
-        note = 'lambda'
+        err = 0.0
+        ename = 'lambda'
     }
-    text(ttext,ytext,note,col=note.color,pos=4)
+    plot.rv(tt,dat$log_obs_deaths, obj$report()$logD,
+            ylab='ln deaths', err, err_name=ename,ylim=ylim)
 
-    plot.error(tt,obj$report()$logD,err)
-
-#   rlim = c(0.8*min(unlist(obj$report()['logbeta'],obj$report()['logmu'],obj$report()['loggamma'])),
-#            1.2*max(unlist(obj$report()['logbeta'],obj$report()['logmu'],obj$report()['loggamma'])))
     rlim = c(-10.0,1.0)
-#   print('rlim:')
-#   print(rlim)
-
-    ylim = rlim #range(obj$report()$logbeta)
-    plot(tt,obj$report()$logbeta,ylab='ln beta',ylim=rlim,pch=point.symb)
-    ttext = 0.95*(length(dat$log_obs_cases)-1)
-    ytext = make.ytext(ylim,0.9)
-#   text(ttext,ytext,bias.note("bias_logbeta"),col=note.color,pos=2) 
-    err = SElogbeta
-    plot.error(tt,obj$report()$logbeta,err)
-    gmlogbeta = median(obj$report()$logbeta)
-    abline(h=gmlogbeta,lty='dashed')
+    err = exp(get.error(par,opt,map,'logsigma_logbeta'))
+    plot.rv(tt,obj$report()$logbeta, obj$report()$logbeta,
+            ylab='ln beta', err=err,
+            err_name='sigma_logbeta',ylim=rlim)
  
-#   print('plotting ln mu:')
-#   print(paste(length(tt), length(obj$report()$logmu)))
-    if (length(tt) == length(obj$report()$logmu))
-    {
-        ylim = rlim #range(obj$report()$logmu)
-        print(ylim)
-        plot(tt,obj$report()$logmu,ylab='ln mu',ylim=rlim, pch=point.symb)
-        ttext = 0.95*(length(dat$log_obs_cases)-1)
-        ytext = make.ytext(ylim,0.9)
-    #   text(ttext,ytext,bias.note("bias_logmu"),col=note.color,pos=2) 
-        err = SElogmu
-        plot.error(tt,obj$report()$logmu,err)
-    }
-    else
-    {
-        plot(c(tt[1],tt[length(tt)]),c(obj$report()$logmu,obj$report()$logmu),
-              ylab='ln mu',ylim=rlim, pch=point.symb)
-    }
-    gmlogmu = median(obj$report()$logmu)
-    abline(h=gmlogmu,lty='dashed')
+    rlim = c(-10.0,1.0)
+    err = exp(get.error(par,opt,map,'logsigma_logmu'))
+#   print(paste(length(tt),length(obj$report()$logmu),length(obj$report()$sigma_logmu)))
+    plot.rv(tt,obj$report()$logmu, obj$report()$logmu,
+            ylab='ln mu', err=err,
+            err_name='sigma_logmu',ylim=rlim)
 
-    ylim = range(obj$report()$loggamma)
-    print(ylim)
-    plot(tt,obj$report()$loggamma,ylab='ln gamma',ylim=rlim, pch=point.symb)
-    ttext = 0.95*(length(dat$log_obs_cases)-1)
-    ytext = make.ytext(ylim,0.9)
-#   text(ttext,ytext,bias.note("bias_loggamma"),col=note.color,pos=2) 
-    err = SEloggamma
-#   plot.error(tt,obj$report()$loggamma,err)
-    gmloggamma = median(obj$report()$loggamma)
-    abline(h=gmloggamma,lty='dashed')
+    glim = range(obj$report()$loggamma)
+    err = exp(get.error(par,opt,map,'logsigma_loggamma'))
+    plot.rv(tt,obj$report()$loggamma, obj$report()$loggamma,
+            ylab='ln gamma', err=err,
+            err_name='sigma_loggamma',ylim=rlim)
 
     cfrlim = 0.4
     prd_cfr = exp(obj$report()$logD - obj$report()$logEye)
@@ -179,7 +157,7 @@ plot.log.state = function(fit) #,np=5)
 
     par(old.par)
     detach(fit)
-#   return(dev.cur())
+    return(dev.cur())
 }
 
 plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)

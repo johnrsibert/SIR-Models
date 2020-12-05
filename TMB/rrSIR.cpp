@@ -111,7 +111,7 @@ Type objective_function <Type>::operator()()
 
     //  loop over time
     logS[0] = log(N0);
-    logEye[0] = log_obs_cases[0];
+//  logEye[0] = log_obs_cases[0];
 //  logD[0] = eps;
 //  logR[0] = eps;
     for (int t = 1; t <= ntime; t++)
@@ -247,6 +247,7 @@ Type objective_function <Type>::operator()()
      REPORT(sigma_logP);
      REPORT(sigma_logbeta);
      REPORT(sigma_loggamma);
+     REPORT(sigma_logmu);
 
      REPORT(f);
      REPORT(betanll);
