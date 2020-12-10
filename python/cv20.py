@@ -1071,6 +1071,125 @@ def plot_DC(nG=30,save=True):
         plt.show()
 
 
+def new_plot_DC(glist=[5,100], save=True):
+
+    def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
+        c = coll.get_facecolor()[0]
+        if ( (end =='l') | (end == 'b')):
+            mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',fontsize=8,
+                    color=c)
+
+        if ( (end =='r') | (end == 'b')):
+            i = len(x)-1
+            mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
+                    color=c)
+   
+    def plot_cmr(a, rr=[2.0]):
+        for r in rr:
+            rstr = str(r)
+            xr = [0.0]*2
+            yr = [0.0]*2
+            for i in range(0,len(yr)):
+                xr[i] = a.get_xlim()[i]
+                yr[i] = xr[i]*r/100.0
+
+            a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
+            mark_ends(a,xr,yr,rstr,'r',' ')
+
+    def save_plot(plt,save,n,what):
+        if save:
+            gfile = cv.graphics_path+'CFR_'+what+'_'+str(n)+'.png'
+            plt.savefig(gfile,dpi=300)
+            plt.show(False)
+            plt.pause(5)
+            
+            print('Plot saved as',gfile)
+        else:
+            plt.show()
+        plt.close()
+
+    def set_axes(ax):
+        ax.set_yscale('log')
+        ax.set_ylabel('Deaths')
+        ax.set_ylim(1,1e5)
+        ax.set_xscale('log')
+        ax.set_xlabel('Cases')
+        ax.set_xlim(10,1e6)
+
+
+
+    plt.rcParams["scatter.marker"] = '.'
+    plt.rcParams["lines.markersize"] = 3
+
+
+    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    for i,nG in enumerate(glist):
+
+        fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+        set_axes(ax)
+        ct = []
+        dt = []
+        ft = []
+        recent = pd.DataFrame(columns = ('moniker','cases','deaths','cfr'))
+        print('Processing',nG,'geographies')
+    #   tcases = 0
+        for g in range(0,nG):
+            print(g,gg['county'].iloc[g])
+            tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                             code=gg['code'].iloc[g])
+            tmpG.read_nyt_data('county')
+        #   plot scatter of all in tmpG geography    
+            coll = ax.scatter(tmpG.cases,tmpG.deaths)
+        #   tcases += sum(tmpG.cases)
+            if (nG < 6):
+                sn = short_name(tmpG.moniker)
+            #   mark_ends(ax[0],tmpG.cases,tmpG.deaths,sn,'r')
+                mark_points(coll,ax,tmpG.cases,tmpG.deaths,sn,'r')
+
+            nt = len(tmpG.cases)-1 # index of most recent report
+            ct.append(tmpG.cases[nt])
+            dt.append(tmpG.deaths[nt])
+            cfrt =tmpG.deaths[nt]/tmpG.cases[nt]
+            ft.append(cfrt)
+            row = pd.Series(index=recent.columns)
+            row['moniker'] = tmpG.moniker
+            row['cases'] = tmpG.cases[nt]
+            row['deaths'] = tmpG.deaths[nt]
+            row['cfr'] = cfrt
+            recent = recent.append(row, ignore_index=True)
+
+
+        tcases = recent['cases'].sum()
+        logxlim = np.log(ax.get_xlim())
+        tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
+        logylim = np.log(ax.get_ylim())
+        ty = np.exp(logylim[0]+0.95*(logylim[1]-logylim[0]))
+        note = '{0} Counties; {1:,} Cases'.format(nG,tcases)
+        ax.text(tx,ty,note ,ha='left',va='center',fontsize=10)
+        plot_cmr(ax, [0.5,1.0,2.0,4.0,8.0])
+        save_plot(plt,save,nG,'all')
+
+    recent = recent.sort_values(by='cases',ascending=False)
+    recent.to_csv('recent_cfr.csv',index=False)
+
+    print('recent:')
+    print(recent)
+    
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    ax.set_xlim(0.0,0.1)
+    ax.set_xlabel('Most Recent Case Fatality Ratio')
+    ax.set_ylabel('Number')
+    ax.hist(ft,50)
+    tcases = recent['cases'].sum()
+    xlim = ax.get_xlim()
+    tx = xlim[0]+0.95*(xlim[1]-xlim[0])
+    ylim = ax.get_ylim()
+    ty = ylim[0]+0.95*(ylim[1]-ylim[0])
+    note = '{0} Counties; {1:,} Cases'.format(nG,tcases)
+    ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
+
+    save_plot(plt,save,nG,'hist')
+
 
 
 def get_mu_atD1(ext='.RData',fit_files = []):
@@ -1229,7 +1348,7 @@ def make_fit_table(ext = '.RData'):
                'logsigma_logC','logsigma_logD','mbeta','mmu'] #,'mgamma']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
-              '$\sigma_\eta_C$', '$\sigma_\eta_D$', '$\sigma_\\beta$','$\sigma_\\mu$',
+              '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
               '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
             #,'$\\tilde\\gamma$']
 
@@ -1580,53 +1699,103 @@ print('------- here ------')
 def junk_func():
     import math
     import scipy.stats as stats
+#   cfr = pd.read_csv('cfr500.txt',header=None,skip_blank_lines=True)
     cfr = np.array(pd.read_csv('cfr500.txt'))
-    logcfr = np.log(cfr+eps)
+#   print('cfr:',cfr)
+    logcfr = np.log(cfr)
     #print(stats.describe(cfr))
     d_logcfr = stats.describe(logcfr)
     print('lmean=',d_logcfr.mean,'lvariance=',d_logcfr.variance)
     print('lmean=',type(d_logcfr.mean),'lvariance=',type(d_logcfr.variance))
     #print(stats.describe(logcfr))
-    
+    print('1 ----------------')
     
     
     fig, ax = plt.subplots(2,figsize=(6.5,6.5))
+    nbin = 50
     
-    lmean = d_logcfr.mean[0]
-    print(lmean,type(lmean),np.exp(lmean))
-    lsigma = math.sqrt(d_logcfr.variance[0])
-    print(lsigma,type(lsigma),np.exp(lsigma))
-#   x = np.arange(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 0.1)
-    x = np.linspace(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 50) 
-    lpdf =stats.norm.pdf(x, lmean, lsigma)
-    ax[0].hist(logcfr,50,density=True)
-    ax[0].plot(x,lpdf) 
-    ax[0].plot((lmean,lmean),ax[0].get_ylim())
+#   lmean = d_logcfr.mean[0]
+#   print(lmean,np.exp(lmean))
+#   lsigma = math.sqrt(d_logcfr.variance[0])
+#   print(lsigma,np.exp(lsigma))
+#   x = np.linspace(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 50) 
+#   lpdf =stats.norm.pdf(x, lmean, lsigma)
+#   print('2 ----------------')
+#   ax[0].hist(logcfr,50,density=True)
+#   print('3 ----------------')
+#   ax[0].plot(x,lpdf) 
+#   print('4 ----------------')
+#   mark_ends(ax[0],x,lpdf,'lpdf','r')
+#   print('5 ----------------')
+#   ax[0].plot((lmean,lmean),ax[0].get_ylim())
+
+
+    lweights = np.ones_like(logcfr) / len(logcfr)
+    lhist,ledges = np.histogram(logcfr,bins=nbin,weights=lweights,density=False)
+    print('lhist sum:',sum(lhist))
+    lwidth = max(ledges)/nbin
+    print(max(ledges),lwidth)
+
+    ax[0].bar(ledges[:-1],lhist,width=lwidth,color='0.75')
+
+    lparam = stats.norm.fit(logcfr)
+    print(lparam)
+    npdf = stats.norm.pdf(ledges,lparam)
+    npdf = npdf/sum(npdf)
+    print('npdf sum:',sum(npdf))
     
-    
+    ax[0].plot(ledges,npdf)#,color=next(prop_iter)['color']) #color='0.7', #,color='red')
+    mark_ends(ax[0],ledges,npdf,'l-n','r')
+
     print('----------------')
     weights = np.ones_like(cfr) / len(cfr)
-    nx, xbins, ptchs  = ax[1].hist(cfr,50,weights=weights)
-    #print('nx',nx)
-    #print('xbins',xbins)
-    #print('ptchs',ptchs)
-    ex = np.exp(x)
-    #weights = np.ones_like(np.exp(lpdf))/len(lpdf)
-    #ax[1].plot(ex, np.exp(lpdf)*weights)
+    hist,edges = np.histogram(cfr,bins=nbin,weights=weights,density=False)
+    print('hist sum:',sum(hist))
+
+    width = max(edges)/nbin
+    print(max(edges),width)
+
+#   prop_iter = iter(plt.rcParams['axes.prop_cycle'])
+    ax[1].bar(edges[:-1],hist,width=width,color='0.75') #next(prop_iter)['color']) #color='0.7',
+
+    param = stats.lognorm.fit(cfr)
+    print('   param:',param)
+    print('logparam:',np.log(param))
+    print('expparam:',np.exp(param))
+    pdf = stats.lognorm.pdf(edges,param[0],param[1],param[2])
+    print(' pdf sum:',sum(pdf))
+    pdf = pdf/sum(pdf)
+    print('pdf sum:',sum(pdf))
     
-    mean = np.log(lmean*lmean/np.sqrt(lmean*lmean-lsigma*lsigma))
-    print(mean,type(mean),np.exp(mean))
-    sigma = np.log(1.0-lsigma*lsigma/lmean*lmean)
-    print(sigma,type(sigma),np.exp(sigma))
-    mode = np.exp(mean-sigma*sigma)
-    print('mode',mode,np.log(mode))
-    pdf = lpdf/lpdf.sum()
-    ax[1].plot(ex,pdf)
-    ax[1].plot((np.exp(lmean),np.exp(lmean)),ax[1].get_ylim())
-#   ax[1].plot((mode,mode),ax[1].get_ylim())
+    ax[1].plot(edges,pdf)#,color=next(prop_iter)['color']) #color='0.7', #,color='red')
+    mark_ends(ax[1],edges,pdf,'l-n','r')
+#   print(' lpdf sum:',sum(lpdf))
+#   lpdf = lpdf/sum(lpdf)
+#   print('lpdf sum:',sum(lpdf))
+#   ax[1].plot(edges[:-1],lpdf,linestyle='dotted')
     
+
+    ax[1].plot((param[1],param[1]),ax[1].get_ylim())#,color=next(prop_iter)['color'])
+    mark_ends(ax[1],(param[1],param[1]),ax[1].get_ylim(),'p[1]','r')
+
+    ax[1].plot((param[2],param[2]),ax[1].get_ylim())#,color=next(prop_iter)['color'])
+    mark_ends(ax[1],(param[2],param[2]),ax[1].get_ylim(),'p[2]','r')
+
+    pdf0 = stats.lognorm.pdf(edges,param[0],0.01,param[2])
+    print('pdf0 sum:',sum(pdf0))
+    pdf0 = pdf0/sum(pdf0)
+    print('pdf0 sum:',sum(pdf0))
     
+#   ax[1].plot(edges,pdf0,linestyle='dotted') #,color='red')
+#   mark_ends(ax[1],edges,pdf0,'l-n0','r')
+
+    Q = np.quantile(cfr,q=[0.10,0.5,0.90])
+    print(Q)
+    Q = np.quantile(cfr,q=[0.05,0.5,0.95])
+    print(Q)
+
     plt.show()
+    plt.savefig('junk_func.png',format='png',dpi=300)
 
 #import math
 #import scipy.stats as stats
@@ -1651,8 +1820,6 @@ def junk_func():
 
 # -------------------------------------------------
 
-#unique()
-
 #tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
@@ -1674,7 +1841,9 @@ def junk_func():
 #update_fits()
 #update_shared_plots()
 #update_assets()
-#plot_DC(5) #00)
+#new_plot_DC()
+new_plot_DC(glist=[5,1000], save=True)
+#plot_DC(300,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])
