@@ -966,7 +966,7 @@ def make_SD_tab(Gfile='top30.csv',save=True):
     SD_tab = SD_tab.append(row,ignore_index=True)
     print(SD_tab)    
 
-def plot_DC(nG=30,save=True):
+def old_plot_DC(nG=30,save=True):
 
     def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
         c = coll.get_facecolor()[0]
@@ -1071,7 +1071,7 @@ def plot_DC(nG=30,save=True):
         plt.show()
 
 
-def new_plot_DC(glist=[5,100], save=True):
+def plot_DC(glist=[5,100], save=True):
 
     def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
         c = coll.get_facecolor()[0]
@@ -1127,12 +1127,8 @@ def new_plot_DC(glist=[5,100], save=True):
 
         fig, ax = plt.subplots(1,figsize=(6.5,4.5))
         set_axes(ax)
-        ct = []
-        dt = []
-        ft = []
         recent = pd.DataFrame(columns = ('moniker','cases','deaths','cfr'))
         print('Processing',nG,'geographies')
-    #   tcases = 0
         for g in range(0,nG):
             print(g,gg['county'].iloc[g])
             tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
@@ -1140,31 +1136,25 @@ def new_plot_DC(glist=[5,100], save=True):
             tmpG.read_nyt_data('county')
         #   plot scatter of all in tmpG geography    
             coll = ax.scatter(tmpG.cases,tmpG.deaths)
-        #   tcases += sum(tmpG.cases)
             if (nG < 6):
                 sn = short_name(tmpG.moniker)
-            #   mark_ends(ax[0],tmpG.cases,tmpG.deaths,sn,'r')
                 mark_points(coll,ax,tmpG.cases,tmpG.deaths,sn,'r')
 
             nt = len(tmpG.cases)-1 # index of most recent report
-            ct.append(tmpG.cases[nt])
-            dt.append(tmpG.deaths[nt])
-            cfrt =tmpG.deaths[nt]/tmpG.cases[nt]
-            ft.append(cfrt)
+            cfrt = tmpG.deaths[nt]/tmpG.cases[nt]
             row = pd.Series(index=recent.columns)
             row['moniker'] = tmpG.moniker
             row['cases'] = tmpG.cases[nt]
-            row['deaths'] = tmpG.deaths[nt]
+            row['deaths'] = int(tmpG.deaths[nt])
             row['cfr'] = cfrt
             recent = recent.append(row, ignore_index=True)
 
 
-        tcases = recent['cases'].sum()
         logxlim = np.log(ax.get_xlim())
         tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
         logylim = np.log(ax.get_ylim())
         ty = np.exp(logylim[0]+0.95*(logylim[1]-logylim[0]))
-        note = '{0} Counties; {1:,} Cases'.format(nG,tcases)
+        note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
         ax.text(tx,ty,note ,ha='left',va='center',fontsize=10)
         plot_cmr(ax, [0.5,1.0,2.0,4.0,8.0])
         save_plot(plt,save,nG,'all')
@@ -1172,20 +1162,16 @@ def new_plot_DC(glist=[5,100], save=True):
     recent = recent.sort_values(by='cases',ascending=False)
     recent.to_csv('recent_cfr.csv',index=False)
 
-    print('recent:')
-    print(recent)
-    
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
     ax.set_xlim(0.0,0.1)
     ax.set_xlabel('Most Recent Case Fatality Ratio')
     ax.set_ylabel('Number')
-    ax.hist(ft,50)
-    tcases = recent['cases'].sum()
+    ax.hist(recent['cfr'],50)
     xlim = ax.get_xlim()
     tx = xlim[0]+0.95*(xlim[1]-xlim[0])
     ylim = ax.get_ylim()
     ty = ylim[0]+0.95*(ylim[1]-ylim[0])
-    note = '{0} Counties; {1:,} Cases'.format(nG,tcases)
+    note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
 
     save_plot(plt,save,nG,'hist')
@@ -1583,6 +1569,7 @@ def update_shared_plots():
 
 def update_assets():
     asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
+                   'CFR_all_1000.png', 'CFR_all_5.png', 'CFR_hist_1000.png',
                    'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
                    'New_York_CityNY_prevalence.png']
     for file in asset_files:
@@ -1687,7 +1674,8 @@ def update_everything():
 #                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
-    plot_DC(1000)
+#   plot_DC(1000)
+    plot_DC(glist=[5,1000], save=True)
     print('Finished CFR plots')
     update_assets()
     print('Finishing update asset directory')
@@ -1842,7 +1830,7 @@ def junk_func():
 #update_shared_plots()
 #update_assets()
 #new_plot_DC()
-new_plot_DC(glist=[5,1000], save=True)
+#new_plot_DC(glist=[5,1000], save=True)
 #plot_DC(300,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
