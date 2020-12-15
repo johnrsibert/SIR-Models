@@ -211,6 +211,19 @@ def add_order_date(ax):
     #       (0, ax.get_ylim()[1]),
             color='0.5', linewidth=3,alpha=0.5)
 
+def add_data_source(fig,source=None):
+    if source is None:
+        source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
+    fig.text(0.0,0.0,' Data source: '+ source , ha='left',va='bottom', fontsize=8)
+    mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
+    dtime = datetime.fromtimestamp(mtime)
+    fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
+
+def add_signature(fig,url_line):
+    by_line = 'Graphics by John Sibert'
+    fig.text(0.0,0.020,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+    fig.text(1.0,0.020,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+
 # -----------  class definitions--------------       
 
 class Geography:
@@ -531,18 +544,20 @@ class Geography:
                 gname = 'Region'
             title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+ self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
-            fig.text(0.0,0.0,' Data source: '+ self.source ,
-                     ha='left',va='bottom', fontsize=8)
+        #   fig.text(0.0,0.0,' Data source: '+ self.source ,
+        #            ha='left',va='bottom', fontsize=8)
     
-            mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
-            dtime = datetime.fromtimestamp(mtime)
-            fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
+        #   mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
+        #   dtime = datetime.fromtimestamp(mtime)
+        #   fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
+            add_data_source(fig,self.source)
 
         if (signature):
-            by_line = 'Graphics by John Sibert'
-            url_line = 'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare'
-            fig.text(0.0,0.025,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
-            fig.text(1.0,0.025,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+        #   by_line = 'Graphics by John Sibert'
+        #   url_line = 'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare'
+        #   fig.text(0.0,0.020,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+        #   fig.text(1.0,0.020,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+            add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
     
         if (dashboard):
         #   out_img = BytesIO()
@@ -1157,6 +1172,7 @@ def plot_DC(glist=[5,100], save=True):
         note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
         ax.text(tx,ty,note ,ha='left',va='center',fontsize=10)
         plot_cmr(ax, [0.5,1.0,2.0,4.0,8.0])
+        add_data_source(fig)
         save_plot(plt,save,nG,'all')
 
     recent = recent.sort_values(by='cases',ascending=False)
@@ -1173,6 +1189,7 @@ def plot_DC(glist=[5,100], save=True):
     ty = ylim[0]+0.95*(ylim[1]-ylim[0])
     note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
+    add_data_source(fig)
 
     save_plot(plt,save,nG,'hist')
 
@@ -1808,7 +1825,7 @@ def junk_func():
 
 # -------------------------------------------------
 
-#tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
+#tgeog = Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
@@ -1831,7 +1848,7 @@ def junk_func():
 #update_assets()
 #new_plot_DC()
 #new_plot_DC(glist=[5,1000], save=True)
-#plot_DC(300,save=True)
+#plot_DC([5,100],save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])
