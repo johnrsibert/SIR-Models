@@ -1701,117 +1701,69 @@ def update_everything():
 
 # --------------------------------------------------       
 print('------- here ------')
-def junk_func():
+def log_norm_cfr():
+    def vline(ax, y, ylim, mark):
+        ax.plot((y,y), ylim)
+        mark_ends(ax, (y,y), ylim, mark, 'r')
+
     import math
     import scipy.stats as stats
-#   cfr = pd.read_csv('cfr500.txt',header=None,skip_blank_lines=True)
-    cfr = np.array(pd.read_csv('cfr500.txt'))
-#   print('cfr:',cfr)
-    logcfr = np.log(cfr)
-    #print(stats.describe(cfr))
-    d_logcfr = stats.describe(logcfr)
-    print('lmean=',d_logcfr.mean,'lvariance=',d_logcfr.variance)
-    print('lmean=',type(d_logcfr.mean),'lvariance=',type(d_logcfr.variance))
-    #print(stats.describe(logcfr))
-    print('1 ----------------')
-    
-    
+    cfr = np.array(pd.read_csv('recent_cfr.csv')['cfr'])
+
+    bins = np.linspace(0.0,0.1,50)
+    nbin = len(bins)
+
     fig, ax = plt.subplots(2,figsize=(6.5,6.5))
-    nbin = 50
-    
-#   lmean = d_logcfr.mean[0]
-#   print(lmean,np.exp(lmean))
-#   lsigma = math.sqrt(d_logcfr.variance[0])
-#   print(lsigma,np.exp(lsigma))
-#   x = np.linspace(lmean - 3.0*lsigma, lmean + 3.0*lsigma, 50) 
-#   lpdf =stats.norm.pdf(x, lmean, lsigma)
-#   print('2 ----------------')
-#   ax[0].hist(logcfr,50,density=True)
-#   print('3 ----------------')
-#   ax[0].plot(x,lpdf) 
-#   print('4 ----------------')
-#   mark_ends(ax[0],x,lpdf,'lpdf','r')
-#   print('5 ----------------')
-#   ax[0].plot((lmean,lmean),ax[0].get_ylim())
 
-
-    lweights = np.ones_like(logcfr) / len(logcfr)
-    lhist,ledges = np.histogram(logcfr,bins=nbin,weights=lweights,density=False)
-    print('lhist sum:',sum(lhist))
-    lwidth = max(ledges)/nbin
-    print(max(ledges),lwidth)
-
-    ax[0].bar(ledges[:-1],lhist,width=lwidth,color='0.75')
-
-    lparam = stats.norm.fit(logcfr)
-    print(lparam)
-    npdf = stats.norm.pdf(ledges,lparam)
-    npdf = npdf/sum(npdf)
-    print('npdf sum:',sum(npdf))
-    
-    ax[0].plot(ledges,npdf)#,color=next(prop_iter)['color']) #color='0.7', #,color='red')
-    mark_ends(ax[0],ledges,npdf,'l-n','r')
-
-    print('----------------')
+    print('1 ----------------')
     weights = np.ones_like(cfr) / len(cfr)
-    hist,edges = np.histogram(cfr,bins=nbin,weights=weights,density=False)
+#   hist,edges = np.histogram(cfr,bins=nbin,weights=weights,density=False)
+    hist,edges = np.histogram(cfr,bins=nbin,                density=False)
     print('hist sum:',sum(hist))
 
-    width = max(edges)/nbin
-    print(max(edges),width)
-
-#   prop_iter = iter(plt.rcParams['axes.prop_cycle'])
-    ax[1].bar(edges[:-1],hist,width=width,color='0.75') #next(prop_iter)['color']) #color='0.7',
+    width = 1.05*max(edges)/nbin
+    ax[0].bar(edges[:-1],hist,width=width, color='0.75') #next(prop_iter)['color']
+    ax[0].set_xlabel('CFR')
+    ax[0].set_ylabel('Number')
 
     param = stats.lognorm.fit(cfr)
-    print('   param:',param)
-    print('logparam:',np.log(param))
-    print('expparam:',np.exp(param))
     pdf = stats.lognorm.pdf(edges,param[0],param[1],param[2])
-    print(' pdf sum:',sum(pdf))
-    pdf = pdf/sum(pdf)
-    print('pdf sum:',sum(pdf))
-    
-    ax[1].plot(edges,pdf)#,color=next(prop_iter)['color']) #color='0.7', #,color='red')
-    mark_ends(ax[1],edges,pdf,'l-n','r')
-#   print(' lpdf sum:',sum(lpdf))
-#   lpdf = lpdf/sum(lpdf)
-#   print('lpdf sum:',sum(lpdf))
-#   ax[1].plot(edges[:-1],lpdf,linestyle='dotted')
-    
+    prob = len(cfr)*pdf/sum(pdf)
+    ax[0].plot(edges-0.5*width,prob)#,color=next(prop_iter)['color']) #color='0.7', #,color= 
 
-    ax[1].plot((param[1],param[1]),ax[1].get_ylim())#,color=next(prop_iter)['color'])
-    mark_ends(ax[1],(param[1],param[1]),ax[1].get_ylim(),'p[1]','r')
+    print('2 ----------------')
+    logcfr = np.log(cfr)
+    lhist,ledges = np.histogram(logcfr,bins=nbin,density=False)
+    lwidth = 1.05*max(ledges)/nbin
+    ax[1].bar(ledges[:-1],lhist,width=lwidth,color='0.85') #next(prop_iter)['color']
+    ax[1].set_xlabel('log CFR')
+    ax[1].set_ylabel('Number')
 
-    ax[1].plot((param[2],param[2]),ax[1].get_ylim())#,color=next(prop_iter)['color'])
-    mark_ends(ax[1],(param[2],param[2]),ax[1].get_ylim(),'p[2]','r')
+    lparam = stats.norm.fit(logcfr)
+    mean = np.exp(np.mean(logcfr))
+    std = np.exp(np.std(logcfr))
+    median = np.exp(np.median(logcfr))
+    mode = edges[pd.Series(prob).idxmax()]-0.5*width
+    Q95 = np.quantile(cfr,q=0.95)
+    Q99 = np.quantile(cfr,q=0.99)
+    vlim = ax[0].get_ylim()
+    vline(ax[0],mean,vlim,'mean')
+    vline(ax[0],mode,vlim,'mode')
+    vline(ax[0],Q95,vlim,'95%')
+    vline(ax[0],Q99,vlim,'99%')
 
-    pdf0 = stats.lognorm.pdf(edges,param[0],0.01,param[2])
-    print('pdf0 sum:',sum(pdf0))
-    pdf0 = pdf0/sum(pdf0)
-    print('pdf0 sum:',sum(pdf0))
-    
-#   ax[1].plot(edges,pdf0,linestyle='dotted') #,color='red')
-#   mark_ends(ax[1],edges,pdf0,'l-n0','r')
+    lpdf = stats.norm.pdf(ledges,lparam[0],lparam[1])#,lparam[2])
+#   ensure the area under the pdf agrees with the area under the bars
+    lprob = len(logcfr)*lpdf/sum(lpdf)
+    ax[1].plot(ledges,lprob)#,color=next(prop_iter)['color']) #color='0.7', #,color= 
 
-    Q = np.quantile(cfr,q=[0.10,0.5,0.90])
-    print(Q)
-    Q = np.quantile(cfr,q=[0.05,0.5,0.95])
-    print(Q)
-
+    plt.savefig('log_norm_cfr.png',format='png',dpi=300)
     plt.show()
-    plt.savefig('junk_func.png',format='png',dpi=300)
 
-#import math
-#import scipy.stats as stats
-#cfr = np.array(pd.read_csv('cfr500.txt')
-##print(cfr)
-#print(len(cfr))
-#d_cfr = stats.describe(cfr)
-#print('mean=',d_cfr.mean,'variance=',d_cfr.variance)
-#print('mean=',type(d_cfr.mean),'variance=',type(d_cfr.variance))
+#
 
-#junk_func()
+log_norm_cfr()
+
 #mean = d_cfr.mean[0]
 #sigma = math.sqrt(d_cfr.variance[0])
 #print(mean,sigma)
@@ -1908,7 +1860,7 @@ def junk_func():
 #junk_func()
 #make_SD_tab()
 
-def make_cfr_histo_ts(nG = 1000,save=True):
+def make_cfr_histo_ts(nG = 100,save=True):
     firstDate = date(2020,1,1)
 #   print(firstDate, mdates.date2num(firstDate))
     lastDate = datetime.fromtimestamp(os.path.getmtime(cv.NYT_home+'us-counties.csv')).date()
