@@ -981,112 +981,15 @@ def make_SD_tab(Gfile='top30.csv',save=True):
     SD_tab = SD_tab.append(row,ignore_index=True)
     print(SD_tab)    
 
-def old_plot_DC(nG=30,save=True):
-
-    def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
-        c = coll.get_facecolor()[0]
-        if ( (end =='l') | (end == 'b')):
-            mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',fontsize=8,
-                    color=c)
-
-        if ( (end =='r') | (end == 'b')):
-            i = len(x)-1
-            mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
-                    color=c)
-   
-    def plot_cmr(a, rr=[2.0]):
-        for r in rr:
-            rstr = str(r)
-            xr = [0.0]*2
-            yr = [0.0]*2
-            for i in range(0,len(yr)):
-                xr[i] = a.get_xlim()[i]
-                yr[i] = xr[i]*r/100.0
-
-            a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
-            mark_ends(a,xr,yr,rstr,'r',' ')
-
-    plt.rcParams["scatter.marker"] = '.'
-    plt.rcParams["lines.markersize"] = 3
-    nplot = 3
-    fig, ax = plt.subplots(nplot,figsize=(6.5,9.0))
-
-    for i in range(0,2):
-        ax[i].set_yscale('log')
-        ax[i].set_ylabel('Deaths')
-        ax[i].set_ylim(1,1e5)
-        ax[i].set_xscale('log')
-        ax[i].set_xlabel('Cases')
-        ax[i].set_xlim(10,1e6)
-
-    ct = []
-    dt = []
-    ft = []
-    recent = pd.DataFrame(columns = ('moniker','cases','deaths','cfr'))
-    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
-    print('Processing',nG,'geographies')
-    for g in range(0,nG):
-        print(g,gg['county'].iloc[g])
-        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
-                         code=gg['code'].iloc[g])
-        tmpG.read_nyt_data('county')
-        
-        coll = ax[0].scatter(tmpG.cases,tmpG.deaths)
-        if (nG < 6):
-            sn = short_name(tmpG.moniker)
-        #   mark_ends(ax[0],tmpG.cases,tmpG.deaths,sn,'r')
-            mark_points(coll,ax[0],tmpG.cases,tmpG.deaths,sn,'r')
-
-
-        nt = len(tmpG.cases)-1
-        ct.append(tmpG.cases[nt])
-        dt.append(tmpG.deaths[nt])
-        cfrt =tmpG.deaths[nt]/tmpG.cases[nt]
-        ft.append(cfrt)
-        row = pd.Series(index=recent.columns)
-        row['moniker'] = tmpG.moniker
-        row['cases'] = tmpG.cases[nt]
-        row['deaths'] = tmpG.deaths[nt]
-        row['cfr'] = cfrt
-        recent = recent.append(row, ignore_index=True)
-
-        if (nplot > 2):
-           ratio = tmpG.deaths/tmpG.cases
-           ax[2].scatter(tmpG.cases,ratio,color='blue',alpha=0.2)
-
-    recent = recent.sort_values(by='cases',ascending=False)
-    recent.to_csv('recent_cfr.csv',index=False)
-    print(recent)
-
-    if (nplot > 2):
-        ax[2].hist(ft,50)
-        ax[2].set_xlim(0.0,0.1)
-        ax[2].set_xlabel('Most Recent Case Fatality Ratio')
-        ax[2].set_ylabel('Number')
-
-    plot_cmr(ax[0], [0.5,1.0,2.0,4.0,8.0])
-    logxlim = np.log(ax[0].get_xlim())
-    tx = np.exp(logxlim[0]+0.05*(logxlim[1]-logxlim[0]))
-    logylim = np.log(ax[0].get_ylim())
-    ty = np.exp(logylim[0]+0.9*(logylim[1]-logylim[0]))
-    ax[0].text(tx,ty,' n = '+str(nG),ha='left',va='center')
-
-    ax[1].scatter(ct,dt)
-    plot_cmr(ax[1], [0.5,1.0,2.0,4.0,8.0])
-    ax[1].text(tx,ty,' n = '+str(nG)+', most recent',ha='left',va='center')
-
-    if save:
-        gfile = cv.graphics_path+'CFR_'+str(nG)+'.png'
-        plt.savefig(gfile,dpi=300)
-        plt.show(False)
-        plt.pause(5)
-            
-        print('Plot saved as',gfile)
-    else:
-        plt.show()
-
-
 def plot_DC(glist=[5,100], save=True):
+
+    def vline(ax, x, label=None, ylim=None):
+        if ylim is None:
+           ylim = ax.get_ylim()
+        ax.plot((x,x), ylim, linewidth=1, linestyle=':')
+        c = ax.get_lines()[-1].get_color()
+        ax.text(x,ylim[1], label, ha='center',va='bottom', linespacing=1.8,
+                fontsize=8, color=c)
 
     def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
         c = coll.get_facecolor()[0]
@@ -1116,7 +1019,7 @@ def plot_DC(glist=[5,100], save=True):
             gfile = cv.graphics_path+'CFR_'+what+'_'+str(n)+'.png'
             plt.savefig(gfile,dpi=300)
             plt.show(False)
-            plt.pause(5)
+        #   plt.pause(5)
             
             print('Plot saved as',gfile)
         else:
@@ -1179,14 +1082,32 @@ def plot_DC(glist=[5,100], save=True):
     recent.to_csv('recent_cfr.csv',index=False)
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    ax.set_xlim(0.0,0.1)
+    nbins = 50
+    xticks = np.linspace(0.0,0.08,num=9)
+    ax.set_xlim(xticks[0],xticks[len(xticks)-1])
     ax.set_xlabel('Most Recent Case Fatality Ratio')
     ax.set_ylabel('Number')
-    ax.hist(recent['cfr'],50)
+    ax.set_xticks(xticks)
+    hist,edges,patches = ax.hist(recent['cfr'],nbins)
+
+    param = stats.lognorm.fit(recent['cfr'])
+    pdf = stats.lognorm.pdf(edges,param[0],param[1],param[2])
+    prob = len(recent['cfr'])*pdf/sum(pdf)
+    ax.plot(edges,prob,linewidth=1,linestyle='--')
+
+    median = np.median(recent['cfr'])
+    Q95 = np.quantile(recent['cfr'],q=0.975)
+    mode = edges[pd.Series(prob).idxmax()]
+    ylim = ax.get_ylim()
+    ylim = (ylim[0],0.95*ylim[1])
+    vline(ax,mode,'Mode',ylim=ylim)
+    vline(ax,median,'Median',ylim=ylim)
+    vline(ax,Q95,'97.5%',ylim=ylim)
+
     xlim = ax.get_xlim()
     tx = xlim[0]+0.95*(xlim[1]-xlim[0])
     ylim = ax.get_ylim()
-    ty = ylim[0]+0.95*(ylim[1]-ylim[0])
+    ty = ylim[0]+0.80*(ylim[1]-ylim[0])
     note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
     add_data_source(fig)
@@ -1586,6 +1507,7 @@ def update_shared_plots():
 
 def update_assets():
     asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
+                   'days_of_week_5.png','days_of_week_1000.png', 
                    'CFR_all_1000.png', 'CFR_all_5.png', 'CFR_hist_1000.png',
                    'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
                    'New_York_CityNY_prevalence.png']
@@ -1691,7 +1613,6 @@ def update_everything():
 #                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
-#   plot_DC(1000)
     plot_DC(glist=[5,1000], save=True)
     print('Finished CFR plots')
     update_assets()
@@ -1762,7 +1683,7 @@ def log_norm_cfr():
 
 #
 
-log_norm_cfr()
+#log_norm_cfr()
 
 #mean = d_cfr.mean[0]
 #sigma = math.sqrt(d_cfr.variance[0])
@@ -1778,6 +1699,7 @@ log_norm_cfr()
 # -------------------------------------------------
 
 #tgeog = Geography(name='Los Angeles',enclosed_by='California',code='CA')
+#tgeog = Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
@@ -1800,7 +1722,7 @@ log_norm_cfr()
 #update_assets()
 #new_plot_DC()
 #new_plot_DC(glist=[5,1000], save=True)
-#plot_DC([5,100],save=True)
+#plot_DC([5,1000],save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])
@@ -1818,15 +1740,6 @@ log_norm_cfr()
 #make_rate_plots('gamma',save=True)
 #plot_multi_prev(save=True,mult=100000)
 #plot_multi_prev(Gfile='top500.csv',save=True,mult=100000)
-
-#test = Geography(name='Nassau',enclosed_by='New York',code='NY')
-#test = Geography(name='Miami-Dade',enclosed_by='Florida',code='FL')
-#test = Geography(name='New York City',enclosed_by='New York',code='NY')
-#test.read_nyt_data()
-#test.write_dat_file()
-#test.print_metadata()
-#test.plot_per_capita_curvature()
-#test.plot_prevalence(save=False,cumulative=False, show_order_date=False)
 
 #plot_dow_boxes(1000)
 #plot_multi_per_capita(plot_dt=False,save=True)
