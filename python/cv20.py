@@ -983,12 +983,12 @@ def make_SD_tab(Gfile='top30.csv',save=True):
 
 def plot_DC(glist=[5,100], save=True):
 
-    def vline(ax, x, label=None, ylim=None):
+    def vline(ax, x, label=None, ylim=None, pos='center'):
         if ylim is None:
            ylim = ax.get_ylim()
         ax.plot((x,x), ylim, linewidth=1, linestyle=':')
         c = ax.get_lines()[-1].get_color()
-        ax.text(x,ylim[1], label, ha='center',va='bottom', linespacing=1.8,
+        ax.text(x,ylim[1], label, ha=pos,va='bottom', linespacing=1.8,
                 fontsize=8, color=c)
 
     def mark_points(coll,ax,x,y,label,end='b',spacer=' '):
@@ -1088,26 +1088,30 @@ def plot_DC(glist=[5,100], save=True):
     ax.set_xlabel('Most Recent Case Fatality Ratio')
     ax.set_ylabel('Number')
     ax.set_xticks(xticks)
-    hist,edges,patches = ax.hist(recent['cfr'],nbins)
+#   hist,edges,patches = ax.hist(recent['cfr'],nbins)
+    weights = np.ones_like(recent['cfr']) / len(recent['cfr'])
+    hist,edges,patches = ax.hist(recent['cfr'],nbins,weights=weights,density=True)
 
     param = stats.lognorm.fit(recent['cfr'])
-    pdf = stats.lognorm.pdf(edges,param[0],param[1],param[2])
-    prob = len(recent['cfr'])*pdf/sum(pdf)
-    ax.plot(edges,prob,linewidth=1,linestyle='--')
+    pedges  = np.linspace(0.0,0.1,500)
+    pdf = stats.lognorm.pdf(pedges,param[0],param[1],param[2])
+#   prob = len(recent['cfr'])*pdf/sum(pdf)
+    ax.plot(pedges,pdf,linewidth=1,linestyle='--')
 
     median = np.median(recent['cfr'])
     Q95 = np.quantile(recent['cfr'],q=0.975)
-    mode = edges[pd.Series(prob).idxmax()]
+    mode = pedges[pd.Series(pdf).idxmax()]
     ylim = ax.get_ylim()
     ylim = (ylim[0],0.95*ylim[1])
-    vline(ax,mode,'Mode',ylim=ylim)
-    vline(ax,median,'Median',ylim=ylim)
+    vline(ax,median,'Median',ylim=ylim,pos='left')
+    vline(ax,mode,'Mode',ylim=ylim,pos='right')
     vline(ax,Q95,'97.5%',ylim=ylim)
 
     xlim = ax.get_xlim()
-    tx = xlim[0]+0.95*(xlim[1]-xlim[0])
+#   tx = xlim[0]+0.95*(xlim[1]-xlim[0])
+    tx = xlim[1]
     ylim = ax.get_ylim()
-    ty = ylim[0]+0.80*(ylim[1]-ylim[0])
+    ty = ylim[0]+0.90*(ylim[1]-ylim[0])
     note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
     add_data_source(fig)
@@ -1638,19 +1642,35 @@ def log_norm_cfr():
 
     print('1 ----------------')
     weights = np.ones_like(cfr) / len(cfr)
-#   hist,edges = np.histogram(cfr,bins=nbin,weights=weights,density=False)
-    hist,edges = np.histogram(cfr,bins=nbin,                density=False)
+    hist,edges,patches = ax[0].hist(cfr,nbin,weights=weights,density=True)
+
     print('hist sum:',sum(hist))
 
-    width = 1.05*max(edges)/nbin
-    ax[0].bar(edges[:-1],hist,width=width, color='0.75') #next(prop_iter)['color']
+    width = max(edges)/nbin
     ax[0].set_xlabel('CFR')
     ax[0].set_ylabel('Number')
 
-    param = stats.lognorm.fit(cfr)
-    pdf = stats.lognorm.pdf(edges,param[0],param[1],param[2])
-    prob = len(cfr)*pdf/sum(pdf)
-    ax[0].plot(edges-0.5*width,prob)#,color=next(prop_iter)['color']) #color='0.7', #,color= 
+    params = stats.lognorm.fit(cfr)
+    tedges  = np.linspace(0.0,0.1,200)
+    arg = params[:-2]
+    loc = params[-2]
+    scale = params[-1]
+    print('params:',params)
+    print(loc,scale)
+    prob = stats.lognorm.pdf(tedges,params[0],params[1],params[2])
+    print('prob sum:',sum(prob))
+    halfwidth = 0.5*(tedges[1]-tedges[0])
+    ax[0].plot(tedges-halfwidth,prob,linewidth=2,linestyle='--')
+
+    wparams = stats.weibull_min.fit(cfr)
+    print('wparams:',wparams)
+    wshape = wparams[0]
+    wscale = params[2]
+    print('wshape:',wshape)
+    print('wscale:',wscale)
+    wprob = stats.weibull_min.pdf(tedges,wparams[0],wparams[1],wparams[2])
+    print('wprob sum:',sum(wprob))
+    ax[0].plot(tedges-halfwidth,wprob,linewidth=3,linestyle=':')
 
     print('2 ----------------')
     logcfr = np.log(cfr)
@@ -1664,12 +1684,13 @@ def log_norm_cfr():
     mean = np.exp(np.mean(logcfr))
     std = np.exp(np.std(logcfr))
     median = np.exp(np.median(logcfr))
-    mode = edges[pd.Series(prob).idxmax()]-0.5*width
+    mode = tedges[pd.Series(prob).idxmax()]-halfwidth
     Q95 = np.quantile(cfr,q=0.95)
     Q99 = np.quantile(cfr,q=0.99)
     vlim = ax[0].get_ylim()
     vline(ax[0],mean,vlim,'mean')
     vline(ax[0],mode,vlim,'mode')
+    vlim = (vlim[0],0.8*vlim[1])
     vline(ax[0],Q95,vlim,'95%')
     vline(ax[0],Q99,vlim,'99%')
 
@@ -1709,19 +1730,12 @@ def log_norm_cfr():
 #tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
 #tfit.plot(save=True,logscale=True)
-
-#tfit = Fit(cv.fit_path+'AlamedaCA.RData')
-#tfit.plot_CMR()
-#tfit.plot(save=False,logscale=False)
-
-#update_everything()
+update_everything()
 #web_update()
 #make_dat_files()
 #update_fits()
 #update_shared_plots()
 #update_assets()
-#new_plot_DC()
-#new_plot_DC(glist=[5,1000], save=True)
 #plot_DC([5,1000],save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
