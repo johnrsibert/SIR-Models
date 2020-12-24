@@ -417,7 +417,7 @@ class Geography:
 
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
-                        window=[11], plot_dt = False, cumulative = True,
+                        window=[7], plot_dt = False, cumulative = True,
                         show_order_date = True,
                         annotation = True, signature = False, 
                         save = True, dashboard = False):
@@ -509,6 +509,7 @@ class Geography:
             if (cumulative):
                 ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
                 mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
+             
 
             if (max_deaths > 0.0):
                 delta_deaths = np.diff(deaths)
@@ -523,8 +524,16 @@ class Geography:
     
     #   Adjust length of y axis
         ax[0].set_ylim(0.0,1.2*max_adc) #SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
+        tx = prop_scale(ax[0].get_xlim(), 0.5)
+        ty = prop_scale(ax[0].get_ylim(), 0.95)
+        note = '{0:,} Cases'.format(int(max_cases))
+        ax[0].text(tx,ty,note ,ha='center',va='top',fontsize=10)
         if (max_deaths > 0.0):
             ax[1].set_ylim(0.0,1.2*max_add) #SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
+            tx = prop_scale(ax[1].get_xlim(), 0.5)
+            ty = prop_scale(ax[1].get_ylim(), 0.95)
+            note = '{0:,} Deaths'.format(int(max_deaths))
+            ax[1].text(tx,ty,note ,ha='center',va='top',fontsize=10)
 
         for a in range(0,nax):
             if (delta_ts):
@@ -1721,16 +1730,18 @@ def log_norm_cfr():
 
 #tgeog = Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = Geography(name='New York City',enclosed_by='New York',code='NY')
+#tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
+#tgeog = Geography(name='Harris',enclosed_by='Texas',code='TX')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=True,cumulative=False, show_order_date=False,signature=True)
+#tgeog.plot_prevalence(save=False,cumulative=False, show_order_date=False,signature=True)
 
 #cv.fit_path = cv.fit_path+'constrainID/'
 #tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
 #tfit.print_metadata()
 #tfit.plot(save=True,logscale=True)
-update_everything()
+#update_everything()
 #web_update()
 #make_dat_files()
 #update_fits()
@@ -1767,16 +1778,6 @@ update_everything()
 #cv.dat_path = cv.NYT_home
 #print(cv.NYT_home,cv.dat_path)
 
-#test = Geography(name='Plumas',enclosed_by='California',code='CA')
-#test = Geography(name='San Diego',enclosed_by='California',code='CA')
-#test = Geography(name='Cook',enclosed_by='Illinois',code='IL')
-#test = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-#test.read_BCHA_data()
-#test.read_nyt_data()
-#test.plot_prevalence(save=False,signature=True,cumulative=False,show_order_date=False)
-#test.write_dat_file()
-
-#web_update()
 #BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #BCtest.read_BCHA_data()
 #BCtest.print_metadata()
