@@ -30,23 +30,27 @@ init = list(
     logsigma_logDP = log(0.096),
     logsigma_logbeta = 0.4, #log(0.7),
     logsigma_logmu = 0.2, #log(2.0),
-    logmu = log(0.00005),
     logsigma_logC = log(log(1.25)), # log(0.1), 
     logsigma_logD = log(log(1.1)), # log(0.05), 
-    logbeta = log(0.05)
+
+    logbeta = log(0.05),
+    loggamma = log(1e-8),
+    logmu = log(0.00005) 
 )
 print("--init parameter values:")
 print(init)
-
+init
 par = list(
     logsigma_logCP = init$logsigma_logCP,
     logsigma_logDP = init$logsigma_logDP,
     logsigma_logbeta = init$logsigma_logbeta,
     logsigma_logmu = init$logsigma_logmu,
-    logmu    = rep(init$logmu,data$ntime+1),
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
-    logbeta = rep(init$logbeta,(data$ntime+1))
+
+    logbeta  = rep(init$logbeta,(data$ntime+1)),
+    loggamma = init$loggamma,
+    logmu    = rep(init$logmu,data$ntime+1) 
 )
 print(paste("---initial model parameters: ", length(par)))
 print(par)
@@ -54,10 +58,12 @@ print(par)
 map = list(
            "logsigma_logCP" = as.factor(1),
            "logsigma_logDP" = as.factor(1),
+           "logsigma_logC" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA),
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
-           "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA)
+
+           "loggamma" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -65,8 +71,9 @@ print(map)
 
 cpp.name = paste(model.name,'.cpp',sep='')
 
-#print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
-#compile(cpp.name)
+print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
+compile(cpp.name)
+
 print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
@@ -116,79 +123,8 @@ return(fit)
 } # do_one_run = function(
 
 
-county_list = list("Alameda", "Contra_Costa", "San_Francisco", "San_Mateo",
-                    "Santa_Clara")
-CA_county_list = list("Alameda", "Contra_Costa", "Los_Angeles", "Marin",
-                       "Napa", "Orange", "Riverside", "Sacramento",
-                       "San_Bernardino", "San_Diego", "San_Francisco",
-                       "San_Mateo", "Santa_Clara", "Sonoma")
 
-big_county_list = list(
-                       "New_York_City",
-                       "Los_Angeles","San_Diego",
-                       "Orange", "Riverside",
-                       "San_Bernardino","Santa_Clara",
-                       "Alameda",
-                       "Sacramento","Contra_Costa","Fresno", "Kern",
-                       "San_Francisco",
-                       "Ventura","San_Mateo","San_Joaquin",
-                       "Stanislaus","Sonoma","Marin")
-
-largest_us_counties = list(
-"AlamedaCA",
-"BexarTX",
-"BrowardFL",
-"ClarkNV",
-"Contra_CostaCA",
-"CookIL",
-"DallasTX",
-"FranklinOH",
-"HarrisTX",
-"HennepinMN",
-"HillsboroughFL",
-"KingWA",
-"Los_AngelesCA",
-"MaricopaAZ",
-"Miami-DadeFL",
-"MiddlesexMA",
-"NassauNY",
-"New_York_CityNY",
-"OaklandMI",
-"OrangeCA",
-"OrangeFL",
-"Palm_BeachFL",
-"PhiladelphiaPA",
-"RiversideCA",
-"SacramentoCA",
-"San_BernardinoCA",
-"San_DiegoCA",
-"San_FranciscoCA",
-"San_MateoCA",
-"Santa_ClaraCA",
-"TarrantTX",
-"TompkinsNY",
-"TravisTX",
-"WayneMI"
-)
-
-fit_examples = list(
-"New_York_CityNY",
-"Miami-DadeFL", "BrowardFL", 
-"Palm_BeachFL","HillsboroughFL","NassauNY",
-"HarrisTX",
-"DallasTX",
-"TarrantTX",
-"BexarTX",
-"TravisTX",
-"MaricopaAZ",
-"PhiladelphiaPA",
-"TravisTX",
-"HonoluluHI",
-"CookIL",
-"AlamedaCA"
-)
-                       
-nrun = 2
+nrun = 1
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
     do_one_run(County="AlamedaCA")->fit

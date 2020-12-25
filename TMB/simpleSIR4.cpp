@@ -71,6 +71,7 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_logD);          // deaths observation error
 
     PARAMETER_VECTOR(logbeta);      // infection rate time series
+    PARAMETER(loggamma);      // infection rate time series
     PARAMETER_VECTOR(logmu);        // mortality rate of infection population
 
     /*
@@ -114,7 +115,7 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 
     //  loop over time
-    gamma[0] = 0.0; //eps;
+    gamma[0] = exp(loggamma);
     for (int t = 1; t <= ntime; t++)
     {
          // infection rate random walk
@@ -130,7 +131,7 @@ Type objective_function <Type>::operator()()
          Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logCP),__LINE__);
 
      //  gamma(t) = exp(logbeta(t-1)) - exp(logmu(t-1)) - exp(logEye(t))/prevEye + 1.0;
-         gamma(t) = 0.0;
+         gamma(t) = exp(loggamma);
 
          // deaths process error
          Type prevD = exp(logD(t-1));
