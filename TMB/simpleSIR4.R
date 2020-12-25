@@ -34,7 +34,7 @@ init = list(
     logsigma_logD = log(log(1.1)), # log(0.05), 
 
     logbeta = log(0.05),
-    loggamma = log(1e-8),
+    loggamma = log(0.9),
     logmu = log(0.00005) 
 )
 print("--init parameter values:")
