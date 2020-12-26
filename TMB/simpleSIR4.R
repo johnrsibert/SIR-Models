@@ -34,7 +34,7 @@ init = list(
     logsigma_logD = log(log(1.1)), # log(0.05), 
 
     logbeta = log(0.05),
-    loggamma = log(0.9),
+    loggamma = log(0.5), #2.78e-9),
     logmu = log(0.00005) 
 )
 print("--init parameter values:")
@@ -63,7 +63,7 @@ map = list(
            "logsigma_logbeta" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
-           "loggamma" = as.factor(NA)
+           "loggamma" = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -71,8 +71,8 @@ print(map)
 
 cpp.name = paste(model.name,'.cpp',sep='')
 
-print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
-compile(cpp.name)
+#print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
+#compile(cpp.name)
 
 print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
@@ -124,7 +124,7 @@ return(fit)
 
 
 
-nrun = 1
+nrun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
     do_one_run(County="AlamedaCA")->fit
