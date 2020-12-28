@@ -1,7 +1,7 @@
 # SIR-Models
 Statistical models derived from classic SIR epidemiology models and adapted to be suitable for estimation using readily available data on the Covid-19 epidemic in the United States.
 
-## Split cv20.py
+## Split cv20.py - second try
 
 ## Files and directores
 
