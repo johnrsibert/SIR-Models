@@ -585,7 +585,7 @@ class Geography:
             if save:
                 gfile = cv.graphics_path+self.moniker+'_prevalence.png'
                 plt.savefig(gfile,dpi=300)
-                plt.show(False)
+                plt.show(block=False)
                 plt.pause(3)
                 plt.close()
                 print('plot saved as',gfile)
@@ -886,12 +886,12 @@ class Fit(Geography):
             if (not logscale):
                 gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates_a'
             fig.savefig(gfile+'.png',dpi=300)
-            plt.show(False)
+            plt.show(block=False)
             print('plot saved as',gfile)
             plt.pause(3)
             plt.close()
         else:
-            plt.show(True)
+            plt.show(block=True)
 
     def plot_CMR(self, save = True):
         npl = 3
@@ -1027,7 +1027,7 @@ def plot_DC(glist=[5,100], save=True):
         if save:
             gfile = cv.graphics_path+'CFR_'+what+'_'+str(n)+'.png'
             plt.savefig(gfile,dpi=300)
-            plt.show(False)
+            plt.show(block=False)
         #   plt.pause(5)
             
             print('Plot saved as',gfile)
@@ -1248,9 +1248,9 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.png'
         fig.savefig(gfile)
         print('plot saved as',gfile)
-        plt.show(False)
+        plt.show(block=False)
     else:
-        plt.show(True)
+        plt.show(block=True)
 
 def make_fit_plots(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
@@ -1745,9 +1745,11 @@ def log_norm_cfr():
 #web_update()
 #make_dat_files()
 #update_fits()
+#make_fit_table()
+#make_fit_plots()
 #update_shared_plots()
-#update_assets()
 #plot_DC([5,1000],save=True)
+#update_assets()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])
@@ -1755,14 +1757,6 @@ def log_norm_cfr():
 
 #make_nyt_census_dat()
 
-#cv.fit_path = cv.fit_path+'unconstrained/'
-#update_fits()
-#make_fit_table()
-#make_fit_plots()
-#make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-#make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
 #plot_multi_prev(save=True,mult=100000)
 #plot_multi_prev(Gfile='top500.csv',save=True,mult=100000)
 
