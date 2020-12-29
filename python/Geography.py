@@ -1,13 +1,14 @@
-import js_covid as cv
+import config as cv
 #from js_covid import *
 
-#from datetime import date, datetime, timedelta
-#import pandas as pd
-#import numpy as np
-#import matplotlib.dates as mdates
-#import matplotlib.pyplot as plt
-
+from datetime import date, datetime, timedelta
+import pandas as pd
+import numpy as np
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import os
+
+import GraphicsUtilities as GU
 
 class Geography:
 
@@ -29,7 +30,7 @@ class Geography:
         if self.moniker is None:
             self.dat_file = None
         else:
-            self.dat_file = dat_path+self.moniker+'.dat'
+            self.dat_file = cv.dat_path+self.moniker+'.dat'
         self.updated = None
         self.date0 = None
         self.ntime = None
@@ -93,11 +94,11 @@ class Geography:
         
         """
 
-        dat = cv.population_dat
-        if (dat.empty):
-            print('Reading',census_data_path)
-            cv.population_dat = pd.read_csv(census_data_path,header=0,comment='#')
-            dat = cv.population_dat
+        dat = cv.GeoIndex
+    #   if (dat.empty):
+    #       print('Reading',census_data_path)
+    #       cv.population_dat = pd.read_csv(census_data_path,header=0,comment='#')
+    #       dat = cv.population_dat
     #   else:
     #       print('Using current "dat" object')
 
@@ -203,7 +204,7 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = True,
                         show_order_date = True,
                         annotation = True, signature = False, 
-                        save = True, dashboard = False):
+                        save = True, dashboard = False, nax = 3):
         
         """ 
         Plots cases and deaths vs calendar date 
@@ -219,41 +220,27 @@ class Geography:
         mult = 1000
 
         firstDate = datetime.strptime(self.date[0],'%Y-%m-%d')
-        orderDate = mdates.date2num(CAOrderDate)
+        orderDate = mdates.date2num(cv.CAOrderDate)
 
         if (self.deaths is None):
             nax = 1
-        else:
-            nax = 2
     
+        ax = [None]*nax
         fig, pax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
-        ax = [None]*2
+        ax = [None]*nax
         if (nax == 1):
             ax[0] = pax
         else:
             ax=pax
 
+        ylabels = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
         if (per_capita):
-            ax[0].set_ylabel('Daily Cases'+' per '+str(mult))
-            if (nax > 1):
-                ax[1].set_ylabel('Daily Deaths'+' per '+str(mult))
-        else:
-            ax[0].set_ylabel('Daily Cases')
-            if (nax > 1):
-                ax[1].set_ylabel('Daily Deaths')
-    
-        ax2 = []
-        for a in range(0,nax):
-            self.make_date_axis(ax[a],firstDate)
-            ax[a].set_yscale(yscale)
-            if (cumulative):
-                ax2.append(ax[a].twinx())
-                ax2[a].set_ylabel('Cumulative')
+            for a in range(0,2):
+                ylabels[a] = ylabels[a] +' per '+str(mult)
         
-        if (per_capita):
-            cases =  mult*self.cases/self.population + eps
+            cases =  mult*self.cases/self.population + cv.eps
             if (nax > 1):
-                deaths =  mult*self.deaths/self.population + eps
+                deaths =  mult*self.deaths/self.population + cv.eps
             else:
                 deaths =  self.deaths
         else:
@@ -267,6 +254,17 @@ class Geography:
         else:
             max_deaths = deaths[nn]
 
+        print(ylabels)
+
+        ax2 = []
+        for a in range(0,nax):
+            GU.make_date_axis(ax[a],firstDate)
+            ax[a].set_yscale(yscale)
+            ax[a].set_ylabel(ylabels[a])
+            if (cumulative):
+                ax2.append(ax[a].twinx())
+                ax2[a].set_ylabel('Cumulative')
+
         Date = self.get_pdate()
 
         delta_cases = np.diff(cases)
@@ -278,12 +276,12 @@ class Geography:
             for w in range(0,len(window)):
                 adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
                 ax[0].plot(Date[1:],adc,linewidth=2)
-                mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
+                GU.mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
                 max_adc = adc.max()
         
             if (cumulative):
                 ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
-                mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
+                GU.mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
 
             if ((yscale == 'log') & (plot_dt)):
                 ax[0] = self.plot_dtslopes(ax[0])
@@ -291,7 +289,7 @@ class Geography:
         if (nax > 1):
             if (cumulative):
                 ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-                mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
+                GU.mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
              
 
             if (max_deaths > 0.0):
@@ -300,21 +298,21 @@ class Geography:
                 for w in range(0,len(window)):
                     add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
                     ax[1].plot(Date[1:],add,linewidth=2)
-                    mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
+                    GU.mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
                     max_add = add.max()
             else:
                 none_reported(ax[1],'Deaths')
-    
+
     #   Adjust length of y axis
         ax[0].set_ylim(0.0,1.2*max_adc) #SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
-        tx = prop_scale(ax[0].get_xlim(), 0.5)
-        ty = prop_scale(ax[0].get_ylim(), 0.95)
+        tx = GU.prop_scale(ax[0].get_xlim(), 0.5)
+        ty = GU.prop_scale(ax[0].get_ylim(), 0.95)
         note = '{0:,} Cases'.format(int(max_cases))
         ax[0].text(tx,ty,note ,ha='center',va='top',fontsize=10)
         if (max_deaths > 0.0):
             ax[1].set_ylim(0.0,1.2*max_add) #SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
-            tx = prop_scale(ax[1].get_xlim(), 0.5)
-            ty = prop_scale(ax[1].get_ylim(), 0.95)
+            tx = GU.prop_scale(ax[1].get_xlim(), 0.5)
+            ty = GU.prop_scale(ax[1].get_ylim(), 0.95)
             note = '{0:,} Deaths'.format(int(max_deaths))
             ax[1].text(tx,ty,note ,ha='center',va='top',fontsize=10)
 
@@ -328,7 +326,7 @@ class Geography:
                            (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),
                            color='black', linewidth=3,alpha=0.5)
         #   ax[a].legend()
-    
+     
         if (annotation):
             if (self.gtype == 'county'):
                 gname = 'County'
@@ -342,15 +340,17 @@ class Geography:
         #   mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
         #   dtime = datetime.fromtimestamp(mtime)
         #   fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
-            add_data_source(fig,self.source)
+            GU.add_data_source(fig,self.source)
+ 
 
         if (signature):
         #   by_line = 'Graphics by John Sibert'
         #   url_line = 'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare'
         #   fig.text(0.0,0.020,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
         #   fig.text(1.0,0.020,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
-            add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
-    
+            GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+
+        """
         if (dashboard):
         #   out_img = BytesIO()
         #   plt.savefig(out_img, format='png')
@@ -374,20 +374,8 @@ class Geography:
                 print('plot saved as',gfile)
             else:
                 plt.show()
-
-
-    def make_date_axis(self, ax, first_prev_date = None):
-        if (first_prev_date is None):
-            firstDate = mdates.date2num(FirstNYTDate)
-        else:
-            firstDate = first_prev_date
-        
-        lastDate  = mdates.date2num(EndOfTime)
-    #   print('firstDate,lastDate:',firstDate,lastDate)
-        ax.set_xlim([firstDate,lastDate])
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-        ax.xaxis.set_major_locator(mdates.MonthLocator())
-        ax.xaxis.set_minor_locator(mdates.DayLocator())
+        """
+        plt.show()
 
 
     def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
@@ -413,7 +401,7 @@ class Geography:
             y = c0 + np.exp(sl[i]*(d0-xrange[0]))
             ax.plot([d0,xrange[1]],[c0,y],color='black',linewidth=1)
             c = ax.get_lines()[-1].get_color()
-            mark_ends(ax,xrange,y,str(dt[i])+' da','r')
+            GU.mark_ends(ax,xrange,y,str(dt[i])+' da','r')
 
         return(ax)
 

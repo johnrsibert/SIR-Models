@@ -7,43 +7,10 @@ Created on Tue Jul  7 15:08:58 2020
 
 @author: jsibert
 """
-from datetime import datetime, timedelta
-import pandas as pd
-import os
-import matplotlib.dates as mdates
-# mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
-
-NYT_home = '/home/other/nytimes-covid-19-data/'
-NYT_counties = NYT_home + 'us-counties.csv'
-NYT_states = NYT_home + 'us-states.csv'
-NYT_us = NYT_home + 'us.csv'
-
-cv_home = '/home/jsibert/Projects/SIR-Models/'
-#census_data_path = cv_home+'co-est2019-pop.csv'
-census_data_path = cv_home+'nyt_census.csv'
-large_county_path = cv_home + 'county-state.csv'
-fit_path = cv_home + 'fits/'
-dat_path = cv_home + 'dat/'
-graphics_path = cv_home + 'Graphics/'
-assets_path = cv_home + 'assets/'
-TMB_path = cv_home + 'TMB/'
-
-BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
-
-FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
-CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
-#EndOfTime = datetime.strptime('2020-10-28','%Y-%m-%d')
-mtime = os.path.getmtime(NYT_home+'us-counties.csv')
-dtime = datetime.fromtimestamp(mtime)
-EndOfTime = dtime.date()+timedelta(days=14)
-#print('EndOfTime:',EndOfTime,mdates.date2num(EndOfTime))
-   
-population_dat = pd.DataFrame(None)
-nyt_county_dat = pd.DataFrame(None)
-
-# "temporary" workaround issue with pyreadr.read_r(...)
-# reading TMB standard error objects
-pyreadr_kludge = False
+#from datetime import datetime, timedelta
+#import pandas as pd
+#import os
+#import matplotlib.dates as mdates
 
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -65,6 +32,39 @@ from collections import OrderedDict
 import glob
 import re
 import statistics
+
+NYT_home = '/home/other/nytimes-covid-19-data/'
+NYT_counties = NYT_home + 'us-counties.csv'
+NYT_states = NYT_home + 'us-states.csv'
+NYT_us = NYT_home + 'us.csv'
+
+cv_home = '/home/jsibert/Projects/Split-cv20/'
+GeoIndexPath = cv_home+'GeogIndex.csv'
+fit_path = cv_home + 'fits/'
+dat_path = cv_home + 'dat/'
+graphics_path = cv_home + 'Graphics/'
+assets_path = cv_home + 'assets/'
+TMB_path = cv_home + 'TMB/'
+
+# mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
+BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
+
+FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
+CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
+mtime = os.path.getmtime(NYT_home+'us-counties.csv')
+dtime = datetime.fromtimestamp(mtime)
+EndOfTime = dtime.date()+timedelta(days=14)
+   
+GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
+print(GeoIndex.head())
+nyt_county_dat = pd.read_csv(NYT_counties,header=0)
+print(nyt_county_dat.head())
+
+eps = 1e-5
+ 
+# "temporary" workaround issue with pyreadr.read_r(...)
+# reading TMB standard error objects
+pyreadr_kludge = False
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
 
