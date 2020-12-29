@@ -45,3 +45,26 @@ nyt_county_dat = pd.DataFrame(None)
 # reading TMB standard error objects
 pyreadr_kludge = False
 
+import pandas as pd
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib import rc
+import numpy as np
+import os
+import sys
+import pyreadr
+from io import StringIO 
+from io import BytesIO
+import base64
+import scipy.stats as stats
+from sigfig import round
+from tabulate import tabulate
+from collections import OrderedDict
+import glob
+import re
+import statistics
+
+plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
+
