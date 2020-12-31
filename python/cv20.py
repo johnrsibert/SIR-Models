@@ -1111,11 +1111,11 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #make_cfr_histo_ts()
 
 
-#tgeog = Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = Geography(name='Harris',enclosed_by='Texas',code='TX')
-tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
-tgeog.read_nyt_data('county')
+#tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
+#tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
+#tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
-tgeog.plot_prevalence(save=True,cumulative=True, show_order_date=False,signature=True)
+#tgeog.plot_prevalence(save=True, signature=True)

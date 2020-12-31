@@ -29,6 +29,35 @@ def none_reported(ax,what):
     print(note)
     ax.text(tx,ty,note,ha='center',va='center',fontstyle='italic')
 
+def plot_dtslopes(ax, xvar, yvar, threshold = 1000, dt = [1,2,4,8]):
+    """
+    Superimpose exponential growth slope lines for different doubling times
+    This function is only relevant to demonstrate potential exponential
+    growth at the beginning of an outbreak/
+    ax: axisis on which to draw slopes lines
+    xvar = date range
+    yvar = cumulative cases "usually"
+    threshold: number of cases used to start slopes
+    dt: representative doubling times in days
+    """
+    k0 = 0
+    # find frist date in shich cases exceeds threshold
+    for k in range(0, len(yvar)-1):
+        if (yvar[k] >= threshold):
+            k0 = k
+            break
+
+    x0 = xvar[k0]
+    y0 = yvar[k0]
+    sl = np.log(2.0)/dt
+    xrange = ax.get_xlim()
+    yrange = [25,ax.get_ylim()[1]]
+    for i in range(0,len(dt)):
+        y = y0 + np.exp(sl[i]*(x0-xrange[0]))
+        ax.plot([x0,xrange[1]],[y0,y],color='black',linewidth=1)
+        c = ax.get_lines()[-1].get_color()
+        mark_ends(ax,xrange,[y0,y],str(dt[i])+' da','r')
+    return(ax)
 
 def mark_peak(ax,x,y,label):
     c = ax.get_lines()[-1].get_color()

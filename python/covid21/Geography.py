@@ -1,13 +1,11 @@
 from covid21 import config as cv
+from covid21 import GraphicsUtilities as GU
 
 from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import os
-
-from covid21 import GraphicsUtilities as GU
 
 class Geography:
 
@@ -200,8 +198,8 @@ class Geography:
 
 
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
-                        window=[7], plot_dt = False, cumulative = True,
-                        show_order_date = True,
+                        window=[7], plot_dt = False, cumulative = False,
+                        show_order_date = False,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
         
@@ -258,7 +256,7 @@ class Geography:
 
         ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
                 (0.0,1.2*gdf.iloc[:,1].max()),
-                (0.0,0.08)]
+                (0.0,1.2*gdf.iloc[:,2].max())]
 
         nn = self.ntime-1
         max_cases = cases[nn]
@@ -300,82 +298,14 @@ class Geography:
                     GU.mark_ends(ax2[a],Date,gdf.iloc[:,a] ,end_marks[a],'r')
                     ax2[a].set_ylim(0.0,1.2*gdf.iloc[-1,a])
 
-            #   if ((yscale == 'log') & (plot_dt)):
-            #       ax[0] exponential slopes *** not working
-            #       ax[a] = self.plot_dtslopes(ax[a])
             else:
                 ax[a].plot(Date,gdf.iloc[:,a]) 
                 ax[a].set_ylim(ylim[a])
 
+        if ((yscale == 'log') & (plot_dt) & (cumulative) ):
+            # this is a bad idea
+            ax[0] = GU.plot_dtslopes(ax[0],Date,gdf.iloc[:,0])
 
-        """
-#       ax[0] cases bars
-        delta_cases = np.diff(cases)
-        ax[0].bar(Date[1:], delta_cases)
-
-        if (max_cases < 1.0):
-            none_reported(ax[0],'Cases')
-        else:
-            for w in range(0,len(window)):
-                adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
-#               ax[0]  case moving average
-                ax[0].plot(Date[1:],adc,linewidth=2)
-                GU.mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
-                max_adc = adc.max()
-        
-            if (cumulative):
-#               ax[0] cumulative cases
-                ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
-                GU.mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
-
-            if ((yscale == 'log') & (plot_dt)):
-#               ax[0] exponential slopes
-                ax[0] = self.plot_dtslopes(ax[0])
-                
-        if (nax > 1):
-            if (max_deaths > 0.0):
-#               ax[1] deaths bars
-                delta_deaths = np.diff(deaths)
-                ax[1].bar(Date[1:],delta_deaths)
-                for w in range(0,len(window)):
-    #               ax[1]  deaths moving average
-                    add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
-                    ax[1].plot(Date[1:],add,linewidth=2)
-                    GU.mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
-                    max_add = add.max()
-
-                if (cumulative):
-    #               ax[1] cumulative deaths
-                    ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-                    GU.mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
-            else:
-                none_reported(ax[1],'Deaths')
-
-    #   Adjust length of y axis
-        ax[0].set_ylim(0.0,1.2*max_adc) #SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
-
-        tx = GU.prop_scale(ax[0].get_xlim(), 0.5)
-        ty = GU.prop_scale(ax[0].get_ylim(), 0.95)
-        note = '{0:,} Cases'.format(int(max_cases))
-        ax[0].text(tx,ty,note ,ha='center',va='top',fontsize=10)
-        if (max_deaths > 0.0):
-            ax[1].set_ylim(0.0,1.2*max_add) #SD_lim(delta_deaths,3.0)[1]) #ax[a].get_ylim()[1])
-            tx = GU.prop_scale(ax[1].get_xlim(), 0.5)
-            ty = GU.prop_scale(ax[1].get_ylim(), 0.95)
-            note = '{0:,} Deaths'.format(int(max_deaths))
-            ax[1].text(tx,ty,note ,ha='center',va='top',fontsize=10)
-
-        for a in range(0,nax):
-            if (delta_ts):
-                if (cumulative):
-                    ax2[a].set_ylim(0,ax2[a].get_ylim()[1])
-        #   Newsome's shelter in place order
-            if (show_order_date):
-                ax[a].plot((orderDate,orderDate),
-                           (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),
-                           color='black', linewidth=3,alpha=0.5)
-
-        """    
         if (annotation):
             if (self.gtype == 'county'):
                 gname = 'County'
@@ -412,35 +342,6 @@ class Geography:
                 print('plot saved as',gfile)
             else:
                 plt.show()
-
-
-    def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
-        """
-        Superimpose exponential growth slope lines for different doubling times
-        ax: axisis on which to draw slopes lines
-        threshold: number of cases used to start slopes
-        dt: representative doubling times in days
-        """
-        k0 = 0
-        # find frist date in shich cases exceeds threshold
-        for k in range(0, self.ntime):
-            if (self.cases[k] >= threshold):
-                k0 = k
-                break
-
-        d0 = self.pdate[k0]
-        c0 = self.cases[k0]
-        sl = np.log(2.0)/dt
-        xrange = ax.get_xlim()
-        yrange = [25,ax.get_ylim()[1]]
-        for i in range(0,len(dt)):
-            y = c0 + np.exp(sl[i]*(d0-xrange[0]))
-            ax.plot([d0,xrange[1]],[c0,y],color='red',linewidth=4)
-            c = ax.get_lines()[-1].get_color()
-            GU.mark_ends(ax,xrange,y,str(dt[i])+' da','r')
-            GU.mark_ends(ax[a],Date[1:],adc, str(window[w])+'da','r')
-
-        return(ax)
 
     def plot_per_capita_curvature(self,mult = 1000,save=False):
         pc_cases = self.cases/self.population * mult
