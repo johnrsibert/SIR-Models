@@ -1,5 +1,4 @@
-import config as cv
-#from js_covid import *
+from covid21 import config as cv
 
 from datetime import date, datetime, timedelta
 import pandas as pd
@@ -8,7 +7,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
 
-import GraphicsUtilities as GU
+from covid21 import GraphicsUtilities as GU
 
 class Geography:
 
@@ -233,10 +232,16 @@ class Geography:
         else:
             ax=pax
 
-        ylabels = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+        ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+        end_marks = [r'$\Sigma$C','$\Sigma$D','']
+        total_names = ['Cases','Deaths','']
+        gdf = pd.DataFrame()
+
+        cfr = self.deaths/self.cases
+
         if (per_capita):
             for a in range(0,2):
-                ylabels[a] = ylabels[a] +' per '+str(mult)
+                ylabel[a] = ylabel[a] +' per '+str(mult)
         
             cases =  mult*self.cases/self.population + cv.eps
             if (nax > 1):
@@ -247,6 +252,14 @@ class Geography:
             cases  =  self.cases
             deaths =  self.deaths
         
+        gdf['cases'] = cases
+        gdf['deaths'] = deaths
+        gdf['cfr'] = cfr
+
+        ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
+                (0.0,1.2*gdf.iloc[:,1].max()),
+                (0.0,0.08)]
+
         nn = self.ntime-1
         max_cases = cases[nn]
         if (self.deaths is None):
@@ -254,19 +267,49 @@ class Geography:
         else:
             max_deaths = deaths[nn]
 
-        print(ylabels)
-
         ax2 = []
         for a in range(0,nax):
             GU.make_date_axis(ax[a],firstDate)
-            ax[a].set_yscale(yscale)
-            ax[a].set_ylabel(ylabels[a])
-            if (cumulative):
+            if (a < 2):
+                ax[a].set_yscale(yscale)
+            ax[a].set_ylabel(ylabel[a])
+            if (cumulative) & (a < 2):
                 ax2.append(ax[a].twinx())
                 ax2[a].set_ylabel('Cumulative')
 
         Date = self.get_pdate()
 
+        for a in range(0,nax):
+            if (a < 2):
+                delta = np.diff(gdf.iloc[:,a]) #cases)
+                ax[a].bar(Date[1:], delta)
+                for w in range(0,len(window)):
+                #   moving average
+                    adc = pd.Series(delta).rolling(window=window[w]).mean()
+                    ax[a].plot(Date[1:],adc,linewidth=2)
+                    GU.mark_ends(ax[a],Date[1:],adc, str(window[w])+'da','r')
+
+                ylim[a] = (0.0,1.2*adc.max())
+                tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
+                ty = GU.prop_scale(ax[a].get_ylim(), 0.95)
+                note = '{0:,} {1}'.format(int(gdf.iloc[-1,a]),total_names[a])
+                ax[a].text(tx,ty,note ,ha='center',va='top',fontsize=10)
+
+                if (cumulative):
+                    ax2[a].plot(Date, gdf.iloc[:,a], alpha=0.5, linewidth=1)#,label=cc)
+                    GU.mark_ends(ax2[a],Date,gdf.iloc[:,a] ,end_marks[a],'r')
+                    ax2[a].set_ylim(0.0,1.2*gdf.iloc[-1,a])
+
+            #   if ((yscale == 'log') & (plot_dt)):
+            #       ax[0] exponential slopes *** not working
+            #       ax[a] = self.plot_dtslopes(ax[a])
+            else:
+                ax[a].plot(Date,gdf.iloc[:,a]) 
+                ax[a].set_ylim(ylim[a])
+
+
+        """
+#       ax[0] cases bars
         delta_cases = np.diff(cases)
         ax[0].bar(Date[1:], delta_cases)
 
@@ -275,36 +318,42 @@ class Geography:
         else:
             for w in range(0,len(window)):
                 adc = pd.Series(delta_cases).rolling(window=window[w]).mean()
+#               ax[0]  case moving average
                 ax[0].plot(Date[1:],adc,linewidth=2)
                 GU.mark_ends(ax[0],Date[1:],adc, str(window[w])+'da','r')
                 max_adc = adc.max()
         
             if (cumulative):
+#               ax[0] cumulative cases
                 ax2[0].plot(Date, cases,alpha=0.5, linewidth=1)#,label=cc)
                 GU.mark_ends(ax2[0],Date,cases,r'$\Sigma$C','r')
 
             if ((yscale == 'log') & (plot_dt)):
+#               ax[0] exponential slopes
                 ax[0] = self.plot_dtslopes(ax[0])
                 
         if (nax > 1):
-            if (cumulative):
-                ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
-                GU.mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
-             
-
             if (max_deaths > 0.0):
+#               ax[1] deaths bars
                 delta_deaths = np.diff(deaths)
                 ax[1].bar(Date[1:],delta_deaths)
                 for w in range(0,len(window)):
+    #               ax[1]  deaths moving average
                     add = pd.Series(delta_deaths).rolling(window=window[w]).mean()
                     ax[1].plot(Date[1:],add,linewidth=2)
                     GU.mark_ends(ax[1],Date[1:],add, str(window[w])+'da','r')
                     max_add = add.max()
+
+                if (cumulative):
+    #               ax[1] cumulative deaths
+                    ax2[1].plot(Date, deaths,alpha=0.5,linewidth=1)#,label=cc)
+                    GU.mark_ends(ax2[1],Date,deaths,r'$\Sigma$D','r')
             else:
                 none_reported(ax[1],'Deaths')
 
     #   Adjust length of y axis
         ax[0].set_ylim(0.0,1.2*max_adc) #SD_lim(delta_cases,3.0)[1]) #ax[a].get_ylim()[1])
+
         tx = GU.prop_scale(ax[0].get_xlim(), 0.5)
         ty = GU.prop_scale(ax[0].get_ylim(), 0.95)
         note = '{0:,} Cases'.format(int(max_cases))
@@ -325,32 +374,20 @@ class Geography:
                 ax[a].plot((orderDate,orderDate),
                            (ax[a].get_ylim()[0], ax[a].get_ylim()[1]),
                            color='black', linewidth=3,alpha=0.5)
-        #   ax[a].legend()
-     
+
+        """    
         if (annotation):
             if (self.gtype == 'county'):
                 gname = 'County'
             else:
                 gname = 'Region'
-            title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+ self.enclosed_by
+            title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
-        #   fig.text(0.0,0.0,' Data source: '+ self.source ,
-        #            ha='left',va='bottom', fontsize=8)
-    
-        #   mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
-        #   dtime = datetime.fromtimestamp(mtime)
-        #   fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
             GU.add_data_source(fig,self.source)
- 
 
         if (signature):
-        #   by_line = 'Graphics by John Sibert'
-        #   url_line = 'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare'
-        #   fig.text(0.0,0.020,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
-        #   fig.text(1.0,0.020,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
 
-        """
         if (dashboard):
         #   out_img = BytesIO()
         #   plt.savefig(out_img, format='png')
@@ -366,16 +403,15 @@ class Geography:
 
         else:
             if save:
+                graphics_path = '../'
                 gfile = graphics_path+self.moniker+'_prevalence.png'
                 plt.savefig(gfile,dpi=300)
-                plt.show(False)
+                plt.show(block=False)
                 plt.pause(3)
                 plt.close()
                 print('plot saved as',gfile)
             else:
                 plt.show()
-        """
-        plt.show()
 
 
     def plot_dtslopes(self, ax, threshold = 2, dt = [1,2,4,8]):
@@ -399,9 +435,10 @@ class Geography:
         yrange = [25,ax.get_ylim()[1]]
         for i in range(0,len(dt)):
             y = c0 + np.exp(sl[i]*(d0-xrange[0]))
-            ax.plot([d0,xrange[1]],[c0,y],color='black',linewidth=1)
+            ax.plot([d0,xrange[1]],[c0,y],color='red',linewidth=4)
             c = ax.get_lines()[-1].get_color()
             GU.mark_ends(ax,xrange,y,str(dt[i])+' da','r')
+            GU.mark_ends(ax[a],Date[1:],adc, str(window[w])+'da','r')
 
         return(ax)
 

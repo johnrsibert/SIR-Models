@@ -1,40 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Taking a more OO approach to the code in cv19.py
-
 Created on Thu Jul  2 09:04:11 2020
 
 @author: jsibert
 """
 
-"""
-from dateutil.relativedelta import relativedelta
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import rc
-import numpy as np
-import os
-import sys
-import pyreadr
-from io import StringIO 
-from io import BytesIO
-import base64
-import scipy.stats as stats
-from sigfig import round
-from tabulate import tabulate
-from collections import OrderedDict
-import glob
-import re
-import statistics
-
-plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
-"""
-
-#import js_covid as cv
-from config import *
-from Geography import *
-
+from covid21 import Geography as GG
 
 def make_nyt_census_dat():
     """
@@ -1139,11 +1111,11 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #make_cfr_histo_ts()
 
 
-tgeog = Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = Geography(name='Harris',enclosed_by='Texas',code='TX')
+tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 tgeog.read_nyt_data('county')
-tgeog.print_metadata()
-tgeog.print_data()
-tgeog.plot_prevalence(save=False,cumulative=False, show_order_date=False,signature=True)
+#tgeog.print_metadata()
+#tgeog.print_data()
+tgeog.plot_prevalence(save=True,cumulative=True, show_order_date=False,signature=True)

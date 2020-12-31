@@ -1,4 +1,4 @@
-import config as cv
+from covid21 import config as cv
 
 from datetime import date, datetime, timedelta
 import pandas as pd
