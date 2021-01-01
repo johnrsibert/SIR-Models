@@ -1,12 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul  2 09:04:11 2020
-
 @author: jsibert
 """
 
+from covid21 import config as cv
 from covid21 import Geography as GG
+from covid21 import Fit as FF
+
+import pandas as pd
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib import rc
+import numpy as np
+import os
+import sys
+import pyreadr
+from io import StringIO 
+from io import BytesIO
+import base64
+import scipy.stats as stats
+from sigfig import round
+from tabulate import tabulate
+from collections import OrderedDict
+import glob
+import re
+import statistics
 
 def make_nyt_census_dat():
     """
@@ -237,7 +258,7 @@ def plot_DC(glist=[5,100], save=True):
     plt.rcParams["lines.markersize"] = 3
 
 
-    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    gg = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     for i,nG in enumerate(glist):
 
         fig, ax = plt.subplots(1,figsize=(6.5,4.5))
@@ -372,9 +393,9 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             fit_files[i] = cv.fit_path+fit_files[i]+ext
     for i,ff in enumerate(fit_files):
         print(i,ff)
-        fit = Fit(ff)
+        fit = FF.Fit(ff)
         if (i == 0):
-            fit.make_date_axis(ax)
+            GU.make_date_axis(ax)
             ax.set_ylabel(ylabel)
        
         pdate = []
@@ -445,19 +466,18 @@ def make_fit_plots(ext = '.RData'):
     print('found',len(fit_files),ext,'files in',cv.fit_path)
     plt.rc('figure', max_open_warning = 0)
     for ff in fit_files:
-        fit = Fit(ff)
+        fit = FF.Fit(ff)
     #   fit.print_metadata()
         fit.plot(logscale=True)
 
-    fit = Fit(cv.fit_path+'NassauNY'+ext)
+    fit = FF.Fit(cv.fit_path+'NassauNY'+ext)
     fit.plot(save=True,logscale=False)
-    fit = Fit(cv.fit_path+'Miami-DadeFL'+ext)
+    fit = FF.Fit(cv.fit_path+'Miami-DadeFL'+ext)
     fit.plot(save=True,logscale=False)
-    fit = Fit(cv.fit_path+'New_York_CityNY'+ext)
+    fit = FF.Fit(cv.fit_path+'New_York_CityNY'+ext)
     fit.plot(save=True,logscale=False)
-    fit = Fit(cv.fit_path+'Los_AngelesCA'+ext)
+    fit = FF.Fit(cv.fit_path+'Los_AngelesCA'+ext)
     fit.plot(save=True,logscale=False)
-
 
 def make_fit_table(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
@@ -491,7 +511,7 @@ def make_fit_table(ext = '.RData'):
     #   pn = fit_path+fn+'.RData'
     #   fit=pyreadr.read_r(pn)
         print('adding fit',k,ff)
-        fit = Fit(ff)
+        fit = FF.Fit(ff)
         ests  = fit.ests #['ests']
         meta = fit.md #['meta']
         diag = fit.diag #['diag']
@@ -565,7 +585,7 @@ def make_fit_table(ext = '.RData'):
     print('Fit table written to file',tex)
 
 def plot_dow_boxes(nG=5):
-    cv.population_dat = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    cv.population_dat = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg = cv.population_dat
 
     dow_names = ['Mo','Tu','We','Th','Fr','Sa','Su']
@@ -652,7 +672,7 @@ def web_update():
     os.system(cmd)
 
 def make_dat_files():
-    nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
 #   gg_filter = nyt_counties['flag'] == 1
     gg_filter = nyt_counties['flag'].str.contains('m')
     gg = nyt_counties[gg_filter]
@@ -660,7 +680,7 @@ def make_dat_files():
 
     for g in range(0,len(gg)):
         print(gg['county'].iloc[g])
-        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+        tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
@@ -673,6 +693,8 @@ def update_fits():
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
     # globs s list of counties in runSS4.R
+    # ensure that nrun > 1
+    #        that SIR_pat is set correctly
     cmd = 'Rscript --verbose simpleSIR4.R'
     print('running',cmd)
     os.system(cmd)
@@ -680,7 +702,7 @@ def update_fits():
     print('current',os.getcwd())
 
 def update_shared_plots():
-    nyt_counties = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
 #   print(gg_filter)
     gg = nyt_counties[gg_filter]
@@ -690,21 +712,21 @@ def update_shared_plots():
     plt.rc('figure', max_open_warning = 0)
     for g in range(0,len(gg)):
         print(gg['county'].iloc[g])
-        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+        tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                              show_order_date=False)
 
-    tmpG = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+    tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
     tmpG.read_BCHA_data()
     tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                          show_order_date=False)
 
     cv.graphics_path = save_path
 
-    os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
-    os.system('git push')
+#   os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
+#   os.system('git push')
 
 def update_assets():
     asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
@@ -991,7 +1013,7 @@ def make_cfr_histo_ts(nG = 100,save=True):
     cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
 #   print('cfrG 0:')
 #   print(cfrG)
-    gg = pd.read_csv(cv.census_data_path,header=0,comment='#')
+    gg = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     print('Processing',nG,'geographies')
     nobs = 0
     for g in range(0,nG):
@@ -1111,11 +1133,19 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #make_cfr_histo_ts()
 
 
-#tgeog = Geography(name='Santa Clara',enclosed_by='California',code='CA')
-#tgeog = Geography(name='Harris',enclosed_by='Texas',code='TX')
+#tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
+#tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=True, signature=True)
+
+#update_shared_plots()
+
+#make_dat_files()
+#update_fits()
+#make_fit_plots()
+#make_fit_table()
+make_rate_plots('logbeta',add_doubling_time = True,save=True)

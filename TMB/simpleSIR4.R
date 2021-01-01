@@ -1,4 +1,5 @@
-SIR_path = '/home/jsibert/Projects/SIR-Models/'
+#SIR_path = '/home/jsibert/Projects/SIR-Models/'
+SIR_path = '/home/jsibert/Projects/Split-cv20/'
 fit_path = paste(SIR_path,'fits/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')

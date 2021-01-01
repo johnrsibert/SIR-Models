@@ -7,31 +7,10 @@ Created on Tue Jul  7 15:08:58 2020
 
 @author: jsibert
 """
-#from datetime import datetime, timedelta
-#import pandas as pd
-#import os
-#import matplotlib.dates as mdates
-
+from datetime import datetime, timedelta
 import pandas as pd
-from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import rc
-import numpy as np
 import os
-import sys
-import pyreadr
-from io import StringIO 
-from io import BytesIO
-import base64
-import scipy.stats as stats
-from sigfig import round
-from tabulate import tabulate
-from collections import OrderedDict
-import glob
-import re
-import statistics
+import matplotlib.pyplot as plt
 
 NYT_home = '/home/other/nytimes-covid-19-data/'
 NYT_counties = NYT_home + 'us-counties.csv'

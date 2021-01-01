@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import os
 
 class Geography:
 
@@ -92,13 +93,6 @@ class Geography:
         """
 
         dat = cv.GeoIndex
-    #   if (dat.empty):
-    #       print('Reading',census_data_path)
-    #       cv.population_dat = pd.read_csv(census_data_path,header=0,comment='#')
-    #       dat = cv.population_dat
-    #   else:
-    #       print('Using current "dat" object')
-
         state_filter = dat['state'].isin([self.enclosed_by])
         county_filter = dat['county'].isin([self.name])
     #   COUNTY_filter = (dat['COUNTY']>0)
@@ -163,7 +157,7 @@ class Geography:
 
     def read_BCHA_data(self,gtype='hsa'):
         self.gtype = gtype
-        cspath = BCHA_path
+        cspath = cv.BCHA_path
 
         dat = pd.read_csv(cspath,header=0)
 
@@ -202,7 +196,6 @@ class Geography:
                         show_order_date = False,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
-        
         """ 
         Plots cases and deaths vs calendar date 
 
@@ -235,7 +228,10 @@ class Geography:
         total_names = ['Cases','Deaths','']
         gdf = pd.DataFrame()
 
-        cfr = self.deaths/self.cases
+        if (self.deaths is None):
+            cfr = 0.0
+        else:
+            cfr = self.deaths/self.cases
 
         if (per_capita):
             for a in range(0,2):
@@ -288,6 +284,7 @@ class Geography:
                     GU.mark_ends(ax[a],Date[1:],adc, str(window[w])+'da','r')
 
                 ylim[a] = (0.0,1.2*adc.max())
+                ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
                 ty = GU.prop_scale(ax[a].get_ylim(), 0.95)
                 note = '{0:,} {1}'.format(int(gdf.iloc[-1,a]),total_names[a])
@@ -333,8 +330,7 @@ class Geography:
 
         else:
             if save:
-                graphics_path = '../'
-                gfile = graphics_path+self.moniker+'_prevalence.png'
+                gfile = cv.graphics_path+self.moniker+'_prevalence.png'
                 plt.savefig(gfile,dpi=300)
                 plt.show(block=False)
                 plt.pause(3)

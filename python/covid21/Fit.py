@@ -1,4 +1,18 @@
-class Fit(Geography):
+from covid21 import config as cv
+from covid21 import Geography as GG
+from covid21 import GraphicsUtilities as GU
+
+from datetime import date, datetime, timedelta
+import pandas as pd
+import numpy as np
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import os
+import pyreadr
+
+
+
+class Fit(GG.Geography):
 
     def __init__(self,fit_file,**kwargs):
         super().__init__(**kwargs)
@@ -54,11 +68,12 @@ class Fit(Geography):
     
     def get_est_or_init(self,name):
         v = self.get_estimate_item(name) 
-        if (isNaN(v)):
-            v = self.get_initpar_item(name)
-            return(v)
-        else:
-            return(v)
+    #   if (isNaN(v)):
+    #       v = self.get_initpar_item(name)
+    #       return(v)
+    #   else:
+    #       return(v)
+        return(v)
     
     def get_initpar_item(self,pname):
         r = self.ests['names'].isin([pname])
@@ -99,7 +114,7 @@ class Fit(Geography):
     
     
         for a in range(0,len(ax)):
-            self.make_date_axis(ax[a])
+            GU.make_date_axis(ax[a],firstDate)
     
         Date0 = self.get_metadata_item('Date0')
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
@@ -126,9 +141,9 @@ class Fit(Geography):
             ax[0].set_ylim(0.0,1.2*max(np.exp(obsI)))
             ax[0].scatter(pdate,np.exp(obsI),marker = '.',s=16,c='r')
             ax[0].plot(pdate,np.exp(preI))
-        plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
-        tx = prop_scale(ax[0].get_xlim(), 0.05)
-        ty = prop_scale(ax[0].get_ylim(), 0.90)
+        GU.plot_error(ax[0],pdate,obsI,sigma_logC,logscale)
+        tx = GU.prop_scale(ax[0].get_xlim(), 0.05)
+        ty = GU.prop_scale(ax[0].get_ylim(), 0.90)
         sigstr = '%s = %.3g'%('$\sigma_I$',sigma_logC)
         ax[0].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
@@ -141,9 +156,9 @@ class Fit(Geography):
             ax[1].scatter(pdate,np.exp(obsD),marker = '.',s=16, c='r')
             ax[1].plot(pdate,np.exp(preD))
 
-        plot_error(ax[1],pdate,obsD,sigma_logD,logscale)
-        tx = prop_scale(ax[1].get_xlim(), 0.05)
-        ty = prop_scale(ax[1].get_ylim(), 0.90)
+        GU.plot_error(ax[1],pdate,obsD,sigma_logD,logscale)
+        tx = GU.prop_scale(ax[1].get_xlim(), 0.05)
+        ty = GU.prop_scale(ax[1].get_ylim(), 0.90)
         sigstr = '%s = %.3g'%('$\sigma_D$',sigma_logD)
         ax[1].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
     
@@ -157,11 +172,11 @@ class Fit(Geography):
         #   ax[2].set_ylim((1.2*min(log_beta)),1.2*max(log_beta))
         #   ax[2].set_yticks(log_beta_ticks)
             sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
-            tx = prop_scale(ax[2].get_xlim(), 0.05)
-            ty = prop_scale(ax[2].get_ylim(), 0.90)
+            tx = GU.prop_scale(ax[2].get_xlim(), 0.05)
+            ty = GU.prop_scale(ax[2].get_ylim(), 0.90)
             ax[2].plot(pdate,log_beta)
         #   plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale=True)
-            plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
+            GU.plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             if (show_median):
@@ -207,12 +222,12 @@ class Fit(Geography):
             ax[3].set_ylim((1.2*min(logmu),0.8*max(logmu)))
 
             sigstr = '%s = %.3g'%('$\sigma_\\mu$',sigma_logmu)
-            tx = prop_scale(ax[3].get_xlim(), 0.05)
-            ty = prop_scale(ax[3].get_ylim(), 0.90)
+            tx = GU.prop_scale(ax[3].get_xlim(), 0.05)
+            ty = GU.prop_scale(ax[3].get_ylim(), 0.90)
             ax[3].plot(ax[2].get_xlim(),[0.0,0.0],color='0.2',linestyle='--')
             ax[3].plot(pdate,self.diag['logmu'])
         #   plot_error(ax[3],pdate,logmu,sigma_logmu,logscale=True)
-            plot_error(ax[3],pdate,logmu,SElogmu,logscale=True)
+            GU.plot_error(ax[3],pdate,logmu,SElogmu,logscale=True)
             ax[3].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             if (show_median):
@@ -230,7 +245,7 @@ class Fit(Geography):
             if (not logscale):
                 gfile = cv.graphics_path+self.moniker+'_'+self.fit_type+'_estimates_a'
             fig.savefig(gfile+'.png',dpi=300)
-            plt.show(False)
+            plt.show(block=False)
             print('plot saved as',gfile)
             plt.pause(3)
             plt.close()
