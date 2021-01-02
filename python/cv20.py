@@ -127,11 +127,6 @@ def median(x):
     return float(mx)
 """
 
-# -----------  class definitions--------------       
-# moved to Geography.py
-# moved to fit.py
-# ----------- end of class definitions--------------       
-
 def make_SD_tab(Gfile='top30.csv',save=True):
 
     def robust_sd(a):
@@ -323,7 +318,6 @@ def plot_DC(glist=[5,100], save=True):
     GU.add_data_source(fig)
 
     save_plot(plt,save,nG,'hist')
-
 
 def plot_dow_boxes(nG=5):
     cv.population_dat = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
@@ -677,9 +671,11 @@ def log_norm_cfr():
 #web_update()
 #make_dat_files()
 #update_fits()
+#make_fit_table()
+#make_fit_plots()
 #update_shared_plots()
-#update_assets()
 #plot_DC([5,1000],save=True)
+#update_assets()
 #make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #               fit_files=['Los_AngelesCA','New_York_CityNY'])
@@ -687,14 +683,6 @@ def log_norm_cfr():
 
 #make_nyt_census_dat()
 
-#cv.fit_path = cv.fit_path+'unconstrained/'
-#update_fits()
-#make_fit_table()
-#make_fit_plots()
-#make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-#make_rate_plots('logmu',save=True)
-#make_rate_plots('gamma',save=True)
 #plot_multi_prev(save=True,mult=100000)
 #plot_multi_prev(Gfile='top500.csv',save=True,mult=100000)
 
