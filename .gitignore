@@ -42,6 +42,7 @@ Thumbs.db
 # misc files #
 fits/*
 dat/*
+Graphics/*
 References/*
 python/*.png
 co-est2019-alldata.csv
@@ -54,6 +55,7 @@ top30.csv
 NYC-population.xlsx
 ranked_counties.xlsx
 junk
+*.swp
 *.Rout
 *.RData
 *.Rhistory
