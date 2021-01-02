@@ -7,6 +7,8 @@
 from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import Fit as FF
+from covid21 import GraphicsUtilities as GU
+
 
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -22,12 +24,13 @@ from io import StringIO
 from io import BytesIO
 import base64
 import scipy.stats as stats
-from sigfig import round
-from tabulate import tabulate
-from collections import OrderedDict
-import glob
-import re
-import statistics
+
+#from sigfig import round
+#from tabulate import tabulate
+#from collections import OrderedDict
+#import glob
+#import re
+#import statistics
 
 def make_nyt_census_dat():
     """
@@ -116,29 +119,14 @@ def SD_lim(x, mult):
         return([M-multS,M+multS])
     else:
         return(min(x),max(x))
-    
-def pretty_county(s):
-    ls = len(s)
-    pretty = s[0:(ls-2)]+', '+s[(ls-2):]
-    return(pretty.replace('_',' ',5))
-
-def short_name(s):
-    """
-    Create 4 byte abbreviation for getography names
-    """
-    w = re.split(r'[ _-]',s)
-    if (len(w)<2):
-        sn = s[0:2]+s[-2:]
-    else:
-        sn = w[0][0]+w[1][0]+s[-2:]
-    return(sn)  
-
 def isNaN(num):
     return num != num
-
+"""
 def median(x):
     mx = x.quantile(q=0.5)
     return float(mx)
+"""
+
 # -----------  class definitions--------------       
 # moved to Geography.py
 # moved to fit.py
@@ -230,13 +218,13 @@ def plot_DC(glist=[5,100], save=True):
                 yr[i] = xr[i]*r/100.0
 
             a.plot(xr,yr, linewidth=1,color='0.1',alpha=0.5)  
-            mark_ends(a,xr,yr,rstr,'r',' ')
+            GU.mark_ends(a,xr,yr,rstr,'r',' ')
 
     def save_plot(plt,save,n,what):
         if save:
             gfile = cv.graphics_path+'CFR_'+what+'_'+str(n)+'.png'
             plt.savefig(gfile,dpi=300)
-            plt.show(False)
+            plt.show(block=False)
         #   plt.pause(5)
             
             print('Plot saved as',gfile)
@@ -267,13 +255,13 @@ def plot_DC(glist=[5,100], save=True):
         print('Processing',nG,'geographies')
         for g in range(0,nG):
             print(g,gg['county'].iloc[g])
-            tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+            tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                              code=gg['code'].iloc[g])
             tmpG.read_nyt_data('county')
         #   plot scatter of all in tmpG geography    
             coll = ax.scatter(tmpG.cases,tmpG.deaths)
             if (nG < 6):
-                sn = short_name(tmpG.moniker)
+                sn = GG.short_name(tmpG.moniker)
                 mark_points(coll,ax,tmpG.cases,tmpG.deaths,sn,'r')
 
             nt = len(tmpG.cases)-1 # index of most recent report
@@ -293,7 +281,7 @@ def plot_DC(glist=[5,100], save=True):
         note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
         ax.text(tx,ty,note ,ha='left',va='center',fontsize=10)
         plot_cmr(ax, [0.5,1.0,2.0,4.0,8.0])
-        add_data_source(fig)
+        GU.add_data_source(fig)
         save_plot(plt,save,nG,'all')
 
     recent = recent.sort_values(by='cases',ascending=False)
@@ -332,257 +320,10 @@ def plot_DC(glist=[5,100], save=True):
     ty = ylim[0]+0.90*(ylim[1]-ylim[0])
     note = '{0} Counties; {1:,} Cases; {2:,} Deaths'.format(nG,recent['cases'].sum(),recent['deaths'].sum())
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
-    add_data_source(fig)
+    GU.add_data_source(fig)
 
     save_plot(plt,save,nG,'hist')
 
-
-
-def get_mu_atD1(ext='.RData',fit_files = []):
-    if (len(fit_files) < 1):
-        fit_files = glob.glob(cv.fit_path+'*'+ext)
-    else:
-        for i,ff in enumerate(fit_files):
-            fit_files[i] = cv.fit_path+fit_files[i]+ext
-
-    mud_cols = ['moniker','lag','logmu','mu']
-    tmp = np.empty(shape=(len(fit_files),4),dtype=object)
-    for i,ff in enumerate(fit_files):
-        moniker = os.path.splitext(os.path.basename(ff))[0]
-        fit = Fit(ff)
-        muD1 = -1.0
-        obs_deaths = fit.diag['obs_deaths']
-        for t in range(0,len(fit.diag.index)):
-            if (muD1 < 0.0) and (obs_deaths[t] > 0.0):
-                muD1 = np.exp(fit.diag['logmu'][t])
-                lag = t-1
-                tmp[i] = (moniker,lag,fit.diag['logmu'][t],muD1)
-
-    mud = pd.DataFrame(tmp,columns=mud_cols)
-    mud = mud.sort_values(by='lag',ascending=True)
-    print(mud)
-    mud.to_csv(cv.fit_path+'mud.csv',index=False)
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    ax.set_ylabel('First '+r'$\ln\ \mu\ (da^{-1})$')
-    ax.set_xlabel('Lag (days)') 
-#   ax.hist(mud['logmu'],density=True,bins=3)
-    ax.plot(mud['lag'],(mud['logmu']))
-    plt.show(True)
-
-def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
-                    fit_files = [], show_medians = False, 
-                    add_doubling_time = False, show_order_date = True, save=False):
-    print(yvarname)
-    if (yvarname == 'logbeta'):
-        ylabel =r'$\ln \beta\ (da^{-1})$'
-    elif (yvarname == 'logmu'):
-        ylabel =r'$\ln \mu\ (da^{-1})$'
-    elif (yvarname == 'gamma'):
-        ylabel =r'$\gamma\ (da^{-1})$'
-    else:
-        sys.exit('Unknown yvarname '+yvarname)
-
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    if (len(fit_files) < 1):
-        suffix = '_g'
-        fit_files = glob.glob(cv.fit_path+'*'+ext)
-    #   fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
-    else:
-        suffix = '_'+str(len(fit_files))
-        for i,ff in enumerate(fit_files):
-            fit_files[i] = cv.fit_path+fit_files[i]+ext
-    for i,ff in enumerate(fit_files):
-        print(i,ff)
-        fit = FF.Fit(ff)
-        if (i == 0):
-            GU.make_date_axis(ax)
-            ax.set_ylabel(ylabel)
-       
-        pdate = []
-        Date0 = datetime.strptime(fit.date0,'%Y-%m-%d')
-        for t in range(0,len(fit.diag.index)):
-            pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
-
-        yvar = fit.diag[yvarname]
-        if (yvarname == 'gamma'):
-            print(yvarname)
-            print(min(yvar),max(yvar))
-        ax.plot(pdate,yvar)
-
-    #   sigma_logbeta is the standard deviation of the generating
-    #   random walk, NOT the standard deviation of the estimated
-    #   random effect
-        if (yvarname == 'logbeta' and len(fit_files) <=4):
-        #   sigma_logbeta = fit.get_est_or_init('logsigma_logbeta')
-        #   plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
-            plot_error(ax,pdate,yvar,fit.diag['SElogbeta'],logscale=True)
-
-        sn = short_name(fit.moniker)
-        if (yvarname == 'logbeta'):
-            mark_ends(ax,pdate,yvar,sn,'b')
-        else:
-            mark_ends(ax,pdate,yvar,sn,'b')
-
-        if (show_medians):
-            med = median(np.exp(yvar))
-            logmed = np.log(med)
-            ax.plot(ax.get_xlim(),[logmed,logmed],linewidth=1,
-                    color=ax.get_lines()[-1].get_color())
-
-    if (show_order_date):
-        add_order_date(ax)
-
-#   finagle doubling time axis at same scale as beta
-    if (add_doubling_time):
-        yticks = np.arange(-7,1,1)
-        ax.set_ylim(min(yticks)-1,max(yticks)+1)
-        ax.set_yticks(yticks)
-        dtax = ax.twinx()
-        dtax.set_ylim(ax.get_ylim())
-        dtax.grid(False,axis='y') # omit grid lines
-        dtax.set_ylabel('Doubling Time (da)')
-    #   render now to get the tick positions and labels
-    #   fig.canvas.draw()
-        y2_ticks = dtax.get_yticks()
-        labels = dtax.get_yticklabels()
-        for i in range(0,len(y2_ticks)):
-            y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
-        #   labels[i] = '%.1f'%y2_ticks[i]
-            labels[i] = round(float(y2_ticks[i]),2)
-
-        dtax.tick_params(length=0)
-        dtax.set_yticklabels(labels)
-
-    if save:
-        gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.png'
-        fig.savefig(gfile)
-        print('plot saved as',gfile)
-        plt.show(False)
-    else:
-        plt.show(True)
-
-def make_fit_plots(ext = '.RData'):
-    fit_files = glob.glob(cv.fit_path+'*'+ext)
-    print('found',len(fit_files),ext,'files in',cv.fit_path)
-    plt.rc('figure', max_open_warning = 0)
-    for ff in fit_files:
-        fit = FF.Fit(ff)
-    #   fit.print_metadata()
-        fit.plot(logscale=True)
-
-    fit = FF.Fit(cv.fit_path+'NassauNY'+ext)
-    fit.plot(save=True,logscale=False)
-    fit = FF.Fit(cv.fit_path+'Miami-DadeFL'+ext)
-    fit.plot(save=True,logscale=False)
-    fit = FF.Fit(cv.fit_path+'New_York_CityNY'+ext)
-    fit.plot(save=True,logscale=False)
-    fit = FF.Fit(cv.fit_path+'Los_AngelesCA'+ext)
-    fit.plot(save=True,logscale=False)
-
-def make_fit_table(ext = '.RData'):
-    fit_files = glob.glob(cv.fit_path+'*'+ext)
-    print('found',len(fit_files),ext,'files in',cv.fit_path)
-    # mtime = os.path.getmtime(cspath) cv.NYT_counties
-    #   dtime = datetime.fromtimestamp(mtime)
-    #   self.updated = str(dtime.date())
-    # updated from https://github.com/nytimes/covid-19-data.git
-
-#   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
-    md_cols = ['county','ntime','prop_zero_deaths','fn','C']
-    es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
-               'logsigma_logC','logsigma_logD','mbeta','mmu'] #,'mgamma']
-    tt_cols = md_cols + es_cols
-    header = ['County','$n$','$p_0$','$f$','$C$',
-              '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
-            #,'$\\tilde\\gamma$']
-
-    tt = pd.DataFrame(columns=tt_cols,dtype=None)
-
-    func = pd.DataFrame(columns=['fn'])
-#   mgamma = pd.DataFrame(columns=['mgamma'])
-    mbeta = pd.DataFrame(columns=['mbeta'])
-    mmu = pd.DataFrame(columns=['mmu'])
-    sigfigs = 3
-#   for ff in fit_files:
-    for k in range(0,len(fit_files)):
-        ff = fit_files[k]
-    #   fn = ff.replace(' ','_',5) 
-    #   pn = fit_path+fn+'.RData'
-    #   fit=pyreadr.read_r(pn)
-        print('adding fit',k,ff)
-        fit = FF.Fit(ff)
-        ests  = fit.ests #['ests']
-        meta = fit.md #['meta']
-        diag = fit.diag #['diag']
-        row = pd.Series(index=tt_cols)
-        county = fit.get_metadata_item('county')  
-        row['county'] = pretty_county(county)
-        for k in range(1,len(tt_cols)):
-            n = tt_cols[k]
-            v = fit.get_est_or_init(n)
-            if ("logsigma" in n):
-                if (v != None):
-                    v = float(np.exp(v))
-            row.iloc[k] = v
-
-    #   row['N0'] = int(get_metadata('N0',meta))
-        row['C'] = fit.get_metadata_item('convergence')
-        row['ntime'] = int(fit.get_metadata_item('ntime'))
-    #   row['prop_zero_deaths'] = round(float(fit.get_metadata_item('prop_zero_deaths')),sigfigs)
-        row['prop_zero_deaths'] = float(fit.get_metadata_item('prop_zero_deaths'))
-        tt = tt.append(row,ignore_index=True)
-        func = np.append(func,float(fit.get_metadata_item('fn')))
-        beta = np.exp(diag['logbeta'])
-        mbeta = np.append(mbeta,median(beta))
-        mu = np.exp(diag['logmu'])
-        mmu = np.append(mmu,mu.quantile(q=0.5))
-    #   gamma = diag['gamma'
-    #   mgamma = np.append(mgamma,gamma.quantile(q=0.5))
-
-    tt['fn'] = func
-#   tt['mgamma'] = mgamma
-    tt['mbeta'] = mbeta
-    tt['mmu'] = mmu
-
-    mtime = os.path.getmtime(cv.NYT_counties)
-    dtime = datetime.fromtimestamp(mtime)
-    ft_name = cv.fit_path+'fit_table_'+str(dtime.date())
-
-    csv = ft_name+'.csv'
-    tt.to_csv(csv,index=False)
-    print('Fit table data written to file',csv)
-
-
-    tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
-
-    for r in range(0,tt.shape[0]):
-        for c in range(3,len(tt.columns)):
-           if (tt.iloc[r,c] != None):
-               tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
-        c = 2
-        tt.iloc[r,c] = round(float(tt.iloc[r,c]),sigfigs)
-
-    row = pd.Series(None,index=tt.columns)
-    row['county'] = 'Median'
-    for n in tt.columns:
-        if (n != 'county'):
-            mn = tt[n].quantile()
-            row[n] = mn
-    tt = tt.append(row,ignore_index=True)
-
-
-    tex = ft_name+'.tex'
-    ff = open(tex, 'w')
-    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with $\gamma = 0$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git.\n"
-
-    ff.write(caption_text)
-#   ff.write(str(dtime.date())+'\n')
-    ff.write(tabulate(tt, header, tablefmt="latex_raw",showindex=False))
-#   tt.to_latex(buf=tex,index=False,index_names=False,longtable=False,
-#               header=header,escape=False,#float_format='{:0.4f}'.format
-#               na_rep='',column_format='lrrrrrrrrrrr')
-    print('Fit table written to file',tex)
 
 def plot_dow_boxes(nG=5):
     cv.population_dat = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
@@ -725,8 +466,8 @@ def update_shared_plots():
 
     cv.graphics_path = save_path
 
-#   os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
-#   os.system('git push')
+    os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
+    os.system('git push')
 
 def update_assets():
     asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
@@ -790,10 +531,10 @@ def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
         key = key.append(kr,ignore_index=True)
 
     #   if (plot_dt):
-    #       mark_ends(ax,Date,delta_cases,sn,'r')
+    #       GU.mark_ends(ax,Date,delta_cases,sn,'r')
     #   else:
     #   if (~plot_dt):
-    #       mark_ends(ax,Date,cases,sn,'r')
+    #       GU.mark_ends(ax,Date,cases,sn,'r')
 
 
 #   print(key)
@@ -827,14 +568,15 @@ def update_everything():
     os.system('rm -v' + cv.fit_path + '*.RData')
     update_fits()
     print('Finished update_fits()')
-    make_fit_plots()
+    FF.make_fit_plots()
     print('Finished fit_plots')
-    make_fit_table()
-    make_rate_plots('logbeta',add_doubling_time = True,save=True)
-    make_rate_plots('logbeta',add_doubling_time = True,save=True,
+    FF.make_fit_table()
+    print('Finished fit table')
+    FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
+    FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
                     fit_files=['Los_AngelesCA','New_York_CityNY'])
-#                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-    make_rate_plots('logmu',save=True)
+                    fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+    FF.make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     plot_DC(glist=[5,1000], save=True)
     print('Finished CFR plots')
@@ -848,7 +590,7 @@ print('------- here ------')
 def log_norm_cfr():
     def vline(ax, y, ylim, mark):
         ax.plot((y,y), ylim)
-        mark_ends(ax, (y,y), ylim, mark, 'r')
+        GU.mark_ends(ax, (y,y), ylim, mark, 'r')
 
     import math
     import scipy.stats as stats
@@ -1078,8 +820,8 @@ def make_cfr_histo_ts(nG = 100,save=True):
         psum = phist.sum()
     #   print('psum:',psum)
         ax[0].plot(bin_edges[:-1],phist,linewidth=2)
-#       mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
-        mark_peak(ax[0],bin_edges[:-1],phist,str(period_labels[k]))
+#       GU.mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
+        GU.mark_peak(ax[0],bin_edges[:-1],phist,str(period_labels[k]))
  
     axlim = ax[0].get_xlim()
     tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
@@ -1094,8 +836,8 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #       psum = phist.sum()
 #       print('psum:',psum)
         ax[1].plot(bin_edges[:-1],phist,linewidth=2)
-#       mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
-        mark_peak(ax[1],bin_edges[:-1],phist,period_labels[k])
+#       GU.mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
+        GU.mark_peak(ax[1],bin_edges[:-1],phist,period_labels[k])
  
     axlim = ax[1].get_xlim()
     tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
@@ -1148,4 +890,11 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #update_fits()
 #make_fit_plots()
 #make_fit_table()
-make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
+#FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
+#                    fit_files=['AlamedaCA','BexarTX'])
+#FF.make_rate_plots('logmu',save=True)
+#plot_DC(glist=[5,1000], save=True)
+#update_assets()
+
+#update_everything()

@@ -9,7 +9,7 @@ import os
 
 def make_date_axis(ax, first_prev_date = None):
     if (first_prev_date is None):
-        firstDate = mdates.date2num(FirstNYTDate)
+        firstDate = mdates.date2num(cv.FirstNYTDate)
     else:
         firstDate = first_prev_date
         

@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
+import re
 
 class Geography:
 
@@ -356,5 +357,21 @@ class Geography:
         print(min(grad),max(grad))
 
         plt.show()
+
+def short_name(s):
+    """
+    Create 4 byte abbreviation for getography names
+    """
+    w = re.split(r'[ _-]',s)
+    if (len(w)<2):
+        sn = s[0:2]+s[-2:]
+    else:
+        sn = w[0][0]+w[1][0]+s[-2:]
+    return(sn)  
+    
+def pretty_county(s):
+    ls = len(s)
+    pretty = s[0:(ls-2)]+', '+s[(ls-2):]
+    return(pretty.replace('_',' ',5))
 
 
