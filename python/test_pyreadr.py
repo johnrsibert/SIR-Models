@@ -26,10 +26,12 @@ print('keys',fit.keys())
 diag = fit['diag']
 print(diag.columns)
 print(diag)
-mmu = diag['logmu'].quantile(q=0.5)
-print('median logmu:',mmu)
 mbeta = diag['logbeta'].quantile(q=0.5)
-print('median logbeta:',mmu)
+print('median logbeta:',mbeta,np.exp(mbeta))
+mgamma = diag['gamma'].quantile(q=0.5)
+print('median gamma:',mgamma)
+mmu = diag['logmu'].quantile(q=0.5)
+print('median logmu:',mmu,np.exp(mmu))
 
 md = fit['meta']
 print('meta:',md)

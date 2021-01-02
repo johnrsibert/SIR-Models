@@ -45,7 +45,7 @@ init = list(
     logsigma_logD = log(0.223),
 
     logbeta  = log(0.05),#0.5,
-    loggamma =  log(0.1),#0.5,
+    loggamma =  log(0.99),
     logmu    = log(0.001)
 )
 print("--init parameter values:")
@@ -79,11 +79,11 @@ map = list(
 
            "logsigma_logC" = as.factor(NA),
            "logsigma_logR" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA),
+           "logsigma_logD" = as.factor(NA) 
 
-           "loggamma" = rep(as.factor(1),data$ntime+1),
-           "logbeta" = rep(as.factor(1),data$ntime+1),
-           "logmu" = rep(as.factor(1),data$ntime+1) 
+#          "loggamma" = as.factor(1),
+#          "logbeta"  = as.factor(1),
+#          "logmu"    = as.factor(1)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
