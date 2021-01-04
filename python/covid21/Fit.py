@@ -63,23 +63,34 @@ class Fit(GG.Geography):
 
     def get_metadata_item(self,mdname):
         return(self.md.loc[mdname].data)
-    #   r = self.md['names'].isin([mdname])
-    #   return(self.md.data[r].values[0])
 
     def get_estimate_item(self, ename):
-    #   r = self.ests['names'].isin([ename])
-        r = self.ests.loc[ename].est
-        if (r.any() == True):
-            return(float(r)) #self.ests.est[r]))
-        else:
-            return(None)
+        try:
+            r = self.ests.loc[ename].est
+        except (KeyError):
+            r = None
+        return(r)
+
 
 #   def get_active(self, name):
-#       e = self.est['names'].isin([mdname])
-#       print(ests.loc['loggamma']['map'])   
+#       print('get_active',name)
+#       try:
+#           a = self.ests.loc[name].map
+#       except (KeyError):
+#           a = None
+
+#       print('aaaaaaaaaaaaaaaaaa')
+#       print('type =',type(a))
+#       print('a:',a)
+
+#       print('aaaaaaaaaaaaaaaaaa')
+#       
+#       if (a is None):
+#           return('Fixed')
+#       else:
+#           return('Active')
 
 
-    
     def get_est_or_init(self,name):
         print(name)
         v = self.get_estimate_item(name) 
@@ -92,12 +103,11 @@ class Fit(GG.Geography):
         return(v)
     
     def get_initpar_item(self,pname):
-    #   r = self.ests['names'].isin([pname])
-        r = self.ests.loc[pmame].init
-        if (r.any() == True):
-            return(float(r))  #ests.init[r]))
-        else:
-            return(None)
+        try:
+            r = float(self.ests.loc[pname].init)
+        except (KeyError):
+            r = None
+        return(r)         
        
     def plot(self,logscale=True, per_capita=False, delta_ts=False,
              npl = 4, save = True, show_median = False):
@@ -451,6 +461,20 @@ def make_fit_plots(ext = '.RData'):
     fit.plot(save=True,logscale=False)
 
 def make_fit_table(ext = '.RData'):
+
+    def get_active(ests, name):
+        print('get_active',name)
+        try:
+            a = ests.loc[name].map
+        except (KeyError):
+            a = None
+
+        if (a is None):
+            return('Fixed')
+        else:
+            return('Active')
+
+
     fit_files = glob.glob(cv.fit_path+'*'+ext)
     print('found',len(fit_files),ext,'files in',cv.fit_path)
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
@@ -469,13 +493,11 @@ def make_fit_table(ext = '.RData'):
     mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
-    sigfigs = 3
-#   for ff in fit_files:
+    sigfigs = 5
+    init_gamma = None
+    active_gamma = None
     for k in range(0,len(fit_files)):
         ff = fit_files[k]
-    #   fn = ff.replace(' ','_',5) 
-    #   pn = fit_path+fn+'.RData'
-    #   fit=pyreadr.read_r(pn)
         print('adding fit',k,ff)
         fit = Fit(ff)
         ests  = fit.ests #['ests']
@@ -484,12 +506,12 @@ def make_fit_table(ext = '.RData'):
         row = pd.Series(index=tt_cols)
         county = fit.get_metadata_item('county')  
         row['county'] = GG.pretty_county(county)
+        if (active_gamma is None):
+            active_gamma = get_active(ests,'loggamma')
+            init_gamma = np.exp(fit.get_initpar_item('loggamma'))
+
         for k in range(1,len(tt_cols)):
-            n = tt_cols[k]
-            v = fit.get_est_or_init(n)
-            if ("logsigma" in n):
-                if (v != None):
-                    v = float(np.exp(v))
+            v = fit.get_estimate_item(tt_cols[k])
             row.iloc[k] = v
 
     #   row['N0'] = int(get_metadata('N0',meta))
@@ -540,8 +562,9 @@ def make_fit_table(ext = '.RData'):
 
     tex = ft_name+'.tex'
     ff = open(tex, 'w')
-    caption_text = 'Model results. Estimating $\\beta$ and $\mu$ trends as random effects with initial $\gamma = 0$.\n'
+    caption_text = 'Model results. Estimating $\\beta$ and $\mu$ trends as random effects.\n' 
     caption_text = caption_text + 'Data updated ' + str(dtime.date()) + ' from https://github.com/nytimes/covid-19-data.git.\n'
+    caption_text = caption_text + 'Initial $\gamma = '+str(init_gamma)+'$ ('+active_gamma+').\n'
 
     ff.write(caption_text)
 #   ff.write(str(dtime.date())+'\n')
