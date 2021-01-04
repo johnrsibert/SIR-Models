@@ -33,6 +33,8 @@ class Fit(GG.Geography):
         self.diag = tfit['diag']
         self.md = tfit['meta']
         self.ests = tfit['ests']
+        self.md.set_index('names',inplace=True)
+        self.ests.set_index('names',inplace=True)
         if (cv.pyreadr_kludge):
         #   print('keys',tfit.keys())
         #   print(tfit['diag'].columns)
@@ -60,18 +62,28 @@ class Fit(GG.Geography):
         print('type:',self.fit_type)
 
     def get_metadata_item(self,mdname):
-        r = self.md['names'].isin([mdname])
-        return(self.md.data[r].values[0])
+        return(self.md.loc[mdname].data)
+    #   r = self.md['names'].isin([mdname])
+    #   return(self.md.data[r].values[0])
 
     def get_estimate_item(self, ename):
-        r = self.ests['names'].isin([ename])
+    #   r = self.ests['names'].isin([ename])
+        r = self.ests.loc[ename].est
         if (r.any() == True):
-            return(float(self.ests.est[r]))
+            return(float(r)) #self.ests.est[r]))
         else:
             return(None)
+
+#   def get_active(self, name):
+#       e = self.est['names'].isin([mdname])
+#       print(ests.loc['loggamma']['map'])   
+
+
     
     def get_est_or_init(self,name):
+        print(name)
         v = self.get_estimate_item(name) 
+        print(v)
     #   if (isNaN(v)):
     #       v = self.get_initpar_item(name)
     #       return(v)
@@ -80,9 +92,10 @@ class Fit(GG.Geography):
         return(v)
     
     def get_initpar_item(self,pname):
-        r = self.ests['names'].isin([pname])
+    #   r = self.ests['names'].isin([pname])
+        r = self.ests.loc[pmame].init
         if (r.any() == True):
-            return(float(ests.init[r]))
+            return(float(r))  #ests.init[r]))
         else:
             return(None)
        
@@ -440,25 +453,20 @@ def make_fit_plots(ext = '.RData'):
 def make_fit_table(ext = '.RData'):
     fit_files = glob.glob(cv.fit_path+'*'+ext)
     print('found',len(fit_files),ext,'files in',cv.fit_path)
-    # mtime = os.path.getmtime(cspath) cv.NYT_counties
-    #   dtime = datetime.fromtimestamp(mtime)
-    #   self.updated = str(dtime.date())
-    # updated from https://github.com/nytimes/covid-19-data.git
-
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
-               'logsigma_logC','logsigma_logD','mbeta','mmu'] #,'mgamma']
+               'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
     tt_cols = md_cols + es_cols
     header = ['County','$n$','$p_0$','$f$','$C$',
               '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
-            #,'$\\tilde\\gamma$']
+              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$',
+              '$\\tilde\\gamma$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
-#   mgamma = pd.DataFrame(columns=['mgamma'])
+    mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
     mmu = pd.DataFrame(columns=['mmu'])
     sigfigs = 3
@@ -495,11 +503,11 @@ def make_fit_table(ext = '.RData'):
         mbeta = np.append(mbeta,stats.median(beta))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
-    #   gamma = diag['gamma'
-    #   mgamma = np.append(mgamma,gamma.quantile(q=0.5))
+        gamma = diag['gamma']
+        mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
-#   tt['mgamma'] = mgamma
+    tt['mgamma'] = mgamma
     tt['mbeta'] = mbeta
     tt['mmu'] = mmu
 
@@ -532,7 +540,8 @@ def make_fit_table(ext = '.RData'):
 
     tex = ft_name+'.tex'
     ff = open(tex, 'w')
-    caption_text = "Model results. Estimating $\\beta$ and $\mu$ trends as random effects with $\gamma = 0$.\nData updated " + str(dtime.date()) + " from https://github.com/nytimes/covid-19-data.git.\n"
+    caption_text = 'Model results. Estimating $\\beta$ and $\mu$ trends as random effects with initial $\gamma = 0$.\n'
+    caption_text = caption_text + 'Data updated ' + str(dtime.date()) + ' from https://github.com/nytimes/covid-19-data.git.\n'
 
     ff.write(caption_text)
 #   ff.write(str(dtime.date())+'\n')

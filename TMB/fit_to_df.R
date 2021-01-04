@@ -58,7 +58,8 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     ests = data.frame(stringsAsFactors = FALSE,
                      names = names(unlist(map)),
                      init = tinit,
-                     est  = test
+                     est  = test,
+                     map = unlist(map)
     )
 
     like_names = c('f','betanll', 'munll', 'Pnll','cnll','dnll')

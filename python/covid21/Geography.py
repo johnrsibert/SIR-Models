@@ -111,18 +111,18 @@ class Geography:
         mtime = 0.0
         if (gtype == 'county'):
             dat = cv.nyt_county_dat
-            if (dat.empty):
-               cspath = NYT_counties
-               print('Reading',cspath)
-               cv.nyt_county_dat = pd.read_csv(cspath,header=0)
-               dat = cv.nyt_county_dat
-               mtime = os.path.getmtime(cspath)
+        #   if (dat.empty):
+        #      cspath = NYT_counties
+        #      print('Reading',cspath)
+        #      cv.nyt_county_dat = pd.read_csv(cspath,header=0)
+        #      dat = cv.nyt_county_dat
+        #      mtime = os.path.getmtime(cspath)
         else:
             sys.exit('No data for',gtype)
         
     #   dat = pd.read_csv(cspath,header=0)
 
-    #   mtime = os.path.getmtime(cspath)
+        mtime = os.path.getmtime(cv.NYT_counties)
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
         self.population = self.get_county_pop()

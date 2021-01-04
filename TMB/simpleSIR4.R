@@ -1,5 +1,5 @@
-#SIR_path = '/home/jsibert/Projects/SIR-Models/'
-SIR_path = '/home/jsibert/Projects/Split-cv20/'
+SIR_path = '/home/jsibert/Projects/SIR-Models/'
+#SIR_path = '/home/jsibert/Projects/Split-cv20/'
 fit_path = paste(SIR_path,'fits/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
@@ -125,7 +125,7 @@ return(fit)
 
 
 
-nrun = 2
+urun = 2
 if (nrun < 2) {
 #   do_one_run(County="Los_AngelesCA")->fit
     do_one_run(County="AlamedaCA")->fit

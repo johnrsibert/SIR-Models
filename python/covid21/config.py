@@ -17,7 +17,7 @@ NYT_counties = NYT_home + 'us-counties.csv'
 NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
 
-cv_home = '/home/jsibert/Projects/Split-cv20/'
+cv_home = '/home/jsibert/Projects/SIR-Models/'
 GeoIndexPath = cv_home+'GeogIndex.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'

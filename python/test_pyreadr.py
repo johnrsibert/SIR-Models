@@ -34,7 +34,9 @@ mmu = diag['logmu'].quantile(q=0.5)
 print('median logmu:',mmu,np.exp(mmu))
 
 md = fit['meta']
-print('meta:',md)
+md.set_index('names',inplace=True)
+print('meta:')
+print(md)
 #print(md.iloc[0])
 #print(md.data)
 #rs = md['names'].isin(['Date0'])
@@ -46,9 +48,14 @@ like = fit['like_comp']
 print(like)
 
 ests = fit['ests']
-print('ests:',ests)
-print('exp(ests)[ests]:')
+ests.set_index('names',inplace=True)
+print('ests:')
+print(ests)
+print('exp(ests)[est]:')
 print(np.exp(ests['est']))
+print(ests['map'])
+print(str(ests['map']))
+print(ests.loc['loggamma']['map'])
 
 #SE = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/stderror.RData')
 #print(SE)

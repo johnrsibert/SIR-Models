@@ -569,7 +569,7 @@ def update_everything():
     FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
     FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
                     fit_files=['Los_AngelesCA','New_York_CityNY'])
-                    fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+#                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     FF.make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     plot_DC(glist=[5,1000], save=True)
@@ -867,6 +867,7 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
+#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
@@ -877,7 +878,7 @@ def make_cfr_histo_ts(nG = 100,save=True):
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-#make_fit_table()
+FF.make_fit_table()
 #FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
 #FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
 #                    fit_files=['AlamedaCA','BexarTX'])
