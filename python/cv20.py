@@ -662,52 +662,6 @@ def log_norm_cfr():
 
 # -------------------------------------------------
 
-
-#cv.fit_path = cv.fit_path+'constrainID/'
-#tfit = Fit(cv.fit_path+'CookIL.RData') #'Los Angeles','California','CA','ADMB')
-#tfit.print_metadata()
-#tfit.plot(save=True,logscale=True)
-#update_everything()
-#web_update()
-#make_dat_files()
-#update_fits()
-#make_fit_table()
-#make_fit_plots()
-#update_shared_plots()
-#plot_DC([5,1000],save=True)
-#update_assets()
-#make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#make_rate_plots('logbeta',add_doubling_time = True,save=True,
-#               fit_files=['Los_AngelesCA','New_York_CityNY'])
-#make_rate_plots('logmu',save=True)
-
-#make_nyt_census_dat()
-
-#plot_multi_prev(save=True,mult=100000)
-#plot_multi_prev(Gfile='top500.csv',save=True,mult=100000)
-
-#plot_dow_boxes(1000)
-#plot_multi_per_capita(plot_dt=False,save=True)
-#get_mu_atD1()
-
-
-#verify anomaly in Nassau County death tally
-#print(cv.NYT_home,cv.dat_path)
-#cv.NYT_home = '/home/jsibert/Downloads/'
-#cv.NYT_counties = cv.NYT_home + 'us-counties.csv'
-#cv.dat_path = cv.NYT_home
-#print(cv.NYT_home,cv.dat_path)
-
-#BCtest = Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-#BCtest.read_BCHA_data()
-#BCtest.print_metadata()
-#BCtest.print_data()
-#BCtest.plot_prevalence(save=True,signature=True,cumulative=False, show_order_date=False)
-
-
-#junk_func()
-#make_SD_tab()
-
 def make_cfr_histo_ts(nG = 100,save=True):
     firstDate = date(2020,1,1)
 #   print(firstDate, mdates.date2num(firstDate))

@@ -470,10 +470,18 @@ def make_fit_table(ext = '.RData'):
             a = None
 
         if (a is None):
-            return('Fixed')
+            return('?Fixed')
         else:
-            return('Active')
+            return('?Active')
 
+    def get_initpar_item(self,pname):
+        try:
+            r = float(self.ests.loc[pname].init)
+        except (KeyError):
+            r = None
+        return(r)         
+       
+ 
 
     fit_files = glob.glob(cv.fit_path+'*'+ext)
     print('found',len(fit_files),ext,'files in',cv.fit_path)
