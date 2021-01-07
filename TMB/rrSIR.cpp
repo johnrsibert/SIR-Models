@@ -14,9 +14,12 @@ template < class Type > Type square(Type x)
 
 // log-normal error
 template <class Type>
-Type NLerr(Type logobs, Type logpred, Type var)
+Type LNerr(Type logobs, Type logpred, Type var)
 {
     Type nll = 0.5*(log(TWO_M_PI*var) + square(logobs-logpred)/var);
+    // identical:
+    //Type tnll = -dnorm(logobs,logpred,sqrt(var),true);
+    //TTRACE(nll,tnll)
     return nll;
 }
 
@@ -59,8 +62,11 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(prop_zero_deaths)
     DATA_VECTOR(log_obs_cases)
     DATA_VECTOR(log_obs_deaths)
-    DATA_VECTOR(log_obs_R)
-    DATA_SCALAR(cfr_weight)
+                  
+    vector <Type> log_obs_CFR(ntime+1); // observed case fatality ratio
+    log_obs_CFR = log_obs_deaths - log_obs_cases;
+//  TRACE(log_obs_CFR)
+//  TRACE(exp(log_obs_CFR))
 
     PARAMETER(logsigma_logP);          // SIR process error
 
@@ -69,8 +75,9 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_logmu);         // mu randomwalk sd
 
     PARAMETER(logsigma_logC);          // cases observation error
-    PARAMETER(logsigma_logR);          // recoveries observation error
     PARAMETER(logsigma_logD);          // deaths observation error
+    PARAMETER(logsigma_logCFR);        // case fatality ratio observation error
+    TRACE(logsigma_logCFR)
 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
@@ -81,6 +88,7 @@ Type objective_function <Type>::operator()()
     vector <Type> logEye(ntime+1);    // number of Infections
     vector <Type> logR(ntime+1);      // number of Recovered
     vector <Type> logD(ntime+1);      // number of Deaths from infected population
+    vector <Type> log_pred_CFR(ntime+1);      // predicted case fatality ratio
 
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
@@ -88,8 +96,9 @@ Type objective_function <Type>::operator()()
 
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
-    Type sigma_logR = exp(logsigma_logR);
     Type sigma_logD = exp(logsigma_logD);
+    Type sigma_logCFR = exp(logsigma_logCFR);
+    TTRACE(sigma_logCFR, logsigma_logCFR)
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_loggamma = square(sigma_loggamma);
@@ -97,8 +106,9 @@ Type objective_function <Type>::operator()()
     Type var_logP = square(sigma_logP);
 
     Type var_logC = square(sigma_logC);
-    Type var_logR = square(sigma_logR);
     Type var_logD = square(sigma_logD);
+    Type var_logCFR = square(sigma_logCFR);
+    TTRACE(sigma_logCFR,var_logCFR)
 
     Type f = 0.0;
     Type betanll = 0.0;
@@ -106,26 +116,25 @@ Type objective_function <Type>::operator()()
     Type munll = 0.0;
     Type Pnll = 0.0;
     Type cnll = 0.0;
-    Type rnll = 0.0;
     Type dnll = 0.0;
+    Type CFRnll = 0.0;
 
     //  loop over time
     logS[0] = log(N0);
-//  logEye[0] = log_obs_cases[0];
-//  logD[0] = eps;
-//  logR[0] = eps;
+    logEye[0] = log_obs_cases[0];
+    logD[0] = log_obs_deaths[0];
     for (int t = 1; t <= ntime; t++)
     {
     //   TRACE(t)
 
          // infection rate random walk
-         betanll += isNaN(NLerr(logbeta(t-1),logbeta(t),var_logbeta),__LINE__);
+         betanll += isNaN(LNerr(logbeta(t-1),logbeta(t),var_logbeta),__LINE__);
 
          // recovery rate random walk
-         gammanll += isNaN(NLerr(loggamma(t-1),loggamma(t),var_loggamma),__LINE__);
+         gammanll += isNaN(LNerr(loggamma(t-1),loggamma(t),var_loggamma),__LINE__);
  
          // mortality rate random walk
-         munll += isNaN(NLerr(logmu(t-1),logmu(t),var_logmu),__LINE__);
+         munll += isNaN(LNerr(logmu(t-1),logmu(t),var_logmu),__LINE__);
 
          // compute process error likelihood
          Type beta = exp(logbeta(t-1));
@@ -135,25 +144,30 @@ Type objective_function <Type>::operator()()
          Type S   = exp(logS(t-1));
          Type Eye = exp(logEye(t-1));
          Type R   = exp(logR(t-1));
-         Type N   = S + Eye + R;
          Type D   = exp(logD(t-1));
+         Type N   = S + Eye + R;
          Type bison = beta * Eye * S/N;
     //   TTRACE(bison,beta)
     //   TTRACE(S,N)
-
+         
+         Type deltaS = -bison;
+         Type nextS = S + deltaS;
+         logS(t) = log(nextS);
          // susceptible process error
-         Type deltaS = -bison + gamma*Eye;
+         /*
+         Type deltaS = -bison
          Type nextS = S + deltaS;
          if (nextS > 0.0)
          {
              logS(t) = log(nextS);
-             Pnll += isNaN(NLerr(logS(t-1), logS(t), var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logS(t-1), logS(t), var_logP),__LINE__);
          }
          else
          {
              Pnll += square(deltaS);
              TTRACE(nextS,deltaS)
          }
+         */
 
          // cases process error
          Type deltaEye = bison - mu*Eye - gamma*Eye;
@@ -161,7 +175,7 @@ Type objective_function <Type>::operator()()
          if (nextEye > 0.0)
          {
              logEye(t) = log(nextEye);
-             Pnll += isNaN(NLerr(logEye(t-1), logEye(t),var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logEye(t-1), logEye(t),var_logP),__LINE__);
          }
          else
          {
@@ -169,19 +183,24 @@ Type objective_function <Type>::operator()()
              TTRACE(nextEye,deltaEye)
          }
 
+         Type deltaR = gamma*Eye;
+         Type nextR = R + deltaR;
+         logR(t) = log(nextR);
+         /*
          // recovered process error
          Type deltaR = gamma*Eye;
          Type nextR = R + deltaR;
          if (nextR > 0.0)
          {
              logR(t) = log(nextR);
-             Pnll += isNaN(NLerr(logR(t-1), logR(t),var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logR(t-1), logR(t),var_logP),__LINE__);
          }
          else
          {
              Pnll += square(deltaR);
              TTRACE(nextR,deltaR)
-         }
+         }         
+         */
 
          // deaths process error
          Type deltaD = mu*Eye;
@@ -189,52 +208,47 @@ Type objective_function <Type>::operator()()
          if (nextD > 0.0)
          {
              logD(t) = log(nextD);
-             Pnll += isNaN(NLerr(logD(t-1), logD(t),var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logD(t-1), logD(t),var_logP),__LINE__);
          }
          else
          {
              Pnll += square(deltaD);
              TTRACE(nextD,deltaD)
          }
+
+         log_pred_CFR(t) = logD(t) - logEye(t);
  
      }
 
      // compute observation likelihoods
      for (int t = 0; t <= ntime; t++)
      {   
-         cnll += isNaN(  NLerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
+         cnll += isNaN(  LNerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
      //  TTRACE(cnll,logEye(t))
 
-         rnll += isNaN(  NLerr(log_obs_R(t),logR(t),var_logR),__LINE__);
 
      //  Zero inflated log normal
          dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
-     //  dnll += isNaN(  NLerr(log_obs_deaths(t),logD(t),var_logD),__LINE__);
+     //  dnll += isNaN(  LNerr(log_obs_deaths(t),logD(t),var_logD),__LINE__);
 
      //  Poisson error
      //  dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
 
-     //  TTRACE(cnll,dnll)
-     }
-//   TTRACE(cnll,dnll)
+     //  CFR error
+         CFRnll += isNaN(  LNerr(log_obs_CFR(t),log_pred_CFR(t),var_logCFR),__LINE__);
+         TRACE(var_logCFR)
+          
 
-     Type cfrdev = 0.0;
-     for (int t = 0; t <= ntime; t++)
-     {   
-         Type obs_cfr = obs_deaths(t) / (obs_cases(t)+eps);
-         if (obs_cfr > 0.0)
-         {
-             Type pred_cfr = exp(logD(t)-logEye(t));
-             cfrdev += square(obs_cfr-pred_cfr);
-         //  TTRACE(t,cfrdev)
-         //  TTRACE(pred_cfr,obs_cfr)
-         }
+         TTRACE(t,CFRnll)
+         TTRACE(log_obs_CFR(t),log_pred_CFR(t))
+         TTRACE(cnll,dnll)
      }
-     Type cfrpen = cfr_weight*cfrdev;
-//   TTRACE(cfrdev,cfrpen)
+     TTRACE(ntime,CFRnll)
+     TTRACE(cnll,dnll)
+
 
      // total likelihood
-     f += isNaN((betanll + Pnll + cnll + dnll + rnll + cfrpen),__LINE__);
+     f += isNaN((betanll + Pnll + cnll + dnll + CFRnll),__LINE__);
 
      REPORT(logS)
      REPORT(logEye)
@@ -248,16 +262,16 @@ Type objective_function <Type>::operator()()
      REPORT(sigma_logbeta);
      REPORT(sigma_loggamma);
      REPORT(sigma_logmu);
+     REPORT(sigma_logCFR);
 
      REPORT(f);
      REPORT(betanll);
      REPORT(gammanll);
      REPORT(Pnll);
      REPORT(cnll);
-     REPORT(rnll);
      REPORT(dnll);
-     REPORT(cfrpen);
-     /*
+     REPORT(CFRnll);
+
      if (1)
      {
      //   TRACE(logbeta)
@@ -265,11 +279,10 @@ Type objective_function <Type>::operator()()
      //   TRACE(logmu)
           TRACE(betanll);
           TRACE(gammanll);
-          TRACE(cfrpen)//,(cfr_weight*cfrpen))
           TTRACE(cnll,dnll)
-          TRACE(f)
+          TTRACE(f,CFRnll)
      //   return(Type(-1.0));
      }
-     */
+
      return isNaN(f,__LINE__);
 }

@@ -26,27 +26,36 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
-data$log_obs_R = log(data$obs_cases-data$obs_deaths)
-
-data$cfr_weight =  1.0
 print("-data:")
 print(data)
 
-init = list(
-    logsigma_logP = log(0.1),#logsigma_logP = 0.5,
+#                       init       est  map
+# names                                    
+# logsigma_logCP   -2.120264 -2.690276    1
+# logsigma_logDP   -2.343407 -3.267401    1
+# logsigma_logC    -1.499940 -1.499940  NaN
+# logsigma_logD    -2.350619 -2.350619  NaN
+# logsigma_logbeta  0.400000 -4.838245    1
+# logsigma_logmu    0.200000 -1.977164    1
+# loggamma         -0.051293 -0.051293  NaN
+# def SIRsim(mu = 0.001, beta = 0.2, gamma = 0.075, N0 = 2e6, sigma_eye = 0.01,
+ 
 
-    logsigma_logbeta = log(0.223), #0.4,
-    logsigma_loggamma = log(0.223), #0.4,
-    logsigma_logmu = 0.4,
+init = list(
+    logsigma_logP = 3.0, #log(0.1),#logsigma_logP = 0.5,
+
+    logsigma_logbeta = -2.0, #log(0.223), #0.4,
+    logsigma_loggamma = -2.0, #log(0.223), #0.4,
+    logsigma_logmu = -2.0,
 
 
     logsigma_logC = log(0.223),
-    logsigma_logR = log(0.223),
     logsigma_logD = log(0.223),
+    logsigma_logCFR = log(0.05),
 
-    logbeta  = log(0.05),#0.5,
-    loggamma =  log(0.99),
-    logmu    = log(0.001)
+    logbeta  = log(0.2),
+    loggamma =  log(0.075),
+    logmu    = log(0.00025)
 )
 print("--init parameter values:")
 print(init)
@@ -58,9 +67,9 @@ par = list(
     logsigma_loggamma = init$logsigma_loggamma,
     logsigma_logmu = init$logsigma_logmu,
 
-    logsigma_logC = init$logsigma_logC,
-    logsigma_logR = init$logsigma_logR,
-    logsigma_logD = init$logsigma_logD,
+    logsigma_logC   = init$logsigma_logC,
+    logsigma_logD   = init$logsigma_logD,
+    logsigma_logCFR = init$logsigma_logCFR,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
@@ -73,17 +82,13 @@ print(par)
 map = list(
            "logsigma_logP" = as.factor(1),
 
-           "logsigma_logbeta" = as.factor(NA),
+           "logsigma_logbeta" = as.factor(1),
            "logsigma_loggamma" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
-           "logsigma_logR" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA) 
-
-#          "loggamma" = as.factor(1),
-#          "logbeta"  = as.factor(1),
-#          "logmu"    = as.factor(1)
+           "logsigma_logD" = as.factor(NA),
+           "logsigma_logCFR" = as.factor(NA) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -98,14 +103,16 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-#obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
-obj = MakeADFun(data,par,random=c("logbeta","logmu","loggamma"), 
+obj = MakeADFun(data,par, random=c("logbeta","loggamma","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
 print(obj$par)
 lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
+
+#   cmd = 'Rscript --verbose simpleSIR4.R'
+
 
 print("Starting minimization-------------------------",quote=FALSE)
 opt = nlminb(obj$par,obj$fn,obj$gr)

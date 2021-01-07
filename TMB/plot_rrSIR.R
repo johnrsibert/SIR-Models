@@ -15,7 +15,7 @@ get.error = function(par,opt,map,tn)
         err = opt$par[tn] 
     } 
 
-    print(paste(tn,err))
+    print(paste('get.error',tn,err))
     return(as.numeric(err))
 }
 
@@ -50,14 +50,6 @@ plot.log.state = function(fit) #,np=5)
         note = paste('bias = ',signif(val,3),sep='')
         return(note)
     }
-
-#   sdr = sdreport(obj)
-#   SElogbeta = as.list(sdr,"Std. Error")$logbeta
-#   SEloggamma   = as.list(sdr,"Std. Error")$loggamma
-#   SElogmu   = as.list(sdr,"Std. Error")$logmu
-#   print(paste(SElogbeta,SEloggamma,SElogmu))
-#   print(SElogbeta)
-#   print(mean(SElogbeta))
 
     fn = opt$value
     if (is.null(fn))
@@ -96,9 +88,12 @@ plot.log.state = function(fit) #,np=5)
     plot.rv(tt,dat$log_obs_cases, obj$report()$logEye,
             ylab='ln cases,', err, err_name='sigma_logC',ylim=poplim)
 
-    err = exp(get.error(par,opt,map,'logsigma_logR'))
-    plot.rv(tt,dat$log_obs_R, obj$report()$logR,
-            ylab='ln R', err, err_name='sigma_logR',ylim=poplim)
+#   err = exp(get.error(par,opt,map,'logsigma_logR'))
+#   plot.rv(tt,dat$log_obs_R, obj$report()$logR,
+#           ylab='ln R', err, err_name='none',ylim=poplim)
+
+    poplim = c(0.0,1.2*log(dat$N0)) #range(obj$report()$logS)
+    plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, col='red',type='l',lwd=3)
 
     ylim=c(0.0,1.2*max(dat$log_obs_deaths,obj$report()$logD))
     if (hasName(par,'logsigma_logD'))
@@ -124,7 +119,6 @@ plot.log.state = function(fit) #,np=5)
  
     rlim = c(-10.0,1.0)
     err = exp(get.error(par,opt,map,'logsigma_logmu'))
-#   print(paste(length(tt),length(obj$report()$logmu),length(obj$report()$sigma_logmu)))
     plot.rv(tt,obj$report()$logmu, obj$report()$logmu,
             ylab='ln mu', err=err,
             err_name='sigma_logmu',ylim=rlim)
@@ -142,8 +136,8 @@ plot.log.state = function(fit) #,np=5)
     lines(tt, prd_cfr,col='red')
     ttext = 0.1*(length(dat$log_obs_cases)-1)
     ytext = cfrlim*0.9
-    print(obj$report()$cfrpen)
-    note = paste('cfr penalty =',sprintf("%g",obj$report()$cfrpen))
+    print(obj$report()$logsigma_logCFR)
+    note = paste('sigma_logCFR =',sprintf("%g",obj$report()$sigma_logCFR))
     print(note)
     text(ttext,ytext,note,col=note.color,pos=4)
     
