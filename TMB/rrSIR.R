@@ -42,16 +42,16 @@ print(data)
  
 
 init = list(
-    logsigma_logP = 3.0, #log(0.1),#logsigma_logP = 0.5,
+    logsigma_logP = log(0.223),# 3.0, #log(0.1),#logsigma_logP = 0.5,
 
-    logsigma_logbeta = -2.0, #log(0.223), #0.4,
-    logsigma_loggamma = -2.0, #log(0.223), #0.4,
-    logsigma_logmu = -2.0,
+    logsigma_logbeta = log(0.223), #0.4,
+    logsigma_loggamma = log(0.223), #0.4,
+    logsigma_logmu = log(0.223), #0.4,-2.0,
 
 
     logsigma_logC = log(0.223),
-    logsigma_logD = log(0.223),
-    logsigma_logCFR = log(0.05),
+    logsigma_logD = log(0.105),
+    logsigma_logCFR = log(0.105),
 
     logbeta  = log(0.2),
     loggamma =  log(0.075),
@@ -80,10 +80,10 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "logsigma_logP" = as.factor(1),
+           "logsigma_logP" = as.factor(NA),
 
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(1),
+           "logsigma_loggamma" = as.factor(NA),
            "logsigma_logmu" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
@@ -103,16 +103,19 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par, random=c("logbeta","loggamma","logmu"), 
+obj = MakeADFun(data,par, # random=c("logbeta","loggamma","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
 print(obj$par)
+hide_obj = obj
 lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
 
 #   cmd = 'Rscript --verbose simpleSIR4.R'
 
+#obj$env$inner.control$tol10 <- 0
+obj$env$inner.control$tol10 <- 0
 
 print("Starting minimization-------------------------",quote=FALSE)
 opt = nlminb(obj$par,obj$fn,obj$gr)
@@ -128,12 +131,12 @@ print(opt$par)
 print("exp(parameters):",quote=FALSE)
 print(exp(opt$par))
 
-mlogbeta = median(obj$report()$logbeta)
-print(paste("median logbeta:",mlogbeta,exp(mlogbeta)))
-mlogmu = median(obj$report()$logmu)
-print(paste("median logmu:",mlogmu,exp(mlogmu)))
-mloggamma = median(obj$report()$loggamma)
-print(paste("median loggamma:",mloggamma,exp(mloggamma)))
+#mlogbeta = median(obj$report()$logbeta)
+#print(paste("median logbeta:",mlogbeta,exp(mlogbeta)))
+#mlogmu = median(obj$report()$logmu)
+#print(paste("median logmu:",mlogmu,exp(mlogmu)))
+#mloggamma = median(obj$report()$loggamma)
+#print(paste("median loggamma:",mloggamma,exp(mloggamma)))
 
 #print('data')
 #print(data)
