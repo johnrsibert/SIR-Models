@@ -350,10 +350,9 @@ def get_mu_atD1(ext='.RData',fit_files = []):
     ax.plot(mud['lag'],(mud['logmu']))
     plt.show(True)
 
-def make_rate_plots(yvarname = 'logbeta',ext = '.RData', 
-                    fit_files = [], show_medians = False, 
+def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [], 
                     add_doubling_time = False, show_order_date = True, save=False):
-    print(yvarname)
+    print('Plotting',yvarname)
     if (yvarname == 'logbeta'):
         ylabel =r'$\ln \beta\ (da^{-1})$'
     elif (yvarname == 'logmu'):
@@ -364,14 +363,17 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
         sys.exit('Unknown yvarname '+yvarname)
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+
     if (len(fit_files) < 1):
         suffix = '_g'
         fit_files = glob.glob(cv.fit_path+'*'+ext)
-    #   fit_files = glob.glob(cv.fit_path+'constrainID/'+'*'+ext)
     else:
         suffix = '_'+str(len(fit_files))
         for i,ff in enumerate(fit_files):
             fit_files[i] = cv.fit_path+fit_files[i]+ext
+
+#   rate_lim = pd.DataFrame(columns=['min','max'])
+#   row = pd.Series(index=rate_lim.columns)
     for i,ff in enumerate(fit_files):
         print(i,ff)
         fit = Fit(ff)
@@ -385,47 +387,40 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
         yvar = fit.diag[yvarname]
-        if (yvarname == 'gamma'):
-            print(yvarname)
-            print(min(yvar),max(yvar))
+    #   row['min'] = np.amin(yvar)
+    #    row['max'] = np.amax(yvar)
+    #   rate_lim = rate_lim.append(row,ignore_index=True)
         ax.plot(pdate,yvar)
+
+        if (len(fit_files) < 4):
+            sn = GG.short_name(fit.moniker)
+            GU.mark_ends(ax,pdate,yvar,sn,'b')
 
     #   sigma_logbeta is the standard deviation of the generating
     #   random walk, NOT the standard deviation of the estimated
     #   random effect
         if (yvarname == 'logbeta' and len(fit_files) <=4):
-        #   sigma_logbeta = fit.get_est_or_init('logsigma_logbeta')
-        #   plot_error(ax,pdate,yvar,sigma_logbeta,logscale=True)
             GU.plot_error(ax,pdate,yvar,fit.diag['SElogbeta'],logscale=True)
 
-        sn = GG.short_name(fit.moniker)
-        if (yvarname == 'logbeta'):
-            GU.mark_ends(ax,pdate,yvar,sn,'b')
-        else:
-            GU.mark_ends(ax,pdate,yvar,sn,'b')
 
-        if (show_medians):
-            med = stats.median(np.exp(yvar))
-            logmed = np.log(med)
-            ax.plot(ax.get_xlim(),[logmed,logmed],linewidth=1,
-                    color=ax.get_lines()[-1].get_color())
 
-    if (show_order_date):
-        GU.add_order_date(ax)
+#   end of loop for i,ff in enumerate(fit_files):
+    if (yvarname == 'logbeta' and len(fit_files) > 4):
+        ax.set_ylim(-0.1,0.6)
 
 #   finagle doubling time axis at same scale as beta
     if (add_doubling_time):
-        yticks = np.arange(-7,1,1)
-        ax.set_ylim(min(yticks)-1,max(yticks)+1)
-        ax.set_yticks(yticks)
+    #   yticks = np.arange(-7,1,1)
+    #   ax.set_ylim(min(yticks)-1,max(yticks)+1)
+    #   ax.set_yticks(yticks)
         dtax = ax.twinx()
         dtax.set_ylim(ax.get_ylim())
         dtax.grid(False,axis='y') # omit grid lines
         dtax.set_ylabel('Doubling Time (da)')
     #   render now to get the tick positions and labels
-    #   fig.canvas.draw()
-        y2_ticks = dtax.get_yticks()
-        labels = dtax.get_yticklabels()
+        fig.canvas.draw()
+        y2_ticks = ax.get_yticks()
+        labels = ax.get_yticklabels()
         for i in range(0,len(y2_ticks)):
             y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
         #   labels[i] = '%.1f'%y2_ticks[i]
@@ -433,6 +428,9 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData',
 
         dtax.tick_params(length=0)
         dtax.set_yticklabels(labels)
+
+    if (show_order_date):
+        GU.add_order_date(ax)
 
     if save:
         gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.png'
@@ -505,8 +503,7 @@ def make_fit_table(ext = '.RData'):
     init_gamma = None
     active_gamma = None
     for k in range(0,len(fit_files)):
-        ff = fit_files[k]
-        print('adding fit',k,ff)
+        ff = fit_files[k]    
         fit = Fit(ff)
         ests  = fit.ests #['ests']
         meta = fit.md #['meta']
