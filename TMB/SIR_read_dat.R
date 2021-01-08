@@ -1,5 +1,5 @@
 
-read.dat.file=function(dat.file = "")
+read.dat.file=function(dat.file = "",max_ntime = 1000)
 {
    field.counter <<- 0
    print(paste("Reading ",dat.file))
@@ -27,11 +27,15 @@ read.dat.file=function(dat.file = "")
    data$N0 = get.numeric.field()    # total population
    data$Date0 = get.field()         # calander date of first case
    data$ntime = get.numeric.field() # number of dat records
+
+   if (data$ntime > max_ntime)
+      data$ntime = max_ntime
+
    ntime = data$ntime
    nobs  = ntime + 1
    data$obs_cases  = vector(len=ntime,mode="numeric")
    data$obs_deaths = vector(len=ntime,mode="numeric")
-#  for (t in 0:ntime)
+
    for (t in 1:nobs)
    {
       data$obs_cases[t]  = get.numeric.field()# + tiny

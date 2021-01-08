@@ -16,7 +16,9 @@ cname = sub(" ","_",County)
 datfile=paste(dat_path,cname,'.dat',sep='')
 separator = "#############################"
 print(paste(separator,County,separator),quote=FALSE)
-dat = read.dat.file(datfile)
+
+dat = read.dat.file(datfile)#,max_ntime = 196)
+
 eps = 1e-8
 data=dat$data
 print(names(data))
@@ -35,7 +37,7 @@ init = list(
     logsigma_logD = log(log(1.1)), # log(0.05), 
 
     logbeta = log(0.05),
-    loggamma = log(0.95), #2.78e-9),
+    loggamma = log(1e-10), #2.78e-9),
     logmu = log(0.00005) 
 )
 print("--init parameter values:")
@@ -127,8 +129,8 @@ return(fit)
 
 nrun = 2
 if (nrun < 2) {
-#   do_one_run(County="Los_AngelesCA")->fit
-    do_one_run(County="AlamedaCA")->fit
+    do_one_run(County="Los_AngelesCA")->fit
+#   do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY")->fit
 #   do_one_run(County="BrowardFL")->fit
