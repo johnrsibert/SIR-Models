@@ -110,6 +110,7 @@ class Fit(GG.Geography):
         return(r)         
        
     def plot(self,logscale=True, per_capita=False, delta_ts=False,
+             add_doubling_time = False,
              npl = 4, save = True, show_median = False):
         """ 
         """
@@ -157,7 +158,7 @@ class Fit(GG.Geography):
         SElogmu   = self.diag['SElogmu']
         sigma_logC = np.exp(self.get_est_or_init('logsigma_logC'))
         sigma_logD = np.exp(self.get_est_or_init('logsigma_logD'))
-        sigma_logbeta = self.get_est_or_init('logsigma_logbeta')
+        sigma_logbeta = np.exp(self.get_est_or_init('logsigma_logbeta'))
         sigma_logmu = np.exp(self.get_est_or_init('logsigma_logmu'))
         if (logscale):
             ax[0].set_ylim(0.0,1.2*max(obsI))
@@ -198,12 +199,11 @@ class Fit(GG.Geography):
         #   print(0.8*min(log_beta_ticks),1.2*max(log_beta_ticks))
         #   ax[2].set_ylim((1.2*min(log_beta)),1.2*max(log_beta))
         #   ax[2].set_yticks(log_beta_ticks)
+            ax[2].plot(pdate,log_beta)
+            GU.plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
             sigstr = '%s = %.3g'%('$\sigma_\\beta$',sigma_logbeta)
             tx = GU.prop_scale(ax[2].get_xlim(), 0.05)
             ty = GU.prop_scale(ax[2].get_ylim(), 0.90)
-            ax[2].plot(pdate,log_beta)
-        #   plot_error(ax[2],pdate,log_beta,sigma_logbeta,logscale=True)
-            GU.plot_error(ax[2],pdate,log_beta,SElogbeta,logscale=True)
             ax[2].text(tx,ty,sigstr, ha='left',va='center',fontsize=10)
 
             if (show_median):
@@ -214,12 +214,11 @@ class Fit(GG.Geography):
                 ax[2].plot(ax[2].get_xlim(),[logmed,logmed])
 
         #   increase frequcncy of tick marks
-            start, end = ax[2].get_ylim()
-            dtick = (end - start)/5
-            ax[2].set_yticks(np.arange(start, end, dtick))
+        #   start, end = ax[2].get_ylim()
+        #   dtick = (end - start)/5
+        #   ax[2].set_yticks(np.arange(start, end, dtick))
 
         #   finagle doubling time axis at same scale as beta
-            add_doubling_time = False
             if (add_doubling_time):
                 dtax = ax[2].twinx()
                 dtax.set_ylim(ax[2].get_ylim())
@@ -387,6 +386,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
         yvar = fit.diag[yvarname]
+        print(yvar)
     #   row['min'] = np.amin(yvar)
     #    row['max'] = np.amax(yvar)
     #   rate_lim = rate_lim.append(row,ignore_index=True)
@@ -402,32 +402,40 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
         if (yvarname == 'logbeta' and len(fit_files) <=4):
             GU.plot_error(ax,pdate,yvar,fit.diag['SElogbeta'],logscale=True)
 
-
-
 #   end of loop for i,ff in enumerate(fit_files):
-    if (yvarname == 'logbeta' and len(fit_files) > 4):
-        ax.set_ylim(-0.1,0.6)
 
 #   finagle doubling time axis at same scale as beta
     if (add_doubling_time):
-    #   yticks = np.arange(-7,1,1)
-    #   ax.set_ylim(min(yticks)-1,max(yticks)+1)
-    #   ax.set_yticks(yticks)
         dtax = ax.twinx()
-        dtax.set_ylim(ax.get_ylim())
+    #   dtax.set_ylim(ax.get_ylim())
         dtax.grid(False,axis='y') # omit grid lines
         dtax.set_ylabel('Doubling Time (da)')
     #   render now to get the tick positions and labels
-        fig.canvas.draw()
-        y2_ticks = ax.get_yticks()
+    #   fig.canvas.draw()
+        yticks = ax.get_yticks()
+        print('ticks:',yticks,np.log(yticks))
         labels = ax.get_yticklabels()
-        for i in range(0,len(y2_ticks)):
-            y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
+        print('labels:',labels)
+        y2ticks = yticks
+        dtax.set_yticks(yticks)
+        for i in range(0,len(yticks)):
+            tick =  np.log(2.0)/np.exp(yticks[i])
+        #   tick = -np.log(2.0)/np.log(yticks[i])
         #   labels[i] = '%.1f'%y2_ticks[i]
-            labels[i] = round(float(y2_ticks[i]),2)
+            labels[i] = round(float(tick),2)
+            y2ticks[i] = tick
+
+            print(yticks[i],labels[i])
 
         dtax.tick_params(length=0)
+        dtax.set_yticks(ax.get_yticks())
         dtax.set_yticklabels(labels)
+
+    if (yvarname == 'logbeta' and len(fit_files) > 4):
+        ax.set_ylim(-0.01,0.6)
+
+    if (add_doubling_time):
+        dtax.set_ylim(ax.get_ylim())
 
     if (show_order_date):
         GU.add_order_date(ax)
