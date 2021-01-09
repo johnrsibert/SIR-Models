@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
+#from matplotlib import text as txt
 import os
 import pyreadr
 import glob
@@ -386,7 +388,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
         yvar = fit.diag[yvarname]
-        print(yvar)
+    #   print(yvar)
     #   row['min'] = np.amin(yvar)
     #    row['max'] = np.amax(yvar)
     #   rate_lim = rate_lim.append(row,ignore_index=True)
@@ -406,33 +408,19 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
 
 #   finagle doubling time axis at same scale as beta
     if (add_doubling_time):
-        dtax = ax.twinx()
-    #   dtax.set_ylim(ax.get_ylim())
-        dtax.grid(False,axis='y') # omit grid lines
-        dtax.set_ylabel('Doubling Time (da)')
     #   render now to get the tick positions and labels
-    #   fig.canvas.draw()
-        yticks = ax.get_yticks()
-        print('ticks:',yticks,np.log(yticks))
-        labels = ax.get_yticklabels()
-        print('labels:',labels)
-        y2ticks = yticks
-        dtax.set_yticks(yticks)
-        for i in range(0,len(yticks)):
-            tick =  np.log(2.0)/np.exp(yticks[i])
-        #   tick = -np.log(2.0)/np.log(yticks[i])
-        #   labels[i] = '%.1f'%y2_ticks[i]
-            labels[i] = round(float(tick),2)
-            y2ticks[i] = tick
+        fig.canvas.draw()
 
-            print(yticks[i],labels[i])
-
+        dtax = ax.twinx()
         dtax.tick_params(length=0)
-        dtax.set_yticks(ax.get_yticks())
-        dtax.set_yticklabels(labels)
+        dtax.set_ylabel('Doubling Time (da)')
+        dtax.grid(None,axis='y') # omit grid lines
 
-    if (yvarname == 'logbeta' and len(fit_files) > 4):
-        ax.set_ylim(-0.01,0.6)
+        dtlab = ['{:.0f}'.format(np.log(2.0)/np.exp(item)) for item in ax.get_yticks()]
+        dtax.set_yticklabels(dtlab)    
+
+#   if (yvarname == 'logbeta' and len(fit_files) > 4):
+#       ax.set_ylim(-0.01,0.6)
 
     if (add_doubling_time):
         dtax.set_ylim(ax.get_ylim())
