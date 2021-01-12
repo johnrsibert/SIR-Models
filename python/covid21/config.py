@@ -35,9 +35,9 @@ dtime = datetime.fromtimestamp(mtime)
 EndOfTime = dtime.date()+timedelta(days=14)
    
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
-print(GeoIndex.head())
+#print(GeoIndex.head())
 nyt_county_dat = pd.read_csv(NYT_counties,header=0)
-print(nyt_county_dat.head())
+#print(nyt_county_dat.head())
 
 eps = 1e-5
  

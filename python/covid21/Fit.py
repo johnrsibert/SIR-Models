@@ -112,7 +112,7 @@ class Fit(GG.Geography):
         return(r)         
        
     def plot(self,logscale=True, per_capita=False, delta_ts=False,
-             add_doubling_time = False,
+             show_doubling_time = False,
              npl = 4, save = True, show_median = False):
         """ 
         """
@@ -221,25 +221,8 @@ class Fit(GG.Geography):
         #   ax[2].set_yticks(np.arange(start, end, dtick))
 
         #   finagle doubling time axis at same scale as beta
-            if (add_doubling_time):
-                dtax = ax[2].twinx()
-                dtax.set_ylim(ax[2].get_ylim())
-                dtax.grid(False,axis='y') # omit grid lines
-                dtax.set_ylabel('Doubling Time (da)')
-            #   render now to get the tick positions and labels
-            #   fig.show()
-            #   fig.canvas.draw()
-                y2_ticks = dtax.get_yticks()
-                labels = dtax.get_yticklabels()
-                labels[0] = ''
-                for i in range(1,len(y2_ticks)):
-                    y2_ticks[i] = np.log(2)/np.exp(y2_ticks[i])
-                    labels[i] = round(float(y2_ticks[i]),2)
-                      
-                dtax.tick_params(length=0)
-                dtax.set_yticklabels(labels)
-            #   fig.show()
-            #   fig.canvas.draw()
+            if (show_doubling_time):
+                add_doubling_time(ax[2]) 
 
         if (npl > 3):
             logmu = self.diag['logmu']
@@ -352,7 +335,7 @@ def get_mu_atD1(ext='.RData',fit_files = []):
     plt.show(True)
 
 def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [], 
-                    add_doubling_time = False, show_order_date = True, save=False):
+                    show_doubling_time = False, show_order_date = True, save=False):
     print('Plotting',yvarname)
     if (yvarname == 'logbeta'):
         ylabel =r'$\ln \beta\ (da^{-1})$'
@@ -406,30 +389,26 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
 
 #   end of loop for i,ff in enumerate(fit_files):
 
+    if (yvarname == 'logbeta'): # and len(fit_files) > 4):
+        ax.set_ylim(-7.9,0.6)
+
 #   finagle doubling time axis at same scale as beta
-    if (add_doubling_time):
-    #   render now to get the tick positions and labels
-        fig.canvas.draw()
-
-        dtax = ax.twinx()
-        dtax.tick_params(length=0)
-        dtax.set_ylabel('Doubling Time (da)')
-        dtax.grid(None,axis='y') # omit grid lines
-
-        dtlab = ['{:.0f}'.format(np.log(2.0)/np.exp(item)) for item in ax.get_yticks()]
-        dtax.set_yticklabels(dtlab)    
+    if (show_doubling_time):
+        add_doubling_time(ax) 
+ 
 
 #   if (yvarname == 'logbeta' and len(fit_files) > 4):
 #       ax.set_ylim(-0.01,0.6)
 
-    if (add_doubling_time):
-        dtax.set_ylim(ax.get_ylim())
+#   if (add_doubling_time):
+#       dtax.set_ylim(ax.get_ylim())
 
     if (show_order_date):
         GU.add_order_date(ax)
 
     if save:
         gfile = cv.graphics_path+yvarname+'_summary'+suffix+'.png'
+        print('savig',gfile)
         fig.savefig(gfile)
         print('plot saved as',gfile)
         plt.show(block=False)
@@ -575,3 +554,11 @@ def make_fit_table(ext = '.RData'):
 #               na_rep='',column_format='lrrrrrrrrrrr')
     print('Fit table written to file',tex)
 
+def add_doubling_time(ax):
+    dtax = ax.twinx()
+    dtax.set_ylabel('Doubling Time (da)')
+    dtax.set_ylim(ax.get_ylim())
+    dtax.set_yticks(ax.get_yticks()[1:-1])
+    dtax.grid(axis='y') # omit grid lines
+    dtlab = ['{:.0f}'.format(np.log(2.0)/np.exp(item)) for item in dtax.get_yticks()]
+    dtax.set_yticklabels(dtlab)   
