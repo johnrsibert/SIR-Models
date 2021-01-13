@@ -8,6 +8,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
 import re
+from cycler import cycler
 
 class Geography:
 
@@ -195,6 +196,7 @@ class Geography:
     def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
+                        show_superspreader = False,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
         """ 
@@ -272,17 +274,21 @@ class Geography:
                 ax2.append(ax[a].twinx())
                 ax2[a].set_ylabel('Cumulative')
 
-        Date = self.get_pdate()
+        Date = pd.Series(self.get_pdate())
 
         for a in range(0,nax):
             if (a < 2):
                 delta = np.diff(gdf.iloc[:,a]) #cases)
                 ax[a].bar(Date[1:], delta)
+                adc = None
                 for w in range(0,len(window)):
                 #   moving average
                     adc = pd.Series(delta).rolling(window=window[w]).mean()
                     ax[a].plot(Date[1:],adc,linewidth=2)
                     GU.mark_ends(ax[a],Date[1:],adc, str(window[w])+'da','r')
+
+                if show_superspreader:
+                    GU.add_superspreader_events(Date,adc,ax[a])
 
                 ylim[a] = (0.0,1.2*adc.max())
                 ax[a].set_ylim(ylim[a])

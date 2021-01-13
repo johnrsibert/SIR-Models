@@ -84,6 +84,22 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
                       # Set the alpha value used for blendingD - 
     mark.set_alpha(a) # not supported on all backends
 
+def add_superspreader_events(Date,adc,ax):
+    sslag = 14
+    ssdates = ['2020-06-19','2020-07-04','2020-11-26']
+    ax.plot([], []) # advance color cycler
+    c = ax.get_lines()[-1].get_color()
+    for d in ssdates:
+        d1 = mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date())
+        d2 = d1 + sslag
+        i1 = Date.index[list(Date).index(d1)]
+        i2 = Date.index[list(Date).index(d2)]
+        y1 = adc[i1]
+        y2 = adc[i2]
+        ax.plot((d1,d1,d2),(y1,y2,y2),color=c,
+                linewidth=5,linestyle=(0,(1,1,))) #'dotted')
+               
+
 def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     # use of logscale is counterintuitive;
     # indicates that the y variable is logarithmic
