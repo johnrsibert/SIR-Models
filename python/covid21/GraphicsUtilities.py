@@ -17,8 +17,9 @@ def make_date_axis(ax, first_prev_date = None):
 #   print('firstDate,lastDate:',firstDate,lastDate)
     ax.set_xlim([firstDate,lastDate])
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+    ax.xaxis.set_major_locator(mdates.YearLocator())
     ax.xaxis.set_major_locator(mdates.MonthLocator())
-    ax.xaxis.set_minor_locator(mdates.DayLocator())
+    ax.xaxis.set_minor_locator(mdates.DayLocator(interval = 7))
 
 def none_reported(ax,what):
     lim = ax.get_xlim()
@@ -86,18 +87,21 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
 
 def add_superspreader_events(Date,adc,ax):
     sslag = 14
-    ssdates = ['2020-06-19','2020-07-04','2020-11-26']
+    ssdates = ['2020-06-19','2020-07-04','2020-11-26','2020-12-25','2020-08-09','2021-01-01']
     ax.plot([], []) # advance color cycler
     c = ax.get_lines()[-1].get_color()
     for d in ssdates:
         d1 = mdates.date2num(datetime.strptime(d,'%Y-%m-%d').date())
         d2 = d1 + sslag
         i1 = Date.index[list(Date).index(d1)]
-        i2 = Date.index[list(Date).index(d2)]
+        try:
+            i2 = Date.index[list(Date).index(d2)]
+        except:
+            i2 = len(adc)-1
         y1 = adc[i1]
         y2 = adc[i2]
         ax.plot((d1,d1,d2),(y1,y2,y2),color=c,
-                linewidth=5,linestyle=(0,(1,1,))) #'dotted')
+                linewidth=2) #,linestyle=(0,(1,1,))) #'dotted')
                
 
 def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
