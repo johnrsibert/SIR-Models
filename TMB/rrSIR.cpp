@@ -62,12 +62,9 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(prop_zero_deaths)
     DATA_VECTOR(log_obs_cases)
     DATA_VECTOR(log_obs_deaths)
+    DATA_VECTOR(obs_R)
+    DATA_VECTOR(log_obs_R)
                   
-    vector <Type> log_obs_CFR(ntime+1); // observed case fatality ratio
-    log_obs_CFR = log_obs_deaths - log_obs_cases;
-//  TRACE(log_obs_CFR)
-//  TRACE(exp(log_obs_CFR))
-
     PARAMETER(logsigma_logP);          // SIR process error
 
     PARAMETER(logsigma_logbeta);       // beta random walk sd
@@ -76,9 +73,8 @@ Type objective_function <Type>::operator()()
 
     PARAMETER(logsigma_logC);          // cases observation error
     PARAMETER(logsigma_logD);          // deaths observation error
-    PARAMETER(logsigma_logCFR);        // case fatality ratio observation error
-    TRACE(logsigma_logCFR)
-
+    PARAMETER(logsigma_logR);          // recveries ratio observation error
+ 
     PARAMETER_VECTOR(logbeta);         // infection rate time series
     PARAMETER_VECTOR(loggamma);        // recovery rate of infection population
     PARAMETER_VECTOR(logmu);           // mortality rate of infection population
@@ -88,8 +84,6 @@ Type objective_function <Type>::operator()()
     vector <Type> logEye(ntime+1);    // number of Infections
     vector <Type> logR(ntime+1);      // number of Recovered
     vector <Type> logD(ntime+1);      // number of Deaths from infected population
-    vector <Type> log_pred_CFR(ntime+1);      // predicted case fatality ratio
-
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_loggamma = exp(logsigma_loggamma); 
     Type sigma_logmu = exp(logsigma_logmu); 
@@ -97,8 +91,7 @@ Type objective_function <Type>::operator()()
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
     Type sigma_logD = exp(logsigma_logD);
-    Type sigma_logCFR = exp(logsigma_logCFR);
-    TTRACE(sigma_logCFR, logsigma_logCFR)
+    Type sigma_logR = exp(logsigma_logR);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_loggamma = square(sigma_loggamma);
@@ -107,8 +100,7 @@ Type objective_function <Type>::operator()()
 
     Type var_logC = square(sigma_logC);
     Type var_logD = square(sigma_logD);
-    Type var_logCFR = square(sigma_logCFR);
-    TTRACE(sigma_logCFR,var_logCFR)
+    Type var_logR = square(sigma_logR);
 
     Type f = 0.0;
     Type betanll = 0.0;
@@ -117,12 +109,13 @@ Type objective_function <Type>::operator()()
     Type Pnll = 0.0;
     Type cnll = 0.0;
     Type dnll = 0.0;
-    Type CFRnll = 0.0;
+    Type Rnll = 0.0;
 
     //  loop over time
     logS[0] = log(N0);
     logEye[0] = log_obs_cases[0];
     logD[0] = log_obs_deaths[0];
+    logR[0] = log_obs_R[0];
     for (int t = 1; t <= ntime; t++)
     {
     //   TRACE(t)
@@ -216,8 +209,6 @@ Type objective_function <Type>::operator()()
              TTRACE(nextD,deltaD)
          }
 
-         log_pred_CFR(t) = logD(t) - logEye(t);
- 
      }
 
      // compute observation likelihoods
@@ -234,21 +225,19 @@ Type objective_function <Type>::operator()()
      //  Poisson error
      //  dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
 
-     //  CFR error
-         CFRnll += isNaN(  LNerr(log_obs_CFR(t),log_pred_CFR(t),var_logCFR),__LINE__);
-         TRACE(var_logCFR)
-          
-
-         TTRACE(t,CFRnll)
-         TTRACE(log_obs_CFR(t),log_pred_CFR(t))
-         TTRACE(cnll,dnll)
+     //  R error
+         Rnll += isNaN(  LNerr(log_obs_R(t),logR(t),var_logR),__LINE__);
+     //  TRACE(var_logR)
+     //  TTRACE(t,Rnll)
+     //  TTRACE(log_obs_R(t),log_pred_R(t))
+     //  TTRACE(cnll,dnll)
      }
-     TTRACE(ntime,CFRnll)
-     TTRACE(cnll,dnll)
+//   TTRACE(ntime,Rnll)
+//   TTRACE(cnll,dnll)
 
 
      // total likelihood
-     f += isNaN((betanll + Pnll + cnll + dnll + CFRnll),__LINE__);
+     f += isNaN((betanll + Pnll + cnll + dnll + Rnll),__LINE__);
 
      REPORT(logS)
      REPORT(logEye)
@@ -258,20 +247,20 @@ Type objective_function <Type>::operator()()
      REPORT(loggamma)
      REPORT(logmu)
 
-     REPORT(sigma_logP);
-     REPORT(sigma_logbeta);
-     REPORT(sigma_loggamma);
-     REPORT(sigma_logmu);
-     REPORT(sigma_logCFR);
+//   REPORT(sigma_logP);
+//   REPORT(sigma_logbeta);
+//   REPORT(sigma_loggamma);
+//   REPORT(sigma_logmu);
+//   REPORT(sigma_logR);
 
-     REPORT(f);
-     REPORT(betanll);
-     REPORT(gammanll);
-     REPORT(Pnll);
-     REPORT(cnll);
-     REPORT(dnll);
-     REPORT(CFRnll);
-
+//   REPORT(f);
+//   REPORT(betanll);
+//   REPORT(gammanll);
+//   REPORT(Pnll);
+//   REPORT(cnll);
+//   REPORT(dnll);
+//   REPORT(Rnll);
+/*
      if (1)
      {
      //   TRACE(logbeta)
@@ -280,9 +269,9 @@ Type objective_function <Type>::operator()()
           TRACE(betanll);
           TRACE(gammanll);
           TTRACE(cnll,dnll)
-          TTRACE(f,CFRnll)
+          TTRACE(f,Rnll)
      //   return(Type(-1.0));
      }
-
+*/
      return isNaN(f,__LINE__);
 }

@@ -7,8 +7,8 @@ source(paste(TMB_path,'SIR_read_dat.R',sep=''))
 source(paste(TMB_path,'fit_to_df.R',sep=''))
 require(TMB)
 require(gtools)
+rm(fit)
 print('starting')
-
 
 do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
 {
@@ -26,6 +26,14 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
+data$obs_R = vector(len=data$ntime,mode="numeric")
+data$obs_R[1] = 0.0
+for (t in 2:(data$ntime+1))
+{
+    data$obs_R[t] = data$obs_cases[t-1] - data$obs_deaths[t-1]
+}
+data$log_obs_R = log(data$obs_R+eps)
+
 print("-data:")
 print(data)
 
@@ -51,7 +59,7 @@ init = list(
 
     logsigma_logC = log(0.223),
     logsigma_logD = log(0.105),
-    logsigma_logCFR = log(0.105),
+    logsigma_logR = log(0.105),
 
     logbeta  = log(0.2),
     loggamma =  log(0.075),
@@ -69,7 +77,7 @@ par = list(
 
     logsigma_logC   = init$logsigma_logC,
     logsigma_logD   = init$logsigma_logD,
-    logsigma_logCFR = init$logsigma_logCFR,
+    logsigma_logR   = init$logsigma_logR,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
@@ -80,15 +88,15 @@ print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "logsigma_logP" = as.factor(NA),
+           "logsigma_logP" = as.factor(1),
 
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(NA),
+           "logsigma_loggamma" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
            "logsigma_logD" = as.factor(NA),
-           "logsigma_logCFR" = as.factor(NA) 
+           "logsigma_logR" = as.factor(NA) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -103,7 +111,7 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par, # random=c("logbeta","loggamma","logmu"), 
+obj = MakeADFun(data,par, random=c("logbeta","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
@@ -114,7 +122,6 @@ ub <- obj$par*0+Inf
 
 #   cmd = 'Rscript --verbose simpleSIR4.R'
 
-#obj$env$inner.control$tol10 <- 0
 obj$env$inner.control$tol10 <- 0
 
 print("Starting minimization-------------------------",quote=FALSE)
@@ -126,10 +133,10 @@ print(paste("Function objective =",opt$objective))
 print(paste("Function value =",opt$value))
 print(paste("Convergence ",opt$convergence))
 print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
-print("parameters:",quote=FALSE)
-print(opt$par)
-print("exp(parameters):",quote=FALSE)
-print(exp(opt$par))
+#print("parameters:",quote=FALSE)
+#print(opt$par)
+#print("exp(parameters):",quote=FALSE)
+#print(exp(opt$par))
 
 #mlogbeta = median(obj$report()$logbeta)
 #print(paste("median logbeta:",mlogbeta,exp(mlogbeta)))
@@ -156,6 +163,7 @@ fit = list(dat=data,map=map,par=par,obj=obj,opt=opt,init=init,
            model.name=model.name)
 if (do.plot){
 #   x11()
+#   print(fit)
     plot.log.state(fit)
 #   dev.file = paste(fit_path,data$county,'.pdf',sep='')
     dev.file = paste(data$county,'_ests.pdf',sep='')
