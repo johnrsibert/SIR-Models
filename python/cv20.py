@@ -419,7 +419,8 @@ def make_dat_files():
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
-        tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False)
+        tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
+             show_superspreader=False)
 
 def update_fits():
     save_wd = os.getcwd()
@@ -460,8 +461,8 @@ def update_shared_plots():
 
     cv.graphics_path = save_path
 
-    os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
-    os.system('git push')
+#   os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
+#   os.system('git push')
 
 def update_assets():
     asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
@@ -473,8 +474,8 @@ def update_assets():
         cmd = 'cp -p '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
 
-    os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
-    os.system('git push')
+#   os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
+#   os.system('git push')
 
 def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
 #   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
@@ -566,8 +567,8 @@ def update_everything():
     print('Finished fit_plots')
     FF.make_fit_table()
     print('Finished fit table')
-    FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
-    FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
+    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True)
+    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
                     fit_files=['Los_AngelesCA','New_York_CityNY'])
 #                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
     FF.make_rate_plots('logmu',save=True)
@@ -579,8 +580,6 @@ def update_everything():
     print('Finished Everything!')
 
 
-# --------------------------------------------------       
-print('------- here ------')
 def log_norm_cfr():
     def vline(ax, y, ylim, mark):
         ax.plot((y,y), ylim)
@@ -657,187 +656,93 @@ def log_norm_cfr():
     plt.savefig('log_norm_cfr.png',format='png',dpi=300)
     plt.show()
 
-#
+def git_commit_push():
+    os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
+    os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
+    os.system('git push')
+
+def CFR_stats(nG = 2):
+    print(cv.nyt_county_dat.head())
+    print(cv.nyt_county_dat.tail())
+    d1 = cv.nyt_county_dat['date'][0]
+    d2 = cv.nyt_county_dat['date'].iloc[-1]
+    print(d1,d2)
+    date_list = pd.date_range(d1,d2)
+    print(date_list)
+
+#   CFRdf = pd.DataFrame(0.0,columns=('tcases','tdeaths','CFR'),index=date_list)
+#   print(CFRdf.head())
+
+    dat = cv.nyt_county_dat 
+    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
+    NYC_mask = dat['county'] == 'New York City' 
+    dat.loc[NYC_mask,'fips'] = 36999
+
+    gCFR = pd.Series(index=np.arange(0,nG),dtype='float64')
+    print('gCFR',len(gCFR))
+    print(gCFR)
+
+    gg = cv.GeoIndex
+    for d in range(340,357): #0,len(date_list)):
+        day = str((date_list[d]).date())
+        print('day',d,day)
+
+        gCFR.values[:] = 0.0
+        for g in range(0,nG):
+            county = gg['county'].iloc[g]
+            fips = gg['fips'].iloc[g]
+        #   print(g,':',county,fips)
+            fips_mask = dat['fips'] == fips
+        #   print(dat[fips_mask])
+            date_mask = dat['date'] == day
+        #   print(date_mask)
+            
+            gmask = (fips_mask & date_mask)
+            if (any(gmask)):
+                tmp = dat[gmask]
+            #   print(tmp)
+                r = tmp['deaths']/tmp['cases']
+            #   print('geog',g,tmp['deaths'],tmp['cases'],r)
+                gCFR[g] = tmp['deaths']/tmp['cases']
+            #   sys.exit()
+
+        print(gCFR.values)
+
+#       if (d > 10):
+#           sys.exit()
 
 
-# -------------------------------------------------
-
-def make_cfr_histo_ts(nG = 100,save=True):
-    firstDate = date(2020,1,1)
-#   print(firstDate, mdates.date2num(firstDate))
-    lastDate = datetime.fromtimestamp(os.path.getmtime(cv.NYT_home+'us-counties.csv')).date()
-#   print('lastDate:',lastDate)
-    nextDate = firstDate
-    p = 0
-    tdate = int(mdates.date2num(firstDate))
-    hdate = [tdate]
-    period_labels = [mdates.num2date(tdate).strftime('%b')]
-    Period_Labels = [mdates.num2date(tdate).strftime('%B')]
-    
-    while nextDate < lastDate:
-        p += 1
-        nextDate = nextDate + relativedelta(months=+1)
-    #   print(p,nextDate, mdates.date2num(nextDate))
-        if (p>1):
-            tdate = int(mdates.date2num(nextDate))
-            hdate.append(tdate)
-            period_labels.append(mdates.num2date(tdate).strftime('%b'))
-            Period_Labels.append(mdates.num2date(tdate).strftime('%B'))
-    
-    
-    
-    #print(hdate)
-    #print(period_labels)
-    periods = pd.DataFrame(columns=('pd','pl','PL'))
-    periods['pd']=hdate
-    periods['pl']=period_labels
-    periods['PL']=Period_Labels
-    print(periods)
- 
-    cfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
-#   print('cfrG 0:')
-#   print(cfrG)
-    gg = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
-    print('Processing',nG,'geographies')
-    nobs = 0
-    for g in range(0,nG):
-        print(g,gg['county'].iloc[g])
-        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
-                         code=gg['code'].iloc[g])
-        tmpG.read_nyt_data('county')
-        tmpG.get_pdate()
-
-        cf = pd.DataFrame(index=tmpG.get_pdate(),columns=('cases','deaths','pdate'))
-        cf['cases'] = tmpG.cases
-        cf['deaths'] = tmpG.deaths
-        cf['pdate'] = np.int64(tmpG.pdate)
-    #   print('cf:')
-    #   print(cf)
-
-        row = pd.Series(0.0,index=cfrG.columns)
-        for t in range(0,len(cfrG.columns)-1):
-            csum = float(cf['cases'] [hdate[t]:hdate[t+1]].sum())
-            dsum = float(cf['deaths'][hdate[t]:hdate[t+1]].sum())
-        #   print(hdate[t],hdate[t+1],csum,dsum)
-            if (csum > 0.0):
-                row[hdate[t]] = dsum/csum
-                nobs += 1
-            else:
-                row[hdate[t]] = 0.0
-
-        cfrG = cfrG.append(row, ignore_index=True)
-
-#   print('cfrG nG:')
-#   print(cfrG)
-
-#   print(np.ones_like(cfrG))
-#   print(cfrG.shape,cfrG.size)
-#   print('cfrG.min:')
-#   print(cfrG.min().max())
-#   print('cfrG.max:')
-#   print(cfrG.max())
-
-    logcfrG = pd.DataFrame(columns=hdate[0:len(hdate)-1])
-    logcfrG =np.log(cfrG + eps)
-#   print('logcfrG"')
-#   print(logcfrG)
-#   df[df.replace([np.inf, -np.inf], np.nan).notnull().all(axis=1)] 
-#   logcfrG[logcfrG.replace([np.inf, -np.inf], np.nan,inplace=True).notnull().all(axis=1)] 
-#   df.replace([np.inf, -np.inf], np.nan).dropna(axis=1)
-#   logfcfrG = pd.DataFrame(logcfrG.replace([np.inf, -np.inf], np.nan,inplace=True)).dropna(axis=1)
-#   print(logcfrG)
-
-    bins = np.linspace(0.0,0.1,50)
-#   print(bins)
-    bins[0] =  0.001 #0.1*cfrG.min().max()
-#   print(bins)
-    fig, ax = plt.subplots(2,1,figsize=(6.5,6.5))
-#   ax[0].set_ylim(0.0,0.2)
-#   ax[1].set_ylim(0.0,0.2)
-#   gweights = np.ones_like(cfrG) / float(cfrG.size)
-    for k,p in enumerate(cfrG.columns):
-        weights = np.ones_like(cfrG[p]) / float(cfrG[p].size)
-        phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=weights,
-                                        density=False)
-        psum = phist.sum()
-    #   print('psum:',psum)
-        ax[0].plot(bin_edges[:-1],phist,linewidth=2)
-#       GU.mark_ends(ax[0],bin_edges[:-1],phist,period_labels[k])
-        GU.mark_peak(ax[0],bin_edges[:-1],phist,str(period_labels[k]))
- 
-    axlim = ax[0].get_xlim()
-    tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
-    aylim = ax[0].get_ylim()
-    ty = aylim[0]+0.9*(aylim[1]-aylim[0])
-    ax[0].text(tx,ty,' n = '+str(nG),ha='right',va='center')
-
-    logbins = np.log(bins)#+eps)
-    for k,p in enumerate(cfrG.columns):
-        weights = np.ones_like(logcfrG[p]) / float(logcfrG[p].size)
-        phist, bin_edges = np.histogram(logcfrG[p], density=False, bins=logbins, weights=weights)
-#       psum = phist.sum()
-#       print('psum:',psum)
-        ax[1].plot(bin_edges[:-1],phist,linewidth=2)
-#       GU.mark_ends(ax[1],bin_edges[:-1],phist,period_labels[k])
-        GU.mark_peak(ax[1],bin_edges[:-1],phist,period_labels[k])
- 
-    axlim = ax[1].get_xlim()
-    tx = axlim[0] + 0.95*(axlim[1]-axlim[0])
-    aylim = ax[1].get_ylim()
-    ty = aylim[0]+0.9*(aylim[1]-aylim[0])
-    ax[1].text(tx,ty,' n = '+str(nG),ha='right',va='center')
-
-    if (save):
-        gfile = cv.graphics_path+'monthly_CFR_histo_'+str(nG)+'.png'
-        plt.savefig(gfile,dpi=300)
-        print('Plot saved as',gfile)
-
-    plt.show()#block=False)
-
-    if (1):
-        sys.exit(1)
-    figb, bx = plt.subplots(4,3,figsize=(9.0,6.5))
-    bxf = bx.flatten('C')
-#   print(bxf)
-    for k,p in enumerate(cfrG.columns):
-        weights = np.ones_like(cfrG[p]) / float(cfrG[p].size)
-        phist, bin_edges = np.histogram(cfrG[p], bins=bins, weights=weights,
-                                        density=False)
-        bxf[k].bar(bin_edges[:-1],phist)
-        bxf[k].plot(bin_edges[:-1],phist,linewidth=2)
-        axlim = bxf[k].get_xlim()
-        tx = axlim[0] + 0.9*(axlim[1]-axlim[0])
-        aylim = bxf[k].get_ylim()
-        ty = aylim[0]+0.9*(aylim[1]-aylim[0])
-        bxf[k].text(tx,ty,period_labels[k],ha='left',va='center')
-
-
-    plt.show()#block=False)
-
-#make_cfr_histo_ts()
-
+# --------------------------------------------------       
+print('------- here ------')
+CFR_stats()
 
 #tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
+#tgeog = GG.Geography(name='Hennepin',enclosed_by='Minnesota',code='MN')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=True, signature=True)
+#tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False)
 
 #update_shared_plots()
 
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-FF.make_fit_table()
-#FF.make_rate_plots('logbeta',add_doubling_time = True,save=True)
-#FF.make_rate_plots('logbeta',add_doubling_time = True,save=True,
-#                    fit_files=['AlamedaCA','BexarTX'])
+#FF.make_fit_table()
+
+#tfit = FF.Fit(cv.fit_path+'Los_AngelesCA.RData')
+#tfit.plot(save=True,logscale=True,show_doubling_time=True)
+ 
+#FF.make_rate_plots('logbeta',show_doubling_time = True,save=True)
+#FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
+#                   fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
 #plot_DC(glist=[5,1000], save=True)
 #update_assets()
 
 #update_everything()
+#git_commit_push()
