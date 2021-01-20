@@ -661,10 +661,10 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
 
-def CFR_stats(nG = 5, minG = 5):
+def CFR_stats(nG = 5, minG = 0):
     d1 = cv.nyt_county_dat['date'][0]
     d2 = cv.nyt_county_dat['date'].iloc[-1]
-    date_list = pd.date_range(d1,d2)
+    date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
     print('processing',nG,'geographies and',len(date_list),'dates:')
     print(d1,d2)
 
@@ -676,22 +676,10 @@ def CFR_stats(nG = 5, minG = 5):
 
     # CFR by geography
     gCFR = pd.Series(index=np.arange(0,nG), dtype='float64')
-    gcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = pd.DatetimeIndex(date_list), dtype='float64')
-    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = pd.DatetimeIndex(date_list), dtype='float64')
-    CFR = pd.DataFrame(0.0,columns=('date','nobs','cfr'), index = pd.DatetimeIndex(date_list), dtype='float64')
-    CFR['date'] = date_list
-#   print(gcases.shape)
-#   if (1):
-#       exit(1)
+    gcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
+    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
+    CFR = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
 
-    # CFR negattive bionomial parameters by date
-    CFRnb = pd.DataFrame(columns=('date','shape', 'loc', 'scale'))
-
-#   DC_totals = pd.DataFrame(0.0,columns=('date','cases','deaths'),index=date_list)
-#   DC_totals['date'] = date_list
-#   print(DC_totals)
-#   if (1):
-#       exit(1)
 
     gg = cv.GeoIndex
 
@@ -703,94 +691,67 @@ def CFR_stats(nG = 5, minG = 5):
         fips_entries = fips_mask.value_counts()[1]
         print('fips_entries:', fips_entries)
         if (fips_entries >= minG):
-        #   print(dat[fips_mask],dat[fips_mask].index)
-#           gCFR.values[:] = None
             gindex =  dat[fips_mask].index
             for k in gindex:
-            #   print('k=',k,dat.loc[k])
                 tmp = dat.loc[k]
                 date = tmp['date']
-            #   print('before:',gcases.loc[date])
-            #   print('before:',gdeaths.loc[date])
-            #   print('       ',date,g)
-            #   print(' tmp c:',tmp['cases'])
                 gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
                 gdeaths.loc[date,g] = gdeaths.loc[date,g]+tmp['deaths']
-            #   print(' after:',gcases.loc[date])
-            #   print(' after:',gdeaths.loc[date])
-            #   DC_totals['cases'].loc[date] += tmp['cases']
-            #   DC_totals['deaths'].loc[date] += tmp['deaths']
-            #   if (1):
-            #       exit(1)
+
+        else:
+            print('     skipped')
 
 #   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             # more options can be specified also
-    print(gdeaths.head())
     
     for date in pd.DatetimeIndex(date_list):
-    #   print(date,gdeaths.loc[date].sum(axis=0))
-        CFR.loc[date,'cfr']  = gdeaths.loc[date].sum(axis=0)/(gcases.loc[date].sum(axis=0)+1e-9)
+        CFR.loc[date]  = gdeaths.loc[date]/(gcases.loc[date]+1e-8) + 1e-8
+ 
+#   print(CFR)
 
-    print(CFR)
+    # CFR negattive bionomial parameters by date
+    CFRnb = pd.DataFrame(columns=('shape', 'loc', 'scale','meanR','sdR', 'meanlogR','sdlogR' ),index=date_list)
+    for date in pd.DatetimeIndex(date_list):
+        shape, loc, scale = stats.lognorm.fit(CFR.loc[date],floc=0)
+        meanR = np.mean(CFR.loc[date])
+        sdR = np.std(CFR.loc[date])
+        logR = np.log(CFR.loc[date])
+        meanlogR = np.exp(np.mean(logR))
+        sdlogR = np.exp(np.std(logR))
+        CFRnb.loc[date] = [shape, loc, scale, meanR, sdR, meanlogR, sdlogR] 
 
-        #   shape, loc, scale = stats.lognorm.fit(gCFR.dropna(),floc=0)
-        #   day = mdates.datestr2num(tmp['date'], default=None) 
-        #   row = pd.Series([date, shape, loc, scale], index=CFRnb.columns)
-#          #    print(row)
-        #   CFRnb = CFRnb.append(row,ignore_index=True)
-
-#   print(DC_totals)
-
-#   for d in range(0,len(date_list)): #range(340,357): 
-#       day = str((date_list[d]).date())
-#       print('day',d,day)
-#       date_mask = dat['date'] == day
-#       if (any(date_mask)):
-#           #   county = gg['county'].iloc[g]
-#           #   print(g,':',gg['county'].iloc[g] ,fips)
-#               if (any(fips_mask)):
-#                   gmask = (fips_mask & date_mask)
-#               #   print(gmask)
-#                   if (any(gmask)):
-#                       tmp = dat[gmask]
-#                   #   print(tmp)
-#                       with errstate(divide='ignore'):
-#                           gCFR[g] = tmp['deaths']/tmp['cases']+1e-8
-#                   else:
-#                       print('    nothing for gmask')
-#                       print('    skipping geography',g,':',gg['county'].iloc[g],fips, '(gmask)')
-#               else:
-#                   print('    skipping geography',g,':',gg['county'].iloc[g],fips,'(fipsmask)')
-
-#       #   print(gCFR.values)
-
-#       #   mean_CFR = np.mean(gCFR)
-#       #   with errstate(divide='ignore'):
-#       #       mean_logCFR = np.mean(np.log(gCFR))
-#       #   row = pd.Series([day, mean_CFR, mean_logCFR], index=CFRdesc.columns)
-
-#           zmask = gCFR > 0
-#           CFR_entries = zmask.value_counts()[1]
-
-#           param = [0.0]*3
-#           try:
-#           #   shape, loc, scale = sp.stats.lognorm.fit(sample_dist, floc=0)
-#               param = stats.lognorm.fit(gCFR,floc=0)
-#           except:
-#               print('fit failed for geography',g,':',gg['county'].iloc[g],fips,'day',d,day)
-#               print('    CFR_entries:',CFR_entries)
-#           #   with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-#           #       print(gCFR)
-#           row = pd.Series([day, param[0], param[1], param[2]], index=CFRdesc.columns)
-#           CFRdesc = CFRdesc.append(row,ignore_index=True)
+    print(CFRnb)
+    
+    file_name = 'CFRstats'+str(nG)+'.csv'
 
 
-#       else:
-#           print('    skipping day',d,day,'(dmask)')
+    CFRnb.to_csv(file_name,index=True)
 
-#   print(CFRnb)
-#   CFRnb.to_csv('CFRnb.csv',index=False)
+def plot_CFRnb(file = None):
+    file_name = file+'.csv'
+    CFRdesc = pd.read_csv(file_name,header=0,index_col=0)
+    print('CFRdesc:')
+    print(CFRdesc.columns)
+    print(CFRdesc)
+#   Date = []
+#   for d in CFRdesc[0]:
+#       Date.append(mdates.datestr2num(d, default=None)) 
+#   Date = CFRdesc.index
 
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+
+    bins  = np.linspace(0.0,0.1,100)
+    ax.set_xlabel('Case Fatality Ratio')
+    ax.set_ylabel('Proportion')
+    for d in range(52,len(CFRdesc)):
+#   for d in range(len(CFRdesc)-1,41,-1):
+#   for d in range(110,80,-1):
+        pdf = stats.lognorm.pdf(bins,CFRdesc['shape'][d],CFRdesc['loc'][d],CFRdesc['scale'][d])
+        pdf = pdf/sum(pdf)
+        ax.plot(bins,pdf,linewidth=1)
+        GU.mark_peak(ax,bins,pdf,str(d))
+
+    plt.show()
 
 def not_CFR_stats(nG = 100):
     d1 = cv.nyt_county_dat['date'][0]
@@ -899,6 +860,7 @@ def plot_CFRmean():
 # --------------------------------------------------       
 print('------- here ------')
 CFR_stats()
+#plot_CFRnb('CFRstats1000')
 #plot_CFRmean()
 
 #tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
