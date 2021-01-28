@@ -686,8 +686,8 @@ def CFR_comp(nG=5):
         print(g,':',gg['county'].iloc[g] ,fips)
     #   print(gcases[g])
         fips_mask = dat['fips'] == fips
-        fips_entries = fips_mask.value_counts()[1]
-        print('fips_entries:', fips_entries)
+    #   fips_entries = fips_mask.value_counts()[1]
+    #   print('fips_entries:', fips_entries)
    
         gindex =  dat[fips_mask].index
         for k in gindex:
@@ -849,7 +849,7 @@ def plot_CFR_ridge(CFRfile):
             prev_mon = int(dlist[1])
 
 
-    print('building "flat" file...')
+    print('building "flat" file ... very slowly')
     flatCFR = pd.DataFrame(columns=('date','ratio'))
     for d in shortCFR.index:
         row = pd.Series(0.0,index=flatCFR.columns)
@@ -860,132 +860,25 @@ def plot_CFR_ridge(CFRfile):
 
     print('plotting ridgeline')
     fig,axes = joyplot(flatCFR, by='date', column='ratio', labels = labels,
-                       range_style='own', overlap = 2,
+                       range_style='own', overlap = 2, x_range=[0.0,0.4],
                        grid="y", linewidth=0.25, legend=False, figsize=(6.5,6.5),
-                       title='Case Fatality Ratio\n('+str(nG) + 'counties)',
+                       title='Case Fatality Ratio\n('+str(nG) + ' counties)',
                        colormap=cm.Blues_r) #cm.autumn_r)
 
-    plt.show()
     gfile = 'CFRridgeline'+str(nG)+'.png' 
     print('saving',gfile)
     plt.savefig(gfile, dpi=300)
     print('ridgeline plot saved as',gfile)
-
-
-def NOT_CFR_stats(nG = 5, minG = 0, Floc=None):
-    d1 = cv.nyt_county_dat['date'][0]
-    d2 = cv.nyt_county_dat['date'].iloc[-1]
-    date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
-    print('processing',nG,'geographies and',len(date_list),'dates:')
-    print(d1,d2)
-
-
-    dat = cv.nyt_county_dat 
-    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
-    NYC_mask = dat['county'] == 'New York City' 
-    dat.loc[NYC_mask,'fips'] = 36999
-
-    # CFR by geography
-    gCFR = pd.Series(index=np.arange(0,nG), dtype='float64')
-    gcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
-    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
-    CFR = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)#, dtype='float64')
-
-
-    gg = cv.GeoIndex
-
-    for g in range(0,nG):
-        fips = gg['fips'].iloc[g]
-        print(g,':',gg['county'].iloc[g] ,fips)
-    #   print(gcases[g])
-        fips_mask = dat['fips'] == fips
-        fips_entries = fips_mask.value_counts()[1]
-        print('fips_entries:', fips_entries)
-        if (fips_entries >= minG):
-            gindex =  dat[fips_mask].index
-            for k in gindex:
-                tmp = dat.loc[k]
-                date = tmp['date']
-                gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
-                gdeaths.loc[date,g] = gdeaths.loc[date,g]+tmp['deaths']
-
-        else:
-            print('     skipped')
-
-#   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            # more options can be specified also
-    
-    for date in pd.DatetimeIndex(date_list):
-        CFR.loc[date]  = gdeaths.loc[date]/(gcases.loc[date]+1e-8) + 1e-8
- 
-#   print(CFR)
-    file_name = 'CFR'+str(nG)+'.csv'
-    csv = open(file_name,'w')
-    csv.write(str(nG)+'\n')
-    CFR.to_csv(csv,index=True)
-
-    # CFR log-normal parameters by date
-    CFRln = pd.DataFrame(columns=('shape', 'loc', 'scale','meanR','sdR', 'meanlogR','sdlogR' ),index=date_list)
-    for date in pd.DatetimeIndex(date_list):
-        if Floc is None:
-            shape, loc, scale = stats.lognorm.fit(CFR.loc[date])
-        else:
-            shape, loc, scale = stats.lognorm.fit(CFR.loc[date],floc=Floc)
-        meanR = np.mean(CFR.loc[date])
-        sdR = np.std(CFR.loc[date])
-        logR = np.log(CFR.loc[date])
-        meanlogR = np.exp(np.mean(logR))
-        sdlogR = np.exp(np.std(logR))
-        CFRln.loc[date] = [shape, loc, scale, meanR, sdR, meanlogR, sdlogR] 
-
-    print(CFRln)
-    
-    file_name = 'CFRstats'+str(nG)+'.csv'
-    csv = open(file_name,'w')
-    csv.write('{} {}\n'.format(nG,Floc))
-    CFRln.to_csv(csv,index=True)
-    print('wrote CFNln to',file_name)
-
-def NOT_plot_CFRln(file = None):
-    file_name = file+'.csv'
-    csv = open(file_name,'r')
-    nG,floc = csv.readline().split(' ',1)
-    print('read',nG,floc,'from file_name')
-    CFRdesc = pd.read_csv(csv,header=0,index_col=0)
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    bins  = np.linspace(0.0,0.1,100)
-    ax.set_xlabel('Case Fatality Ratio')
-    ax.set_ylabel('Proportion')
-    for d in range(0,len(CFRdesc)):
-#   for d in range(len(CFRdesc)-1,41,-1):
-#   for d in range(110,80,-1):
-        pdf = stats.lognorm.pdf(bins,CFRdesc['shape'][d],CFRdesc['loc'][d],CFRdesc['scale'][d])
-        pdf = pdf/sum(pdf)
-        ax.plot(bins,pdf,linewidth=1)
-        GU.mark_peak(ax,bins,pdf,str(d))
-
-    plt.show(block=False)
-
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-#   ax.set_xlabel('Date')
-    ax.set_ylabel('Mean CFR')
-    Date = mdates.date2num(CFRdesc.index)
-    GU.make_date_axis(ax)
-    ax.plot(Date,CFRdesc['meanR'])
-    GU.mark_ends(ax,Date,CFRdesc['meanR'],'arithmetic','r')
-    ax.plot(Date,CFRdesc['meanlogR'])
-    GU.mark_ends(ax,Date,CFRdesc['meanlogR'],'log trans','r')
-    
     plt.show()
 
 
 # --------------------------------------------------       
 print('------- here ------')
-#CFR_comp(nG=50)
+#CFR_comp(nG=500)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
 #plot_CFR_contour('CFRstats_1000_0.0.csv')
-plot_CFR_ridge('CFR5.csv')
+plot_CFR_ridge('CFR500.csv')
 
 #tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
