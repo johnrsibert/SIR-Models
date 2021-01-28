@@ -818,64 +818,58 @@ def plot_CFR_ridge(CFRfile):
     from joypy import joyplot
     from matplotlib import cm
     CFR = pd.read_csv(CFRfile,header=0,index_col=0)
+    nG = len(CFR.columns)
+    print('finished reading',CFRfile,CFR.shape)
 
-    ntail = 20
-    shortCFR = CFR.tail(ntail)
-    print('shortCFR:')
-    print(shortCFR)
+    ntail = 0
+    if (ntail > 0):
+        shortCFR = CFR.tail(ntail)
+    else:
+        shortCFR = CFR.iloc[58:]
 
-    flatCFR = pd.DataFrame(columns=('date','month','ratio'))
+    print('building labels')
+    labels = [None]*len(shortCFR)
+    prev_mon = 11
+    for i, d in enumerate(shortCFR.index):
+        dlist = d.split('-')
+    #   print(i,d,dlist,prev_mon,dlist[1])
+        if (i == 0):
+            prev_mon = int(dlist[1])
+            dd = datetime.strptime(d,'%Y-%m-%d')
+            labels[i] = dd.strftime('%Y')+' '+ dd.strftime('%b')
+        elif (dlist[1] == '01' and prev_mon == 12):
+            prev_mon = 1
+            dd = datetime.strptime(d,'%Y-%m-%d')
+            labels[i] = dd.strftime('%Y')+' '+ dd.strftime('%b')
+        elif (dlist[2] == '01'): # day 1 of month
+            prev_mon = int(dlist[1])
+            dd = datetime.strptime(d,'%Y-%m-%d')
+            labels[i] = dd.strftime('%b')
+        else:
+            prev_mon = int(dlist[1])
+
+
+    print('building "flat" file...')
+    flatCFR = pd.DataFrame(columns=('date','ratio'))
     for d in shortCFR.index:
-        dd = datetime.strptime(d,'%Y-%m-%d')
-    #   print('d:',type(d),d,dd,dd.month)
-        mm = dd.strftime('%b')
-    #   print('   mm:',mm)
         row = pd.Series(0.0,index=flatCFR.columns)
         row['date'] = d # shortCFR['date'].iloc[r]
-        row['month'] = str(mm)
-    #   print('row 1:',row)
         for c in shortCFR.loc[d]:
             row['ratio'] = c
             flatCFR = flatCFR.append(row,ignore_index = True)
 
-    print(flatCFR.shape)
-    print(flatCFR.dtypes)
-    print(flatCFR)
-    umon = list(flatCFR['month'].unique())
-    print(umon)
-#   labels=[y if y%10==0 else None for y in list(temp.Year.unique())]
-    labels = flatCFR['month']
-   
+    print('plotting ridgeline')
+    fig,axes = joyplot(flatCFR, by='date', column='ratio', labels = labels,
+                       range_style='own', overlap = 2,
+                       grid="y", linewidth=0.25, legend=False, figsize=(6.5,6.5),
+                       title='Case Fatality Ratio\n('+str(nG) + 'counties)',
+                       colormap=cm.Blues_r) #cm.autumn_r)
 
-
-#labels=[y if y%10==0 else None for y in list(temp.Year.unique())]
-#fig, axes = joypy.joyplot(temp, by="Year", column="Anomaly", labels=labels, range_style='own', 
-                          #grid="y", linewidth=1, legend=False, figsize=(6,5),
-                          #title="Global daily temperature 1880-2014 \n(°C above 1950-80 average)",
-                          #colormap=cm.autumn_r)
-    fig,axes = joyplot(flatCFR, by='date', column='ratio', #labels = labels,
-                       grid="y", linewidth=0, legend=False, figsize=(6.5,6.5),
-    #                  title='Case Fatality Ratios',
-                       kind='counts', x_range = [-0.001,0.08],
-                       bins=30, range_style='all', overlap=3, # hist=True, 
-                       colormap=cm.autumn_r)
     plt.show()
-    print(len(axes),len(flatCFR))
-#   plt.figure()
-#   joyplot(
-#   #   data=sydney[['MaxTemp', 'Month']], 
-#   #   data = CFR,
-#       data = shortCFR,
-#   #   by='Month',
-#       by = 'date',
-#   #   column = ['0','1'],
-#   #   color=['#686de0', '#eb4d4b'],
-#       figsize=(len(shortCFR), 200)
-#   )
-#   plt.title('Ridgeline Plot of Case Fatality Ratios', fontsize=20)
-#   plt.show()
-
-
+    gfile = 'CFRridgeline'+str(nG)+'.png' 
+    print('saving',gfile)
+    plt.savefig(gfile, dpi=300)
+    print('ridgeline plot saved as',gfile)
 
 
 def NOT_CFR_stats(nG = 5, minG = 0, Floc=None):
@@ -987,7 +981,7 @@ def NOT_plot_CFRln(file = None):
 
 # --------------------------------------------------       
 print('------- here ------')
-#CFR_comp(nG=1000)
+#CFR_comp(nG=50)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
 #plot_CFR_contour('CFRstats_1000_0.0.csv')
