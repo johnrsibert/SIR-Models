@@ -26,13 +26,7 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
-data$obs_R = vector(len=data$ntime,mode="numeric")
-data$obs_R[1] = 0.0
-for (t in 2:(data$ntime+1))
-{
-    data$obs_R[t] = data$obs_cases[t-1] - data$obs_deaths[t-1]
-}
-data$log_obs_R = log(data$obs_R+eps)
+data$log_obs_CFR = log(data$obs_deaths+eps) - log(data$obs_cases+eps)
 
 print("-data:")
 print(data)
@@ -57,9 +51,9 @@ init = list(
     logsigma_logmu = log(0.223), #0.4,-2.0,
 
 
-    logsigma_logC = log(0.223),
-    logsigma_logD = log(0.105),
-    logsigma_logR = log(0.105),
+    logsigma_logC = log(0.105),
+    logsigma_logD = log(0.05),
+    logsigma_logCFR = log(0.105),
 
     logbeta  = log(0.2),
     loggamma =  log(0.075),
@@ -77,7 +71,7 @@ par = list(
 
     logsigma_logC   = init$logsigma_logC,
     logsigma_logD   = init$logsigma_logD,
-    logsigma_logR   = init$logsigma_logR,
+    logsigma_logCFR   = init$logsigma_logCFR,
 
     logbeta  = rep(init$logbeta,(data$ntime+1)),
     loggamma = rep(init$loggamma,data$ntime+1),
@@ -96,7 +90,7 @@ map = list(
 
            "logsigma_logC" = as.factor(NA),
            "logsigma_logD" = as.factor(NA),
-           "logsigma_logR" = as.factor(NA) 
+           "logsigma_logCFR" = as.factor(NA) 
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -111,7 +105,7 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par, random=c("logbeta","logmu"), 
+obj = MakeADFun(data,par,  random=c("logbeta","loggamma","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
