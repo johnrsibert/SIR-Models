@@ -89,11 +89,11 @@ plot.log.state = function(fit) #,np=5)
     plot.rv(tt,dat$log_obs_cases, obj$report()$logEye,
             ylab='ln cases,', err, err_name='sigma_logC',ylim=poplim)
 
-    err = exp(get.error(par,opt,map,'logsigma_logR'))
-    plot.rv(tt,dat$log_obs_R, obj$report()$logR,
-            ylab='ln R', err, err_name='sigma_logR',ylim=poplim)
+#   err = exp(get.error(par,opt,map,'logsigma_logR'))
+#   plot.rv(tt,dat$log_obs_R, obj$report()$logR,
+#           ylab='ln R', err, err_name='sigma_logR',ylim=poplim)
 
-#   plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, col='red',type='l',lwd=3)
+    plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, col='red',type='l',lwd=3)
 
     ylim=c(0.0,1.2*max(dat$log_obs_deaths,obj$report()$logD))
     if (hasName(par,'logsigma_logD'))
@@ -129,15 +129,15 @@ plot.log.state = function(fit) #,np=5)
             ylab='ln gamma', err=err,
             err_name='sigma_loggamma',ylim=rlim)
 
-#   prd_cfr = exp(obj$report()$logD - obj$report()$logEye)
-#   obs_cfr = dat$obs_deaths / dat$obs_cases
-#   cfrlim = 2.0*max(obs_cfr)
+    prd_cfr = exp(obj$report()$log_pred_CFR)
+    obs_cfr = exp(dat$log_obs_CFR)
+    cfrlim = 2.0*max(obs_cfr)
 #   rlim = c(0.0,cfrlim)
 #   print(rlim)
 #   err = exp(get.error(par,opt,map,'logsigma_logCFR'))
 #   print(err)
-#   plot(tt, obs_cfr,ylab='Deaths/Cases',ylim=(c(0.0,cfrlim)), pch=point.symb)
-#   lines(tt, prd_cfr,col='red')
+    plot(tt, obs_cfr,ylab='CFR',ylim=(c(0.0,cfrlim)), pch=point.symb)
+    lines(tt, prd_cfr,col='red')
 #   plot.rv(tt,obs_cfr,prd_cfr,
 #           ylab='Deaths/Cases', err=err,
 #           err_name='sigma_logCFR',ylim=rlim)
@@ -147,6 +147,8 @@ plot.log.state = function(fit) #,np=5)
 #   text(ttext,ytext,note,col=note.color,pos=4)
 #   print(rlim)
 #   print(err)
+
+
     
 
 #   plot.new()
