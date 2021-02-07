@@ -123,33 +123,12 @@ plot.log.state = function(fit) #,np=5)
             ylab='ln mu', err=err,
             err_name='sigma_logmu',ylim=rlim)
 
-    glim = range(obj$report()$loggamma)
-    err = exp(get.error(par,opt,map,'logsigma_loggamma'))
-    plot.rv(tt,obj$report()$loggamma, obj$report()$loggamma,
-            ylab='ln gamma', err=err,
-            err_name='sigma_loggamma',ylim=rlim)
+#   rlim = range(obj$report()$logZ)
+    err = exp(get.error(par,opt,map,'logsigma_logZ'))
+    plot.rv(tt,obj$report()$logZ, obj$report()$logZ,
+            ylab='ln Z', err=err,
+            err_name='sigma_logZ',ylim=rlim)
 
-    prd_cfr = exp(obj$report()$log_pred_CFR)
-    obs_cfr = exp(dat$log_obs_CFR)
-    cfrlim = 2.0*max(obs_cfr)
-#   rlim = c(0.0,cfrlim)
-#   print(rlim)
-#   err = exp(get.error(par,opt,map,'logsigma_logCFR'))
-#   print(err)
-    plot(tt, obs_cfr,ylab='CFR',ylim=(c(0.0,cfrlim)), pch=point.symb)
-    lines(tt, prd_cfr,col='red')
-#   plot.rv(tt,obs_cfr,prd_cfr,
-#           ylab='Deaths/Cases', err=err,
-#           err_name='sigma_logCFR',ylim=rlim)
-#   ttext = 0.1*(length(dat$log_obs_cases)-1)
-#   ytext = cfrlim*0.9
-#   note = paste('sigma_logCFR =',sprintf("%g",err)) #obj$report()$sigma_logCFR))
-#   text(ttext,ytext,note,col=note.color,pos=4)
-#   print(rlim)
-#   print(err)
-
-
-    
 
 #   plot.new()
 #   mtext(title,outer=FALSE)

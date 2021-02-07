@@ -26,7 +26,7 @@ print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
-data$log_obs_CFR = log(data$obs_deaths+eps) - log(data$obs_cases+eps)
+#data$log_obs_CFR = log(data$obs_deaths+eps) - log(data$obs_cases+eps)
 
 print("-data:")
 print(data)
@@ -47,17 +47,16 @@ init = list(
     logsigma_logP = log(0.223),# 3.0, #log(0.1),#logsigma_logP = 0.5,
 
     logsigma_logbeta = log(0.223), #0.4,
-    logsigma_loggamma = log(0.223), #0.4,
+    logsigma_logZ = log(0.223), #0.4,
     logsigma_logmu = log(0.223), #0.4,-2.0,
 
 
     logsigma_logC = log(0.105),
-    logsigma_logD = log(0.05),
-    logsigma_logCFR = log(0.105),
+    logsigma_logD = log(0.105),
 
-    logbeta  = log(0.2),
-    loggamma =  log(0.075),
-    logmu    = log(0.00025)
+    logbeta  = log(0.01),
+    logZ     = log(0.005),
+    logmu    = log(0.0001)
 )
 print("--init parameter values:")
 print(init)
@@ -66,31 +65,30 @@ par = list(
     logsigma_logP = init$logsigma_logP,
 
     logsigma_logbeta = init$logsigma_logbeta,
-    logsigma_loggamma = init$logsigma_loggamma,
+    logsigma_logZ = init$logsigma_logZ,
     logsigma_logmu = init$logsigma_logmu,
 
     logsigma_logC   = init$logsigma_logC,
     logsigma_logD   = init$logsigma_logD,
-    logsigma_logCFR   = init$logsigma_logCFR,
 
-    logbeta  = rep(init$logbeta,(data$ntime+1)),
-    loggamma = rep(init$loggamma,data$ntime+1),
-    logmu    = rep(init$logmu,data$ntime+1) 
+    logbeta  = rep(init$logbeta,data$ntime+1),
+    logZ     = rep(init$logZ,   data$ntime+1),
+    logmu    = rep(init$logmu,  data$ntime+1) 
 )
 
 print(paste("---initial model parameters: ", length(par)))
+print(paste(length(par$logZ),length(par$logmu)))
 print(par)
 
 map = list(
            "logsigma_logP" = as.factor(1),
 
            "logsigma_logbeta" = as.factor(1),
-           "logsigma_loggamma" = as.factor(1),
+           "logsigma_logZ" = as.factor(1),
            "logsigma_logmu" = as.factor(1),
 
            "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA),
-           "logsigma_logCFR" = as.factor(NA) 
+           "logsigma_logD" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -105,7 +103,7 @@ print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
 print("Finished compilation and dyn.load-------------",quote=FALSE)
 print("Calling MakeADFun-----------------------------",quote=FALSE)
-obj = MakeADFun(data,par,  random=c("logbeta","loggamma","logmu"), 
+obj = MakeADFun(data,par, # random=c("logbeta","logZ","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
 print("obj$par (1):")
