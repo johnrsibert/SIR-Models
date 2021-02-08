@@ -44,8 +44,9 @@ template < class Type > Type isNaN(Type x, const int line)
 {
     if (x != x)
     {
+         TRACE(x)
          std::cerr << "NaN at line " << line << std::endl;
-         exit(1);
+       //exit(1);
     }
     return x;
 }
@@ -81,8 +82,8 @@ Type objective_function <Type>::operator()()
     vector <Type> logS(ntime+1);      // number of Suscectibles
     vector <Type> logEye(ntime+1);    // number of Infections
     vector <Type> logR(ntime+1);      // number of Recovered
-    vector <Type> logD(ntime+1);      // number of Deaths from infected population
-//  vector <Type> log_pred_CFR(ntime+1);
+    vector <Type> logD(ntime+1);      // number of Deaths from infected populationtime+1);
+    vector <Type> loggamma(ntime+1);    
 
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_logZ = exp(logsigma_logZ); 
@@ -91,7 +92,6 @@ Type objective_function <Type>::operator()()
     Type sigma_logP = exp(logsigma_logP);
     Type sigma_logC = exp(logsigma_logC);
     Type sigma_logD = exp(logsigma_logD);
-//  Type sigma_logCFR = exp(logsigma_logCFR);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logZ = square(sigma_logZ);
@@ -100,7 +100,6 @@ Type objective_function <Type>::operator()()
 
     Type var_logC = square(sigma_logC);
     Type var_logD = square(sigma_logD);
-//  Type var_logCFR = square(sigma_logCFR);
 
     Type f = 0.0;
     Type betanll = 0.0;
@@ -114,13 +113,15 @@ Type objective_function <Type>::operator()()
     //  loop over time
     logS[0] = log(N0);
     logEye[0] = log_obs_cases[0];
-    logD[0] = log_obs_deaths[0];
     logR[0] = 0.0;
+    logD[0] = log_obs_deaths[0];
     for (int t = 1; t <= ntime; t++)
     {
-    //   TRACE(t)
+       //TRACE(t)
 
          // infection rate random walk
+       //`TRACE(t,var_logbeta)
+       //TTRACE(logbeta(t-1),logbeta(t))
          betanll += isNaN(LNerr(logbeta(t-1),logbeta(t),var_logbeta),__LINE__);
 
          // recovery rate random walk
@@ -133,6 +134,7 @@ Type objective_function <Type>::operator()()
          Type beta = exp(logbeta(t-1));
          Type mu   = exp(logmu(t-1));
          Type gamma = exp(logZ(t-1)) - mu; 
+         loggamma(t-1) = log(gamma);
 
         
 //       log_pred_CFR(t-1) = log(cfr);
@@ -145,8 +147,10 @@ Type objective_function <Type>::operator()()
          Type Z   = exp(logZ(t-1));
          Type N   = S + Eye + R;
          Type bison = beta * Eye * S/N;
-    //   TTRACE(bison,beta)
-    //   TTRACE(S,N)
+       //TTRACE(t,N)
+       //TTRACE(Eye,D)
+       //TTRACE(S,R)
+       //TRACE(bison)
          
          Type deltaS = -bison;
          Type nextS = S + deltaS;
@@ -212,8 +216,9 @@ Type objective_function <Type>::operator()()
      // compute observation likelihoods
      for (int t = 0; t <= ntime; t++)
      {   
+       //TRACE(t)
          cnll += isNaN(  LNerr(log_obs_cases(t),logEye(t),var_logC),__LINE__);
-     //  TTRACE(cnll,logEye(t))
+       //TTRACE(cnll,logEye(t))
 
 
      //  Zero inflated log normal
@@ -223,10 +228,8 @@ Type objective_function <Type>::operator()()
      //  Poisson error
      //  dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
 
+       //TTRACE(dnll,logD(t))
 
-     //  TRACE(var_logR)
-     //  TTRACE(t,CFRnll)
-     //  TTRACE(log_obs_R(t),log_pred_R(t))
      //  TTRACE(cnll,dnll)
      }
 //   TTRACE(ntime,CFRnll)
@@ -234,7 +237,7 @@ Type objective_function <Type>::operator()()
 
 
      // total likelihood
-     f += isNaN((betanll + Znll + Pnll + cnll + dnll),__LINE__);
+     f += isNaN((betanll + Znll + munll + Pnll + cnll + dnll),__LINE__);
 
      REPORT(logS)
      REPORT(logEye)
@@ -244,6 +247,7 @@ Type objective_function <Type>::operator()()
      REPORT(logbeta)
      REPORT(logZ)
      REPORT(logmu)
+     REPORT(loggamma)
 
 //   REPORT(sigma_logP);
 //   REPORT(sigma_logbeta);
@@ -271,5 +275,6 @@ Type objective_function <Type>::operator()()
      //   return(Type(-1.0));
      }
 */
+   //TRACE(f)
      return isNaN(f,__LINE__);
 }

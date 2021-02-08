@@ -3,8 +3,6 @@ fit_path = paste(SIR_path,'fits/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
 source(paste(TMB_path,'SIR_read_dat.R',sep=''))
-#source(paste(TMB_path,'plot_rrSIR.R',sep=''))
-#source(paste(TMB_path,'fit_to_df.R',sep=''))
 require(TMB)
 require(gtools)
 rm(fit)
@@ -47,8 +45,9 @@ plot.rv = function(x, obs_y, pred_y, ylab, err, err_name, ylim,pch='+',
         note = paste(err_name,'~',sprintf("%.5g",err))
     }
     else
+    {
         note = err_name
-
+    }
     ttext = 0.1*(length(obs_y)-1)
     text(ttext,ytext,note,col=note_col,pos=4)
 }
@@ -144,6 +143,9 @@ plot.log.state = function(fit) #,np=5)
             err_name='sigma_logZ',ylim=rlim)
 
 
+#   plot(tt,obj$report()$logR,    ylab='ln R',   ylim=poplim, col='red',type='l',lwd=3)
+    plot(tt,obj$report()$loggamma,ylab='ln gamma',ylim=rlim,  col='red',type='l',lwd=3)
+
 #   plot.new()
 #   mtext(title,outer=FALSE)
 
@@ -179,12 +181,8 @@ plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)
 
 do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
 {
-    separator = "#############################"
-    print(separator)
-    
     cname = sub(" ","_",County)
     datfile=paste(dat_path,cname,'.dat',sep='')
-    separator = "#############################"
     print(paste(separator,County,separator),quote=FALSE)
     dat = read.dat.file(datfile)
     eps = 1e-8
@@ -193,37 +191,29 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print(data)
     data$log_obs_cases = log(data$obs_cases+eps)
     data$log_obs_deaths = log(data$obs_deaths+eps)
-    #data$log_obs_CFR = log(data$obs_deaths+eps) - log(data$obs_cases+eps)
-    
     print("-data:")
     print(data)
-    
-    #                       init       est  map
-    # names                                    
-    # logsigma_logCP   -2.120264 -2.690276    1
-    # logsigma_logDP   -2.343407 -3.267401    1
-    # logsigma_logC    -1.499940 -1.499940  NaN
-    # logsigma_logD    -2.350619 -2.350619  NaN
-    # logsigma_logbeta  0.400000 -4.838245    1
-    # logsigma_logmu    0.200000 -1.977164    1
-    # loggamma         -0.051293 -0.051293  NaN
-    # def SIRsim(mu = 0.001, beta = 0.2, gamma = 0.075, N0 = 2e6, sigma_eye = 0.01,
-     
+    #                       est                 init
+    # [1] "logsigma_logP -1.79698443260037 -2.25379492882461"
+    # [1] "logsigma_logbeta -2.84041702304568 -1.50058350752202"
+    # [1] "logsigma_logZ -11.5143846566642 -1.50058350752202"
+    # [1] "logsigma_logmu -0.707853292582357 -1.50058350752202"
+
     
     init = list(
-        logsigma_logP = log(0.223),# 3.0, #log(0.1),#logsigma_logP = 0.5,
+        logsigma_logP = log(0.105),
     
-        logsigma_logbeta = log(0.223), #0.4,
-        logsigma_logZ = log(0.223), #0.4,
-        logsigma_logmu = log(0.223), #0.4,-2.0,
+        logsigma_logbeta = log(0.223),
+        logsigma_logZ = log(0.223),
+        logsigma_logmu = log(0.223),
     
     
         logsigma_logC = log(0.105),
-        logsigma_logD = log(0.105),
+        logsigma_logD = log(0.05),
     
-        logbeta  = log(0.01),
-        logZ     = log(0.005),
-        logmu    = log(0.0001)
+        logbeta  = -1.0, #log(0.01),
+        logZ     = -2.0, #log(0.005),
+        logmu    = -5.0 #log(0.0001)
     )
     print("--init parameter values:")
     print(init)
@@ -256,6 +246,10 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     
                "logsigma_logC" = as.factor(NA),
                "logsigma_logD" = as.factor(NA)
+
+    #          "logbeta" = rep(as.factor(NA), data$ntime+1),
+    #          "logZ"    = rep(as.factor(NA), data$ntime+1),
+    #          "logmu"   = rep(as.factor(NA), data$ntime+1) 
     )
     
     print(paste("---- estimation map:",length(map),"variables"))
@@ -270,7 +264,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     dyn.load(dynlib(model.name))
     print("Finished compilation and dyn.load-------------",quote=FALSE)
     print("Calling MakeADFun-----------------------------",quote=FALSE)
-    obj = MakeADFun(data,par, # random=c("logbeta","logZ","logmu"), 
+    obj = MakeADFun(data,par,  random=c("logbeta","logZ","logmu"), 
                     map=map,DLL=model.name)
     print("--------MakeADFun Finished--------------------",quote=FALSE)
     print("obj$par (1):")
@@ -292,38 +286,13 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print(paste("Function value =",opt$value))
     print(paste("Convergence ",opt$convergence))
     print(paste("Number of parameters = ",length(opt$par)),quote=FALSE)
-    #print("parameters:",quote=FALSE)
-    #print(opt$par)
-    #print("exp(parameters):",quote=FALSE)
-    #print(exp(opt$par))
-    
-    #mlogbeta = median(obj$report()$logbeta)
-    #print(paste("median logbeta:",mlogbeta,exp(mlogbeta)))
-    #mlogmu = median(obj$report()$logmu)
-    #print(paste("median logmu:",mlogmu,exp(mlogmu)))
-    #mloggamma = median(obj$report()$loggamma)
-    #print(paste("median loggamma:",mloggamma,exp(mloggamma)))
-    
-    #print('data')
-    #print(data)
-    #print('map')
-    #print(map)
-    #print('par')
-    #print(par)
-    #print('obj')
-    #print(obj)
-    #print('opt')
-    #print(opt)
-    #print('init')
-    #print(init)
-    #print(model.name)
-    
+
     fit = list(dat=data,map=map,par=par,obj=obj,opt=opt,init=init,
                model.name=model.name)
     if (do.plot){
     #   x11()
     #   print(fit)
-        print('plottong')
+        print('plotting')
         plot.log.state(fit)
     #   dev.file = paste(fit_path,data$county,'.pdf',sep='')
         dev.file = paste(data$county,'_ests.pdf',sep='')
@@ -340,29 +309,45 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
 } # do_one_run = function(County = ...)
 
 
+separator = "#############################"
+print(separator)
+
+
 nrun = 1
-if (nrun < 2) {
-#   sink('test.log', type = c("output", "message"))
-#   do_one_run(County="Los_AngelesCA")->fit
-    do_one_run(County="AlamedaCA")->fit
-#   do_one_run(County="HonoluluHI")->fit
-#   do_one_run(County="NassauNY",do.plot=TRUE)->fit
-#   do_one_run(County="Miami-DadeFL",do.plot=TRUE)->fit
+print(paste('nrun =',nrun))
+if (nrun < 2) 
+{
+    County="AlamedaCA"
+    print(paste('----nrun =',nrun,County))
+    do_one_run(County=County)->fit
+    for (n in 1:length(fit$opt$par))
+    {
+    #   print(paste('name:',names(fit$opt$par[n])))
+    #   print(paste('     ',fit$opt$par[n]))
+        name = names(fit$opt$par[n])
+        w = which(names(fit$par)==name)
+    #   print(paste(name,w))
+        print(paste(name,fit$opt$par[n],fit$par[w]))
+    }
+
+#   print(which(names$par == names$fit$opt$par))
+} 
+#else 
+#{
+#   print(paste('----nrun =',nrun))
+#   sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
+#   dp =paste(dat_path,'*.dat',sep='')
+#   print(dp)
+#   print(paste('globbing',dp))
+#   cc = Sys.glob(dp)
+#   for (c in cc)
+#   {
+#       County = sub("\\.dat","",c)
+#       c = basename(County)
+#       print(paste("starting",c))
+#       do_one_run(County=c,do.plot=TRUE)#->fit
+#   }
 #   sink()
-} else {
-   sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
-   dp =paste(dat_path,'*.dat',sep='')
-   print(dp)
-   print(paste('globbing',dp))
-   cc = Sys.glob(dp)
-   for (c in cc)
-   {
-       County = sub("\\.dat","",c)
-       c = basename(County)
-       print(paste("starting",c))
-       do_one_run(County=c,do.plot=TRUE)->fit
-   }
-   sink()
-}
+#}
 
 
