@@ -20,7 +20,7 @@ import js_covid as cv
 
 print('----------'+os.getcwd())
 #fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/Los_AngelesCA.RData')
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/AlamedaCA.RData')
 
 print('keys',fit.keys())
 diag = fit['diag']
@@ -28,8 +28,8 @@ print(diag.columns)
 print(diag)
 mbeta = diag['logbeta'].quantile(q=0.5)
 print('median logbeta:',mbeta,np.exp(mbeta))
-mgamma = diag['loggamma'].quantile(q=0.5)
-print('median loggamma:',mgamma,np.exp(mgamma))
+#mgamma = diag['loggamma'].quantile(q=0.5)
+#print('median loggamma:',mgamma,np.exp(mgamma))
 mmu = diag['logmu'].quantile(q=0.5)
 print('median logmu:',mmu,np.exp(mmu))
 
@@ -51,15 +51,14 @@ ests = fit['ests']
 ests.set_index('names',inplace=True)
 print('ests:')
 print(ests)
-#print('exp(ests)[est]:')
-#print(np.exp(ests['est']))
+#print('exp(ests)[est]:')cls
 #print(ests['map'])
 #print(str(ests['map']))
 #print(ests.loc['loggamma']['map'])
-print('   C:',np.exp(ests.loc['logsigma_logC']['est']))
-print('   D:',np.exp(ests.loc['logsigma_logD']['est']))
-print('beta:',np.exp(ests.loc['logsigma_logbeta']['est']))
-print('  mu:',np.exp(ests.loc['logsigma_logmu']['est']))
+#print('   C:',np.exp(ests.loc['logsigma_logC']['est']))
+#print('   D:',np.exp(ests.loc['logsigma_logD']['est']))
+#print('beta:',np.exp(ests.loc['logsigma_logbeta']['est']))
+#print('  mu:',np.exp(ests.loc['logsigma_logmu']['est']))
 #print(' map:',       ests.loc['loggamma']['map'])
 #print(       ests.loc['loggamma']['map'][0])
 

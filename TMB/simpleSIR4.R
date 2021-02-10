@@ -33,9 +33,14 @@ init = list(
     logsigma_logDP = log(0.096),
     logsigma_logbeta = 0.4, #log(0.7),
     logsigma_logmu = 0.2, #log(2.0),
-    logsigma_logC = log(log(1.25)), # log(0.1), 
-    logsigma_logD = log(log(1.1)), # log(0.05), 
 
+#    logsigma_logC = log(log(1.25)), # log(0.1), 
+#    logsigma_logD = log(log(1.1)), # log(0.05), 
+
+     logsigma_logC = log(0.223),
+     logsigma_logD = log(0.105),
+
+   
     logbeta = log(0.05),
     loggamma = log(1e-10), #2.78e-9),
     logmu = log(0.00005) 

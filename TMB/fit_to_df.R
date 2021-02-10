@@ -66,7 +66,7 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     like = vector(length=length(like_names))
     like[1] = obj$report()$f
     like[2] = obj$report()$betanll
-    if (mod == 'simpleSIR3')
+    if (mod == 'simpleSIR4')
         like[3] = NA
     else
         like[3] = obj$report()$munll

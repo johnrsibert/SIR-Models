@@ -3,6 +3,7 @@ fit_path = paste(SIR_path,'fits/rrSIR/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
 source(paste(TMB_path,'SIR_read_dat.R',sep=''))
+source(paste(TMB_path,'rrSIR_fit_to_df.R',sep=''))
 require(TMB)
 require(gtools)
 #rm(fit)
@@ -201,10 +202,10 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
 
     
     init = list(
-        logsigma_logP    = log(0.105),
-        logsigma_logbeta = log(0.223),
-        logsigma_logZ    = log(0.223),
-        logsigma_logmu   = log(0.223),
+        logsigma_logP    = -1.5, #log(0.105),
+        logsigma_logbeta = -2.0, #log(0.223),
+        logsigma_logZ    = -5.0, #log(0.223),
+        logsigma_logmu   = -0.5, #log(0.223),
     
     
         logsigma_logC = log(0.223),
@@ -304,7 +305,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     }
     
     rd.file = paste(fit_path,data$county,'.RData',sep='')
-    save.fit(fit,file=data$county)#   rd.file) #"t.RData")
+    save.fit(fit,file=data$county,mod=model.name)#   rd.file) #"t.RData")
     
     return(fit)
 
@@ -315,9 +316,10 @@ separator = "#############################"
 print(separator)
 
 
-nrun = 2
+nrun = 1
 print(paste('nrun =',nrun))
 if (nrun < 2) {
+#   County="KingWA"
     County="AlamedaCA"
 #   County = "Los_AngelesCA"
 #   County = "New_York_CityNY"
@@ -340,9 +342,19 @@ if (nrun < 2) {
     sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
     dp =paste(dat_path,'*.dat',sep='')
     print(dp)
-    print(paste('globbing',dp))
+#   print(paste('globbing',dp))
 #   cc = Sys.glob(dp)
 cc = list(
+'AlamedaCA',
+'BexarTX',
+'BrowardFL',
+'ClarkNV',
+'CookIL',
+'DallasTX',
+'FranklinOH',
+'HarrisTX',
+'HennepinMN',
+'HillsboroughFL',
 "Los_AngelesCA", 
 "MaricopaAZ", 
 "Miami-DadeFL", 
@@ -373,14 +385,5 @@ cc = list(
     sink()
  }
 
-#AlamedaCA.dat
-#BexarTX.dat
-#BrowardFL.dat
-#ClarkNV.dat
-#CookIL.dat
-#DallasTX.dat
-#FranklinOH.dat
-#HarrisTX.dat
-#HennepinMN.dat
-#HillsboroughFL.dat
-#KingWA.dat
+
+#'KingWA',

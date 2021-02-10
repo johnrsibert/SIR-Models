@@ -436,16 +436,15 @@ def make_fit_plots(ext = '.RData'):
 def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
 
     def get_active(ests, name):
-        print('get_active',name)
         try:
             a = ests.loc[name].map
         except (KeyError):
             a = None
 
         if (a is None):
-            return('?Fixed')
+            return('Fixed')
         else:
-            return('?Active')
+            return('Active')
 
     def get_initpar_item(self,pname):
         try:
@@ -454,35 +453,46 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
             r = None
         return(r)         
        
- 
+#   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
+    md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     if (model_name == 'simpleSIR4'):
         fit_path = cv.fit_path
         gamma_key = 'gamma'
-    else:
+        es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
+                   'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
+        header = ['County','$n$','$p_0$','$f$','$C$',
+                  '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
+                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$',
+                  '$\\tilde\\gamma$']
+    elif (model_name == 'rrSIR'):
         fit_path = cv.fit_path + model_name + '/'
         gamma_key = 'loggamma'
+        es_cols = ['logsigma_logP','logsigma_logbeta',
+                   'logsigma_logZ','logsigma_logmu',
+                   'logsigma_logC','logsigma_logD','mbeta','mZ','mmu','mgamma']
+        header = ['County','$n$','$p_0$','$f$','$C$',
+                  '$\sigma_\eta$',  '$\sigma_\\beta$','$\sigma_Z$','$\sigma_\\mu$',
+                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{Z}$',
+                  '$\\tilde{\\mu}$', '$\\tilde\\gamma$']
+    else:
+        print('Unknown model name passed to make fit table(...):',model_name)
+        return(None)
 
-    fit_files = glob.glob(fit_path+'*'+ext)
-    print('found',len(fit_files),ext,'files in',fit_path)
-#   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
-    md_cols = ['county','ntime','prop_zero_deaths','fn','C']
-    es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
-               'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
     tt_cols = md_cols + es_cols
-    header = ['County','$n$','$p_0$','$f$','$C$',
-              '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
-              '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$',
-              '$\\tilde\\gamma$']
 
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
     mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
+    mZ = pd.DataFrame(columns=['mZ'])
     mmu = pd.DataFrame(columns=['mmu'])
-    sigfigs = 5
+    sigfigs = 3
     init_gamma = None
     active_gamma = None
+
+    fit_files = glob.glob(fit_path+'*'+ext)
+    print('found',len(fit_files),ext,'files in',fit_path)
     for k in range(0,len(fit_files)):
         ff = fit_files[k]    
         fit = Fit(ff)
@@ -493,6 +503,7 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         county = fit.get_metadata_item('county')  
         row['county'] = GG.pretty_county(county)
     #   if (active_gamma is None):
+    #   if (model_name == 'simpleSIR4'):
     #       active_gamma = get_active(ests,'loggamma')
     #       init_gamma = np.exp(fit.get_initpar_item('loggamma'))
 
@@ -509,6 +520,9 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         func = np.append(func,float(fit.get_metadata_item('fn')))
         beta = np.exp(diag['logbeta'])
         mbeta = np.append(mbeta,stats.median(beta))
+        if any(pd.Series(diag.columns).isin(['logZ'])):
+            Z = np.exp(diag['logZ'])
+            mZ = np.append(mZ,Z.quantile(q=0.5))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
    
@@ -523,6 +537,8 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
     tt['fn'] = func
     tt['mgamma'] = mgamma
     tt['mbeta'] = mbeta
+    if any(pd.Series(diag.columns).isin(['logZ'])):
+        tt['mZ'] = mZ
     tt['mmu'] = mmu
 
     mtime = os.path.getmtime(cv.NYT_counties)
