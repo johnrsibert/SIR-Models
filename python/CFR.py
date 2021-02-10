@@ -34,7 +34,7 @@ def plot_CFR_ridge(date0=None):
     dmask = dat['deaths'] > 0.0
     cmask = dat['cases'] > 0.0
     zmask = dmask & cmask
-    dat = dat[zmask]
+    dat = dat[cmask]
     print(dat)
     
     print('composing labels')
@@ -64,17 +64,22 @@ def plot_CFR_ridge(date0=None):
     dat['ratio'] = ratio
     print(dat)
     
+    print('quantiles:')     
+    qq = [0.95,0.975,0.99]
+    for q in qq:
+        print(q,np.quantile(dat['ratio'],q=q))
+
     
     print('plotting ridgeline')
     fig,axes = joyplot(dat, by='date', column='ratio', labels = labels,
-                           range_style = 'own', overlap = 2, x_range=[0.0,0.2],
+                           range_style = 'all', overlap = 2, x_range=[1e-8,0.08],
                            grid = True, linewidth = 0.25, legend = False, 
-                           figsize = (6.5,6.5),
-                           title='Case Fatality Ratio', colormap=cm.Blues_r)
-
-    print(len(axes),'y axes')
-#   for i, ax in enumerate(axes):
-#       print(i,ax.get_ylim())
+                           figsize = (6.5,6.5), # kind='counts',
+                           title='Case Fatality Ratio', colormap=cm.Blues)
+    naxes = len(axes)
+#    ax = fig.add_subplot(-1,1,1) #93, 1, (1, 2))
+#    ax.plot(ax.get_xlim(),ax.get_ylim(),color='orange')
+    print(naxes,'y axes')
 
     gfile = 'tCFRridgeline'+'.png' 
     print('saving',gfile)
@@ -82,4 +87,4 @@ def plot_CFR_ridge(date0=None):
     print('ridgeline plot saved as',gfile)
     plt.show()
     
-plot_CFR_ridge('2020-03-15')   
+plot_CFR_ridge() #'2020-03-19')   

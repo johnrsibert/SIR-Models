@@ -433,7 +433,7 @@ def make_fit_plots(ext = '.RData'):
     fit = Fit(cv.fit_path+'Los_AngelesCA'+ext)
     fit.plot(save=True,logscale=False)
 
-def make_fit_table(ext = '.RData'):
+def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
 
     def get_active(ests, name):
         print('get_active',name)
@@ -455,9 +455,15 @@ def make_fit_table(ext = '.RData'):
         return(r)         
        
  
+    if (model_name == 'simpleSIR4'):
+        fit_path = cv.fit_path
+        gamma_key = 'gamma'
+    else:
+        fit_path = cv.fit_path + model_name + '/'
+        gamma_key = 'loggamma'
 
-    fit_files = glob.glob(cv.fit_path+'*'+ext)
-    print('found',len(fit_files),ext,'files in',cv.fit_path)
+    fit_files = glob.glob(fit_path+'*'+ext)
+    print('found',len(fit_files),ext,'files in',fit_path)
 #   md_cols = ['county','N0','ntime','prop_zero_deaths','fn']
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
@@ -486,9 +492,9 @@ def make_fit_table(ext = '.RData'):
         row = pd.Series(index=tt_cols)
         county = fit.get_metadata_item('county')  
         row['county'] = GG.pretty_county(county)
-        if (active_gamma is None):
-            active_gamma = get_active(ests,'loggamma')
-            init_gamma = np.exp(fit.get_initpar_item('loggamma'))
+    #   if (active_gamma is None):
+    #       active_gamma = get_active(ests,'loggamma')
+    #       init_gamma = np.exp(fit.get_initpar_item('loggamma'))
 
         for k in range(1,len(tt_cols)):
             v = fit.get_estimate_item(tt_cols[k])
@@ -505,7 +511,13 @@ def make_fit_table(ext = '.RData'):
         mbeta = np.append(mbeta,stats.median(beta))
         mu = np.exp(diag['logmu'])
         mmu = np.append(mmu,mu.quantile(q=0.5))
-        gamma = diag['gamma']
+   
+        if (gamma_key == 'gamma'):
+            gamma = diag['gamma']
+        else:
+            loggamma = diag['loggamma']
+            gamma = np.exp(loggamma)
+
         mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
@@ -515,14 +527,15 @@ def make_fit_table(ext = '.RData'):
 
     mtime = os.path.getmtime(cv.NYT_counties)
     dtime = datetime.fromtimestamp(mtime)
-    ft_name = cv.fit_path+'fit_table_'+str(dtime.date())
+    ft_name = fit_path+'fit_table_'+str(dtime.date())
 
     csv = ft_name+'.csv'
     tt.to_csv(csv,index=False)
     print('Fit table data written to file',csv)
 
 
-    tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
+#   tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
+    tt = tt.sort_values(by='county',ascending=True)#,inplace=True)
 
     for r in range(0,tt.shape[0]):
         for c in range(3,len(tt.columns)):
@@ -544,7 +557,7 @@ def make_fit_table(ext = '.RData'):
     ff = open(tex, 'w')
     caption_text = 'Model results. Estimating $\\beta$ and $\mu$ trends as random effects.\n' 
     caption_text = caption_text + 'Data updated ' + str(dtime.date()) + ' from https://github.com/nytimes/covid-19-data.git.\n'
-    caption_text = caption_text + 'Initial $\gamma = '+str(init_gamma)+'$ ('+active_gamma+').\n'
+#   caption_text = caption_text + 'Initial $\gamma = '+str(init_gamma)+'$ ('+active_gamma+').\n'
 
     ff.write(caption_text)
 #   ff.write(str(dtime.date())+'\n')

@@ -858,6 +858,8 @@ def plot_CFR_ridge(CFRfile):
             row['ratio'] = c
             flatCFR = flatCFR.append(row,ignore_index = True)
 
+    print(flatCFR)
+    print(flatCFR.dtypes)
     print('plotting ridgeline')
     fig,axes = joyplot(flatCFR, by='date', column='ratio', labels = labels,
                        range_style='own', overlap = 2, x_range=[0.0,0.4],
@@ -874,11 +876,11 @@ def plot_CFR_ridge(CFRfile):
 
 # --------------------------------------------------       
 print('------- here ------')
-#CFR_comp(nG=500)
+#CFR_comp(nG=5)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
 #plot_CFR_contour('CFRstats_1000_0.0.csv')
-plot_CFR_ridge('CFR500.csv')
+#plot_CFR_ridge('CFR5.csv')
 
 #tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
@@ -896,7 +898,8 @@ plot_CFR_ridge('CFR500.csv')
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-#FF.make_fit_table()
+FF.make_fit_table(model_name = 'rrSIR')
+FF.make_fit_table()
 
 #tfit = FF.Fit(cv.fit_path+'Los_AngelesCA.RData')
 #tfit.plot(save=True,logscale=True,show_doubling_time=True)

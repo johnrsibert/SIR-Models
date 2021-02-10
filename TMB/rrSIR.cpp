@@ -249,19 +249,17 @@ Type objective_function <Type>::operator()()
      REPORT(logmu)
      REPORT(loggamma)
 
-//   REPORT(sigma_logP);
-//   REPORT(sigma_logbeta);
-//   REPORT(sigma_loggamma);
-//   REPORT(sigma_logmu);
-//   REPORT(sigma_logR);
+     REPORT(sigma_logP);
+     REPORT(sigma_logbeta);
+     REPORT(sigma_logmu);
 
-//   REPORT(f);
-//   REPORT(betanll);
-//   REPORT(gammanll);
-//   REPORT(Pnll);
-//   REPORT(cnll);
-//   REPORT(dnll);
-//   REPORT(CFRnll);
+     REPORT(f);
+     REPORT(betanll);
+     REPORT(Znll);
+     REPORT(munll);
+     REPORT(Pnll);
+     REPORT(cnll);
+     REPORT(dnll);
 /*
      if (1)
      {
