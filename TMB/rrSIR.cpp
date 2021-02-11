@@ -75,7 +75,7 @@ Type objective_function <Type>::operator()()
     PARAMETER(logsigma_logD);          // deaths observation error
  
     PARAMETER_VECTOR(logbeta);         // infection rate time series
-    PARAMETER_VECTOR(logZ);        // recovery rate of infection population
+    PARAMETER_VECTOR(logZ);            // infected Infections 'attrition' rate
     PARAMETER_VECTOR(logmu);           // mortality rate of infection population
 
     // state variables
@@ -83,7 +83,8 @@ Type objective_function <Type>::operator()()
     vector <Type> logEye(ntime+1);    // number of Infections
     vector <Type> logR(ntime+1);      // number of Recovered
     vector <Type> logD(ntime+1);      // number of Deaths from infected populationtime+1);
-    vector <Type> loggamma(ntime+1);    
+    vector <Type> loggamma(ntime+1);  // recovery rate of infection population
+    vector <Type> brn(ntime+1);       // basic reproduction ratio
 
     Type sigma_logbeta = exp(logsigma_logbeta); 
     Type sigma_logZ = exp(logsigma_logZ); 
@@ -210,8 +211,8 @@ Type objective_function <Type>::operator()()
          }
 
      }
+     loggamma(ntime) = loggamma(ntime-1);
 
-//   log_pred_CFR = logD - logEye;
 
      // compute observation likelihoods
      for (int t = 0; t <= ntime; t++)
@@ -239,6 +240,8 @@ Type objective_function <Type>::operator()()
      // total likelihood
      f += isNaN((betanll + Znll + munll + Pnll + cnll + dnll),__LINE__);
 
+     brn = exp(logbeta-loggamma);
+
      REPORT(logS)
      REPORT(logEye)
      REPORT(logR)
@@ -248,6 +251,7 @@ Type objective_function <Type>::operator()()
      REPORT(logZ)
      REPORT(logmu)
      REPORT(loggamma)
+     REPORT(brn)
 
      REPORT(sigma_logP);
      REPORT(sigma_logbeta);

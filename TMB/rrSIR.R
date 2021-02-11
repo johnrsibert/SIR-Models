@@ -280,9 +280,11 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
     obj$env$inner.control$tol10 <- 0
+
+    nlminb.con=list(eval.max=5000,iter.max=5000)
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr)
+    opt = nlminb(obj$par,obj$fn,obj$gr,control=nlminb.con)
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)
@@ -319,8 +321,9 @@ print(separator)
 nrun = 1
 print(paste('nrun =',nrun))
 if (nrun < 2) {
+    County="Miami-DadeFL"
 #   County="KingWA"
-    County="AlamedaCA"
+#   County="AlamedaCA"
 #   County = "Los_AngelesCA"
 #   County = "New_York_CityNY"
     print(paste('----nrun =',nrun,County))
