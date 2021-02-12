@@ -202,7 +202,10 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
 
     
     init = list(
-        logsigma_logP    = -1.5, #log(0.105),
+        logsigma_logCP    = -0.5, #log(0.105),
+    #   logsigma_logZP    = -1.5, #log(0.105),
+        logsigma_logDP    = -5.0, #log(0.105),
+
         logsigma_logbeta = -2.0, #log(0.223),
         logsigma_logZ    = -5.0, #log(0.223),
         logsigma_logmu   = -0.5, #log(0.223),
@@ -223,7 +226,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print(init)
     
     par = list(
-        logsigma_logP = init$logsigma_logP,
+        logsigma_logCP = init$logsigma_logCP,
+    #   logsigma_logZP = init$logsigma_logZP,
+        logsigma_logDP = init$logsigma_logDP,
     
         logsigma_logbeta = init$logsigma_logbeta,
         logsigma_logZ = init$logsigma_logZ,
@@ -242,7 +247,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print(par)
     
     map = list(
-               "logsigma_logP" = as.factor(1),
+               "logsigma_logCP" = as.factor(1),
+    #          "logsigma_logZP" = as.factor(1),
+               "logsigma_logDP" = as.factor(1),
     
                "logsigma_logbeta" = as.factor(1),
                "logsigma_logZ" = as.factor(1),
@@ -261,8 +268,8 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     
     cpp.name = paste(model.name,'.cpp',sep='')
     
-    print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
-    compile(cpp.name)
+#   print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
+#   compile(cpp.name)
     
     print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
     dyn.load(dynlib(model.name))
@@ -318,11 +325,11 @@ separator = "#############################"
 print(separator)
 
 
-nrun = 1
+nrun = 2
 print(paste('nrun =',nrun))
 if (nrun < 2) {
-    County="Miami-DadeFL"
-#   County="KingWA"
+#   County="Miami-DadeFL"
+    County="KingWA"
 #   County="AlamedaCA"
 #   County = "Los_AngelesCA"
 #   County = "New_York_CityNY"

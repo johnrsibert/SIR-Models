@@ -65,7 +65,9 @@ Type objective_function <Type>::operator()()
     DATA_VECTOR(log_obs_deaths)
 //  DATA_VECTOR(log_obs_CFR)
                   
-    PARAMETER(logsigma_logP);          // SIR process error
+    PARAMETER(logsigma_logCP);          // SIR process error
+//  PARAMETER(logsigma_logZP);          // SIR process error
+    PARAMETER(logsigma_logDP);          // SIR process error
 
     PARAMETER(logsigma_logbeta);       // beta random walk sd
     PARAMETER(logsigma_logZ);      // Z randomwalk sd
@@ -90,14 +92,19 @@ Type objective_function <Type>::operator()()
     Type sigma_logZ = exp(logsigma_logZ); 
     Type sigma_logmu = exp(logsigma_logmu); 
 
-    Type sigma_logP = exp(logsigma_logP);
+    Type sigma_logCP = exp(logsigma_logCP);
+//  Type sigma_logZP = exp(logsigma_logZP);
+    Type sigma_logDP = exp(logsigma_logDP);
+
     Type sigma_logC = exp(logsigma_logC);
     Type sigma_logD = exp(logsigma_logD);
 
     Type var_logbeta = square(sigma_logbeta);
     Type var_logZ = square(sigma_logZ);
     Type var_logmu = square(sigma_logmu);
-    Type var_logP = square(sigma_logP);
+    Type var_logCP = square(sigma_logCP);
+//  Type var_logZP = square(sigma_logZP);
+    Type var_logDP = square(sigma_logDP);
 
     Type var_logC = square(sigma_logC);
     Type var_logD = square(sigma_logD);
@@ -178,7 +185,7 @@ Type objective_function <Type>::operator()()
          if (nextEye > 0.0)
          {
              logEye(t) = log(nextEye);
-             Pnll += isNaN(LNerr(logEye(t-1), logEye(t),var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logEye(t-1), logEye(t),var_logCP),__LINE__);
          }
          else
          {
@@ -202,7 +209,7 @@ Type objective_function <Type>::operator()()
          if (nextD > 0.0)
          {
              logD(t) = log(nextD);
-             Pnll += isNaN(LNerr(logD(t-1), logD(t),var_logP),__LINE__);
+             Pnll += isNaN(LNerr(logD(t-1), logD(t),var_logDP),__LINE__);
          }
          else
          {
@@ -253,7 +260,10 @@ Type objective_function <Type>::operator()()
      REPORT(loggamma)
      REPORT(brn)
 
-     REPORT(sigma_logP);
+     REPORT(sigma_logCP);
+//   REPORT(sigma_logZP);
+     REPORT(sigma_logDP);
+
      REPORT(sigma_logbeta);
      REPORT(sigma_logmu);
 

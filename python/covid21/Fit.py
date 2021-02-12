@@ -467,11 +467,12 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
     elif (model_name == 'rrSIR'):
         fit_path = cv.fit_path + model_name + '/'
         gamma_key = 'loggamma'
-        es_cols = ['logsigma_logP','logsigma_logbeta',
+        es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta',
                    'logsigma_logZ','logsigma_logmu',
                    'logsigma_logC','logsigma_logD','mbeta','mZ','mmu','mgamma']
         header = ['County','$n$','$p_0$','$f$','$C$',
-                  '$\sigma_\eta$',  '$\sigma_\\beta$','$\sigma_Z$','$\sigma_\\mu$',
+                  '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$',
+                  '$\sigma_\\beta$','$\sigma_Z$','$\sigma_\\mu$',
                   '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{Z}$',
                   '$\\tilde{\\mu}$', '$\\tilde\\gamma$']
     else:
