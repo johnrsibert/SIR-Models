@@ -40,6 +40,8 @@ Thumbs.db
 @turtledb
 
 # misc files #
+python/*.csv
+python/*.txt
 fits/*
 dat/*
 Graphics/*
@@ -59,6 +61,7 @@ junk
 *.Rout
 *.RData
 *.Rhistory
+*.out
 # ADMB generated files #
 ADMB/derivatives
 ADMB/ders.dat
