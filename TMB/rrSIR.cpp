@@ -120,9 +120,9 @@ Type objective_function <Type>::operator()()
 
     //  loop over time
     logS[0] = log(N0);
-    logEye[0] = log_obs_cases[0];
-    logR[0] = 0.0;
-    logD[0] = log_obs_deaths[0];
+    //logEye[0] = log_obs_cases[0];
+    //logR[0] = 0.0;
+    //logD[0] = log_obs_deaths[0];
     for (int t = 1; t <= ntime; t++)
     {
        //TRACE(t)

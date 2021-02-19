@@ -63,7 +63,10 @@ Type objective_function <Type>::operator()()
     DATA_SCALAR(prop_zero_deaths)
     DATA_VECTOR(log_obs_cases)
     DATA_VECTOR(log_obs_deaths)
-                  
+
+    DATA_SCALAR(logmu_prior)
+    DATA_SCALAR(sigma_logmu_prior)
+  
     //PARAMETER(logsigma_logCP);          // SIR cases process error
     PARAMETER(logsigma_logRP);          // SIR removals process error
     //PARAMETER(logsigma_logDP);          // SIR deaths process error
@@ -92,7 +95,7 @@ Type objective_function <Type>::operator()()
     //Type sigma_logmu = exp(logsigma_logmu); 
     Type var_logbeta = square(sigma_logbeta);
     Type var_loggamma = square(sigma_loggamma);
-    //Type var_logmu = square(sigma_logmu);
+    Type var_logmu_prior = square(sigma_logmu_prior);
 
     //Type sigma_logCP = exp(logsigma_logCP);
     Type sigma_logRP = exp(logsigma_logRP);
@@ -113,7 +116,7 @@ Type objective_function <Type>::operator()()
     Type Pnll = 0.0;
     Type cnll = 0.0;
     Type dnll = 0.0;
-
+    Type mu_priornll = 0.0; 
     //  loop over time
     logS[0] = log(N0);
 //  logEye[0] = log_obs_cases[0];
@@ -206,20 +209,29 @@ Type objective_function <Type>::operator()()
 
      //  Zero inflated log normal
          dnll += isNaN(ZILNerr(log_obs_deaths(t),logD(t),var_logD, prop_zero_deaths),__LINE__);
-     //  dnll += isNaN(  LNerr(log_obs_deaths(t),logD(t),var_logD),__LINE__);
 
-     //  Poisson error
-     //  dnll += -isNaN(obs_deaths(t)*logD(t) - exp(logD(t)) - lfactorial(obs_deaths(t)),__LINE__);
 
        //TTRACE(dnll,logD(t))
-
      //  TTRACE(cnll,dnll)
      }
 //   TTRACE(cnll,dnll)
 
 
+  /* issams6.tpl:
+  if (use_r_prior)
+  {
+     dvariable logr = log(2.0)+logFmsy;
+     dvariable nll_r = 0.5*(log(TWO_M_PI*varr_prior) + square(logr - logr_prior)/varr_prior);
+     nll += nll_r;
+     NLL_TRACE(nll_r)
+     NLL_TRACE(nll)
+  }
+  */
+     mu_priornll += isNaN(  LNerr(logmu_prior, logmu,var_logmu_prior),__LINE__);
+
+
      // total likelihood
-     f += isNaN((betanll + gammanll + Pnll + cnll + dnll),__LINE__);
+     f += isNaN((betanll + gammanll + Pnll + cnll + dnll + mu_priornll),__LINE__);
 
      rho = exp(logbeta-loggamma);
 
@@ -239,11 +251,12 @@ Type objective_function <Type>::operator()()
 
      REPORT(sigma_loggamma);
 
-     REPORT(f);
-     REPORT(betanll);
-     REPORT(Pnll);
-     REPORT(cnll);
-     REPORT(dnll);
+     REPORT(f)
+     REPORT(betanll)
+     REPORT(Pnll)
+     REPORT(cnll)
+     REPORT(dnll)
+     REPORT(mu_priornll)
 /*
      if (1)
      {

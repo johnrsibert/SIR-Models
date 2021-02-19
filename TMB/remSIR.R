@@ -184,13 +184,16 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     cname = sub(" ","_",County)
     datfile=paste(dat_path,cname,'.dat',sep='')
     print(paste(separator,County,separator),quote=FALSE)
-    dat = read.dat.file(datfile, max_ntime = 100)
+    dat = read.dat.file(datfile, max_ntime = 200)
     eps = 1e-8
     data=dat$data
     print(names(data))
     print(data)
     data$log_obs_cases = log(data$obs_cases+eps)
     data$log_obs_deaths = log(data$obs_deaths+eps)
+    data$logmu_prior = log(0.02)
+    data$sigma_logmu_prior = 0.223
+
     print("-data:")
     print(data)
     print(paste('cases:',length(data$obs_cases)))
@@ -205,12 +208,12 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     #   logsigma_logmu   = -0.5, #log(0.223),
     
     
-        logsigma_logC = log(0.223),
-        logsigma_logD = log(0.105),
+        logsigma_logC = log(0.05),
+        logsigma_logD = log(0.05),
 
-        logbeta  = -1.0, #log(0.01),
-        loggamma     = -2.0, #log(0.005),
-        logmu    = -5.0 #log(0.0001)
+        logbeta  = -2.0, #log(0.01),
+        loggamma = -2.0, #log(0.005),
+        logmu    = data$logmu_prior 
     #   logR     =  data$log_obs_cases
     )
     print("--init parameter values:")
@@ -239,20 +242,20 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     
     map = list(
     #          "logsigma_logCP" = as.factor(1),
-               "logsigma_logRP" = as.factor(NA),
+               "logsigma_logRP" = as.factor(1),
     #          "logsigma_logDP" = as.factor(1),
     
     #          "logsigma_logbeta" = as.factor(1),
-               "logsigma_loggamma" = as.factor(NA),
+    #          "logsigma_loggamma" = as.factor(NA),
     #          "logsigma_logmu" = as.factor(1),
     
-               "logsigma_logC" = as.factor(NA),
-               "logsigma_logD" = as.factor(NA)
+    #          "logsigma_logC" = as.factor(NA),
+    #          "logsigma_logD" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
     #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
     #          "logR"    = rep(as.factor(NA), data$ntime+1),
-    #          "logmu"   = as.factor(1)
+               "logmu"   = as.factor(1)
     )
     
     print(paste("---- estimation map:",length(map),"variables"))
@@ -267,7 +270,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     dyn.load(dynlib(model.name))
     print("Finished compilation and dyn.load-------------",quote=FALSE)
     print("Calling MakeADFun-----------------------------",quote=FALSE)
-    obj = MakeADFun(data,par,  random=c("loggamma","logbeta"), 
+    obj = MakeADFun(data,par, random=c("loggamma","logbeta"), 
                     map=map,DLL=model.name)
     print("--------MakeADFun Finished--------------------",quote=FALSE)
     print("obj$par (1):")
@@ -278,12 +281,15 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
-    obj$env$inner.control$tol10 <- 0
+    #obj$env$inner.control$tol10 <- 0
 
-    nlminb.con=list(eval.max=5000,iter.max=5000)
+    #nlminb.con=list(x.tol = 1e-5) #eval.max=5000,iter.max=5000)
+    inner.control = list(smartsearch=FALSE,maxit=5)
+    #control=list(trace=1,eval.max=1,iter.max=5)
+    control=list(eval.max=10,iter.max=5)
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr,control=nlminb.con)
+    opt = nlminb(obj$par,obj$fn,obj$gr,control=control)
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)
@@ -338,7 +344,7 @@ if (nrun < 2) {
     }
 #   print(paste('median logbeta',median(fit$obj$report()$logbeta)))
 #   print(paste('median loggamma',median(fit$obj$report()$loggamma)))
-    print(paste('logmu',fit$obj$par['logmu']))
+    print(paste('opt$par',fit$opt$par['logmu'],exp(fit$opt$par['logmu'])))
 } else {
     print(paste('----nrun =',nrun))
     sink( paste(fit_path,'SIR_model.log',sep=''), type = c("output", "message"))
