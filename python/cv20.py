@@ -916,7 +916,7 @@ print('------- here ------')
 #FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
 #                   fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
-plot_DC(glist=[5,1000], save=True)
+#plot_DC(glist=[5,1000], save=True)
 #update_assets()
 
 #update_everything()

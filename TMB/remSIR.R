@@ -191,20 +191,21 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     print(data)
     data$log_obs_cases = log(data$obs_cases+eps)
     data$log_obs_deaths = log(data$obs_deaths+eps)
-    data$logmu_prior = log(0.02)
-    data$sigma_logmu_prior = 0.223
+
+    data$logmu_prior = 0.018 # ~log(0.02)
+    data$sigma_logmu_prior = log(0.001)
 
     print("-data:")
     print(data)
     print(paste('cases:',length(data$obs_cases)))
 
     init = list(
-    #   logsigma_logCP    = -0.5, #log(0.105),
+        logsigma_logCP    = log(0.105),
         logsigma_logRP    = log(0.223),
     #   logsigma_logDP    = -5.0, #log(0.105),
 
-        logsigma_logbeta = log(0.223),
-        logsigma_loggamma =  log(0.223),
+        logsigma_logbeta = log(0.105),
+        logsigma_loggamma =  log(0.105),
     #   logsigma_logmu   = -0.5, #log(0.223),
     
     
@@ -212,7 +213,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
         logsigma_logD = log(0.05),
 
         logbeta  = -2.0, #log(0.01),
-        loggamma = -2.0, #log(0.005),
+        loggamma = -6.0, #log(0.005),
         logmu    = data$logmu_prior 
     #   logR     =  data$log_obs_cases
     )
@@ -220,7 +221,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     print(init)
     
     par = list(
-    #   logsigma_logCP = init$logsigma_logCP,
+        logsigma_logCP = init$logsigma_logCP,
         logsigma_logRP = init$logsigma_logRP,
     #   logsigma_logDP = init$logsigma_logDP,
     
@@ -241,7 +242,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     print(par)
     
     map = list(
-    #          "logsigma_logCP" = as.factor(1),
+               "logsigma_logCP" = as.factor(1),
                "logsigma_logRP" = as.factor(1),
     #          "logsigma_logDP" = as.factor(1),
     
@@ -249,8 +250,8 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     #          "logsigma_loggamma" = as.factor(NA),
     #          "logsigma_logmu" = as.factor(1),
     
-    #          "logsigma_logC" = as.factor(NA),
-    #          "logsigma_logD" = as.factor(NA),
+               "logsigma_logC" = as.factor(NA),
+               "logsigma_logD" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
     #          "loggamma"    = rep(as.factor(NA), data$ntime+1),

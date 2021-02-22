@@ -66,8 +66,8 @@ Type objective_function <Type>::operator()()
 
     DATA_SCALAR(logmu_prior)
     DATA_SCALAR(sigma_logmu_prior)
-  
-    //PARAMETER(logsigma_logCP);          // SIR cases process error
+
+    PARAMETER(logsigma_logCP);          // SIR cases process error
     PARAMETER(logsigma_logRP);          // SIR removals process error
     //PARAMETER(logsigma_logDP);          // SIR deaths process error
 
@@ -97,10 +97,10 @@ Type objective_function <Type>::operator()()
     Type var_loggamma = square(sigma_loggamma);
     Type var_logmu_prior = square(sigma_logmu_prior);
 
-    //Type sigma_logCP = exp(logsigma_logCP);
+    Type sigma_logCP = exp(logsigma_logCP);
     Type sigma_logRP = exp(logsigma_logRP);
     //Type sigma_logDP = exp(logsigma_logDP);
-    //Type var_logCP = square(sigma_logCP);
+    Type var_logCP = square(sigma_logCP);
     Type var_logRP = square(sigma_logRP);
     //Type var_logDP = square(sigma_logDP);
 
@@ -118,9 +118,9 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
     Type mu_priornll = 0.0; 
     //  loop over time
-    logS[0] = log(N0);
+//  logS[0] = log(N0);
 //  logEye[0] = log_obs_cases[0];
-    logR[0] = logeps;
+//  logR[0] = logeps;
 //  logD[0] = log_obs_deaths[0];
     Type mu   = exp(logmu);
     for (int t = 1; t <= ntime; t++)
@@ -163,6 +163,8 @@ Type objective_function <Type>::operator()()
          if (nextEye > 0.0)
          {
              logEye(t) = log(nextEye);
+             Pnll += isNaN(LNerr(logEye(t-1), logEye(t),var_logCP),__LINE__);
+ 
          }
          else
          {
@@ -245,7 +247,7 @@ Type objective_function <Type>::operator()()
      REPORT(logmu)
      REPORT(rho)
 
-     //REPORT(sigma_logCP);
+     REPORT(sigma_logCP);
      REPORT(sigma_logRP);
      //REPORT(sigma_logDP);
 

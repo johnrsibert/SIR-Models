@@ -20,14 +20,18 @@ import js_covid as cv
 
 print('----------'+os.getcwd())
 #fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/Los_AngelesCA.RData')
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/AlamedaCA.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData')
+#         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData
 
-print('keys',fit.keys())
+#         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/KingWA.RData
+print('keys:',fit.keys())
+
 diag = fit['diag']
+print('diag:')
 print(diag.columns)
 print(diag)
-mbeta = diag['logbeta'].quantile(q=0.5)
-print('median logbeta:',mbeta,np.exp(mbeta))
+#mbeta = diag['logbeta'].quantile(q=0.5)
+#print('median logbeta:',mbeta,np.exp(mbeta))
 #mgamma = diag['loggamma'].quantile(q=0.5)
 #print('median loggamma:',mgamma,np.exp(mgamma))
 mmu = diag['logmu'].quantile(q=0.5)
@@ -45,12 +49,14 @@ print(md)
 #print('Date0:',Date0)
 
 like = fit['like_comp']
+print('like:')
 print(like)
 
 ests = fit['ests']
 ests.set_index('names',inplace=True)
 print('ests:')
 print(ests)
+
 #print('exp(ests)[est]:')cls
 #print(ests['map'])
 #print(str(ests['map']))
