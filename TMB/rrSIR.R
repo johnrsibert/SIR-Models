@@ -17,7 +17,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     cname = sub(" ","_",County)
     datfile=paste(dat_path,cname,'.dat',sep='')
     print(paste(separator,County,separator),quote=FALSE)
-    dat = read.dat.file(datfile) #,max_ntime = 200)
+    dat = read.dat.file(datfile)##,max_ntime = 200)
     eps = 1e-8
     data=dat$data
     print(names(data))
@@ -35,14 +35,14 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     
     init = list(
     #   compartment process errors
-        logsigma_logCP    = -0.5, #log(0.105),
-        logsigma_logRP    = -1.5, #log(0.105),
-        logsigma_logDP    = -5.0, #log(0.105),
+        logsigma_logCP    = -2.5, #log(0.105),
+        logsigma_logRP    = -3.0, #log(0.105),
+        logsigma_logDP    = -2.0, #log(0.105),
 
     #   rate random walks
-        logsigma_logbeta  = log(0.105),
-        logsigma_loggamma = log(0.105),
-        logsigma_logmu    = log(0.105),
+        logsigma_logbeta  = -1.05, #log(0.105),
+        logsigma_loggamma = log(0.223),
+        logsigma_logmu    = -0.94, #log(0.105),
     
     #   observation errors 
         logsigma_logC = log(0.097),
@@ -53,9 +53,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #   logsigma_logD = log(log(1.1)),
  
     #   rate parameter random effects
-        logbeta  = -4.0, #log(0.01),
-        loggamma = -20.0, #log(0.005),
-        logmu    = -7.0 #log(0.0001)
+        logbeta  = -2.0, #log(0.01),
+        loggamma = -3.0, #log(0.005),
+        logmu    = -4.0 #log(0.0001)
     )
     print("--init parameter values:")
     print(init)
@@ -86,11 +86,11 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
                "logsigma_logDP" = as.factor(1),
     
     #          "logsigma_logbeta" = as.factor(NA),
-               "logsigma_loggamma" = as.factor(NA),
+    #          "logsigma_loggamma" = as.factor(NA),
     #          "logsigma_logmu" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
-               "loggamma"    = rep(as.factor(NA), data$ntime+1),
+    #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
     #          "logmu"   = rep(as.factor(NA), data$ntime+1),
     
                "logsigma_logC" = as.factor(NA),
@@ -120,12 +120,13 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
-    obj$env$inner.control$tol10 <- 0
+    #obj$env$inner.control$tol10 <- 0
 
-    nlminb.con=list(eval.max=5000,iter.max=5000)
+    nlminb.con=list(rel.tol=1e-4,abs.tol=1e-3) #eval.max=5000,iter.max=5000)
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr)#,control=nlminb.con)
+    opt = nlminb(obj$par,obj$fn,obj$gr,control=nlminb.con)
+    print('opt:',opt)
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)

@@ -118,18 +118,12 @@ Type objective_function <Type>::operator()()
     Type dnll = 0.0;
 //  Type CFRnll = 0.0;
 
-    //logS[0] = log(N0);
-    //logEye[0] = log_obs_cases[0];
-    //logR[0] = 0.0;
-    //logD[0] = log_obs_deaths[0];
-
-    Type S   = N0;
-    Type Eye = 0.0;
-    Type R   = 0.0;
-    Type D   = 0.0;
-    Type N   = S + Eye + R + D;
     diffN0(0) = 0.0;
-    
+    logS[0]   = log(N0); 
+    logEye[0] = log_obs_cases[0];
+    logR[0]   = logeps; 
+    logD[0]   = log_obs_deaths[0];
+
     //  loop over time
     for (int t = 1; t <= ntime; t++)
     {
@@ -151,9 +145,15 @@ Type objective_function <Type>::operator()()
          Type gamma = exp(loggamma(t-1)); 
 
          // compute process error likelihood
-
+         Type S   = exp(logS(t-1));
+         Type Eye = exp(logEye(t-1));
+         Type R   = exp(logR(t-1));
+         Type D   = exp(logD(t-1));
+         Type N   = S + Eye + R + D;
+         Type bison = beta * Eye * S/N;
          diffN0(t) = N - N0;
-         /*
+
+         /* 
          if (fabs(diffN0(t)) > 0.0)
          {
              TTRACE(t,diffN0(t))
@@ -162,8 +162,7 @@ Type objective_function <Type>::operator()()
              TTRACE(R,D)
              return(1);
          }
-         */
-         Type bison = beta * Eye * S/N;
+         */ 
 
        //TTRACE(t,N)
        //TTRACE(Eye,D)
@@ -226,11 +225,6 @@ Type objective_function <Type>::operator()()
              TTRACE(nextD,deltaD)
          }
 
-         S   = exp(logS(t));
-         Eye = exp(logEye(t));
-         R   = exp(logR(t));
-         D   = exp(logD(t));
-         N   = S + Eye + R + D;
      }
 //   loggamma(ntime) = loggamma(ntime-1);
 
