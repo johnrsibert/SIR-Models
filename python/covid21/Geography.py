@@ -23,8 +23,9 @@ class Geography:
         if self.name is None:
             self.moniker = None
         else:
-            self.moniker = str(self.name+self.code)
-            self.moniker =  self.moniker.replace(' ','_',5) 
+        #   self.moniker = str(self.name+self.code)
+        #   self.moniker =  self.moniker.replace(' ','_',5) 
+            self.moniker = set_moniker(self.name+self.code)
     #   self.TMB_fit = None
     #   self.ADMB_fit = None
         if self.moniker is None:
@@ -374,6 +375,10 @@ def short_name(s):
     else:
         sn = w[0][0]+w[1][0]+s[-2:]
     return(sn)  
+
+def set_moniker(name, code):
+    mon = str(name+code)
+    return(mon.replace(' ','_',5))
     
 def pretty_county(s):
     ls = len(s)
