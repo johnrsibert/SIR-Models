@@ -27,22 +27,18 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print("-data:")
     print(data)
     #                       est                 init
-    # [1] "logsigma_logP -1.79698443260037 -2.25379492882461"
-    # [1] "logsigma_logbeta -2.84041702304568 -1.50058350752202"
-    # [1] "logsigma_logZ -11.5143846566642 -1.50058350752202"
-    # [1] "logsigma_logmu -0.707853292582357 -1.50058350752202"
 
     
     init = list(
     #   compartment process errors
-        logsigma_logCP    = -2.5, #log(0.105),
-        logsigma_logRP    = -3.0, #log(0.105),
-        logsigma_logDP    = -2.0, #log(0.105),
+        logsigma_logCP    = log(0.105),
+        logsigma_logRP    = log(0.105),
+        logsigma_logDP    = log(0.105),
 
     #   rate random walks
-        logsigma_logbeta  = -1.05, #log(0.105),
-        logsigma_loggamma = log(0.223),
-        logsigma_logmu    = -0.94, #log(0.105),
+        logsigma_logbeta  = log(0.105),
+        logsigma_loggamma = -1.0, #log(0.105),
+        logsigma_logmu    = -1.0, #log(0.105),
     
     #   observation errors 
         logsigma_logC = log(0.097),
@@ -53,9 +49,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #   logsigma_logD = log(log(1.1)),
  
     #   rate parameter random effects
-        logbeta  = -2.0, #log(0.01),
-        loggamma = -3.0, #log(0.005),
-        logmu    = -4.0 #log(0.0001)
+        logbeta  = -1.0, #log(0.01),
+        loggamma = -5.0, #log(0.005),
+        logmu    = -7.0 #log(0.0001)
     )
     print("--init parameter values:")
     print(init)
@@ -86,11 +82,11 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
                "logsigma_logDP" = as.factor(1),
     
     #          "logsigma_logbeta" = as.factor(NA),
-    #          "logsigma_loggamma" = as.factor(NA),
+               "logsigma_loggamma" = as.factor(NA),
     #          "logsigma_logmu" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
-    #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
+               "loggamma"    = rep(as.factor(NA), data$ntime+1),
     #          "logmu"   = rep(as.factor(NA), data$ntime+1),
     
                "logsigma_logC" = as.factor(NA),
@@ -115,18 +111,29 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print("obj$par (1):")
     print(obj$par)
     hide_obj = obj
-    lb <- obj$par*0-Inf
-    ub <- obj$par*0+Inf
+    lb <- obj$par*0-10
+    ub <- obj$par*0-1
+    lb["logbeta"] <- -8.0
+    ub["logbeta"] <- -1.0
+    lb["logR"] <- 0.0
+    print(paste('ub:',length(ub)))
+    print(ub)
+    print(paste('lb:',length(lb)))
+    print(lb)
+
+
     
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
     #obj$env$inner.control$tol10 <- 0
 
-    nlminb.con=list(rel.tol=1e-4,abs.tol=1e-3) #eval.max=5000,iter.max=5000)
+    #nlminb.con=list(rel.tol=1e-4,abs.tol=1e-3,lower=lb, upper=ub)
+
+    obj$control=list(trace=1,eval.max=1,iter.max=2,rel.tol=1e-4,abs.tol=1e-3)
+
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr,control=nlminb.con)
-    print('opt:',opt)
+    opt = nlminb(obj$par,obj$fn,obj$gr,lower=lb, upper=ub)
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)
@@ -142,11 +149,14 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #   print(fit)
         print('plotting')
         plot.log.state(fit)
-        dev.file = paste(fit_path,data$county,'.pdf',sep='')
-    #   dev.file = paste(data$county,'_ests.pdf',sep='')
-        dev.copy2pdf(file=dev.file,width=6.5,height=9)
+    #   dev.file = paste(fit_path,data$county,'.pdf',sep='')
+    #   dev.copy2pdf(file=dev.file,width=6.5,height=9)
+        dev.file = paste(fit_path,data$county,'.png',sep='')
+        dev.copy(png,file=dev.file,width=6.5,height=9,unit='in',res=300) #bg='white', 
         print(paste('plot saved as',dev.file))
-    #   dev.off()
+        dev.off()
+#> dev.copy(png,'myplot.png')
+#> dev.off()
     }
     
 #   rd.file = paste(fit_path,data$county,'.RData',sep='')

@@ -23,9 +23,9 @@ class Geography:
         if self.name is None:
             self.moniker = None
         else:
-        #   self.moniker = str(self.name+self.code)
+        #   self.moniker = str(self.name+self.code
         #   self.moniker =  self.moniker.replace(' ','_',5) 
-            self.moniker = set_moniker(self.name+self.code)
+            self.moniker = set_moniker(self.name,self.code)
     #   self.TMB_fit = None
     #   self.ADMB_fit = None
         if self.moniker is None:

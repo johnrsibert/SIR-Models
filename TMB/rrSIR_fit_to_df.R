@@ -19,6 +19,7 @@ save.fit = function(fit,file_root,mod='rrSIR')
            logbeta = obj$report()$logbeta,
            loggamma = obj$report()$loggamma,
            logmu = obj$report()$logmu,
+           logR = obj$report()$logR,
 	   SElogbeta = NA,
            SEloggamma = NA,
            SElogmu   = NA 
@@ -120,6 +121,7 @@ save.fit = function(fit,file_root,mod='rrSIR')
     rd.file = paste(fit_path,file_root,'.RData',sep='')
     print(paste('saving fit:',rd.file))
     save(diag,meta,ests,like_comp,file=rd.file)
+    print('     saved')
 
 
 #   stderror = data.frame(stringsAsFactors = FALSE,

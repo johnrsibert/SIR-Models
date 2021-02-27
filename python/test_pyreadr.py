@@ -19,8 +19,8 @@ import js_covid as cv
 #os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
 
 print('----------'+os.getcwd())
-#fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/Los_AngelesCA.RData')
 fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData')
+#fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA-mu.RData')
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData
 
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/KingWA.RData
@@ -34,8 +34,12 @@ print(diag)
 #print('median logbeta:',mbeta,np.exp(mbeta))
 #mgamma = diag['loggamma'].quantile(q=0.5)
 #print('median loggamma:',mgamma,np.exp(mgamma))
+mbeta = diag['logbeta'].quantile(q=0.5)
+print('median logbeta:',mbeta,np.exp(mbeta))
+mgamma = diag['loggamma'].quantile(q=0.5)
+print('median loggama:',mgamma,np.exp(mgamma))
 mmu = diag['logmu'].quantile(q=0.5)
-print('median logmu:',mmu,np.exp(mmu))
+print('median logmu:  ',mmu,np.exp(mmu))
 
 md = fit['meta']
 md.set_index('names',inplace=True)

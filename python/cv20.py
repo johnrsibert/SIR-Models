@@ -8,8 +8,9 @@ from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import Fit as FF
 from covid21 import GraphicsUtilities as GU
-from numpy import errstate,isneginf #,array
+from covid21 import CFR
 
+from numpy import errstate,isneginf #,array
 import pandas as pd
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -205,7 +206,7 @@ def plot_DC(glist=[5,100], save=True):
    
     def plot_cmr(a, rr=[2.0]):
         for r in rr:
-            rstr = str(r)
+            rstr = str(rc,)
             xr = [0.0]*2
             yr = [0.0]*2
             for i in range(0,len(yr)):
@@ -474,11 +475,11 @@ def update_shared_plots():
 #   os.system('git push')
 
 def update_assets():
-    asset_files = ['CFR_1000.png', 'logbeta_summary_2.png', 'logbeta_summary_g.png',
+    asset_files = ['logbeta_summary_2.png', 'logbeta_summary_g.png',
                    'days_of_week_5.png','days_of_week_1000.png', 
-                   'CFR_all_1000.png', 'CFR_all_5.png', 'CFR_hist_1000.png',
+                   'CFR_all_0000.png', 'CFR_all_5.png', 'CFR_hist_all_recent.png',
                    'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
-                   'New_York_CityNY_prevalence.png']
+                   'New_York_CityNY_prevalence.png','CFR_quantiles_boxplot.png']
     for file in asset_files:
         cmd = 'cp -p '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
@@ -583,6 +584,9 @@ def update_everything():
     FF.make_rate_plots('logmu',save=True)
     print('Finished rate_plots')
     plot_DC(glist=[5,1000], save=True)
+    CFR.plot_DC_scatter(save=True)
+    CFR.plot_recent_CFR(save=True)
+#   CFR.plot_CFR_lognorm_fit(save=True)
     print('Finished CFR plots')
     update_assets()
     print('Finishing update asset directory')
@@ -917,7 +921,13 @@ print('------- here ------')
 #                   fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
 #plot_DC(glist=[5,1000], save=True)
+#CFR.plot_DC_scatter(save=True)
 #update_assets()
 
 #update_everything()
 #git_commit_push()
+#CFR.pop_percentiles(save=True)   
+#CFR.plot_CFR_lognorm_fit(save=True)
+#CFR.plot_recent_CFR(save=True)
+#CFR.plot_DC_scatter(save=True)
+update_assets()
