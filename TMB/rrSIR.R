@@ -1,4 +1,5 @@
 SIR_path = '/home/jsibert/Projects/SIR-Models/'
+graphics_path = paste(SIR_path,'Graphics/rrSIR/',sep='')
 fit_path = paste(SIR_path,'fits/rrSIR/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
@@ -49,9 +50,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #   logsigma_logD = log(log(1.1)),
  
     #   rate parameter random effects
-        logbeta  = -1.0, #log(0.01),
-        loggamma = -5.0, #log(0.005),
-        logmu    = -7.0 #log(0.0001)
+        logbeta  = -4.0, #log(0.01),
+        loggamma = -4,0, #log(0.005),
+        logmu    = -8.0 #log(0.0001)
     )
     print("--init parameter values:")
     print(init)
@@ -82,13 +83,13 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
                "logsigma_logDP" = as.factor(1),
     
     #          "logsigma_logbeta" = as.factor(NA),
-               "logsigma_loggamma" = as.factor(NA),
+    #          "logsigma_loggamma" = as.factor(NA),
     #          "logsigma_logmu" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
-               "loggamma"    = rep(as.factor(NA), data$ntime+1),
+    #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
     #          "logmu"   = rep(as.factor(NA), data$ntime+1),
-    
+
                "logsigma_logC" = as.factor(NA),
                "logsigma_logD" = as.factor(NA)
     )
@@ -110,12 +111,19 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print("--------MakeADFun Finished--------------------",quote=FALSE)
     print("obj$par (1):")
     print(obj$par)
-    hide_obj = obj
     lb <- obj$par*0-10
     ub <- obj$par*0-1
-    lb["logbeta"] <- -8.0
-    ub["logbeta"] <- -1.0
     lb["logR"] <- 0.0
+    print(paste('ub:',length(ub)))
+    ub["logbeta"] <- -1.0
+    lb["logbeta"] <- -5.0
+    ub["loggamma"] <- -1.2
+    lb["loggamma"] <- -7.5
+    ub["logmu"] <- -5.0
+    lb["logmu"] <- -10.0
+    lb["logR"] <- 0.0
+    print(paste('lb:',length(lb)))
+    print(lb)
     print(paste('ub:',length(ub)))
     print(ub)
     print(paste('lb:',length(lb)))
@@ -125,15 +133,15 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
-    #obj$env$inner.control$tol10 <- 0
 
-    #nlminb.con=list(rel.tol=1e-4,abs.tol=1e-3,lower=lb, upper=ub)
-
-    obj$control=list(trace=1,eval.max=1,iter.max=2,rel.tol=1e-4,abs.tol=1e-3)
+    control=list(trace=1,eval.max=1,iter.max=4,rel.tol=1e-4,abs.tol=1e-3)
 
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr,lower=lb, upper=ub)
+    opt = nlminb(obj$par,obj$fn,obj$gr,lower=lb, upper=ub,control=control)
+                 
+
+
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)
@@ -151,7 +159,8 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
         plot.log.state(fit)
     #   dev.file = paste(fit_path,data$county,'.pdf',sep='')
     #   dev.copy2pdf(file=dev.file,width=6.5,height=9)
-        dev.file = paste(fit_path,data$county,'.png',sep='')
+        dev.file = paste(graphics_path,data$county,init$loggamma,'.png',sep='')
+        print(paste('Attempting to save plot as',dev.file))
         dev.copy(png,file=dev.file,width=6.5,height=9,unit='in',res=300) #bg='white', 
         print(paste('plot saved as',dev.file))
         dev.off()
@@ -160,7 +169,8 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     }
     
 #   rd.file = paste(fit_path,data$county,'.RData',sep='')
-    save.fit(fit,file=data$county,mod=model.name)#   rd.file) #"t.RData")
+#   save.fit(fit,file=data$county,mod=model.name)#   rd.file) #"t.RData")
+    save.fit(fit,file=paste(data$county,init$loggamma,sep=''),mod=model.name)#   rd.file) #"t.RData")
     
     return(fit)
 
@@ -176,8 +186,8 @@ print(paste('nrun =',nrun))
 if (nrun < 2) {
 #   County="Miami-DadeFL"
 #   County="KingWA"
-#   County="AlamedaCA"
-    County = "Los_AngelesCA"
+    County="AlamedaCA"
+#   County = "Los_AngelesCA"
 #   County = "New_York_CityNY"
     print(paste('----nrun =',nrun,County))
     do_one_run(County=County)->fit
