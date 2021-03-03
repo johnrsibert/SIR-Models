@@ -51,8 +51,8 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
  
     #   rate parameter random effects
         logbeta  = -4.0, #log(0.01),
-        loggamma = -4,0, #log(0.005),
-        logmu    = -8.0 #log(0.0001)
+        loggamma = -7.5, #log(0.005),
+        logmu    = -5.0 #log(0.0001)
     )
     print("--init parameter values:")
     print(init)
@@ -87,7 +87,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     #          "logsigma_logmu" = as.factor(NA),
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
-    #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
+               "loggamma"    = rep(as.factor(NA), data$ntime+1),
     #          "logmu"   = rep(as.factor(NA), data$ntime+1),
 
                "logsigma_logC" = as.factor(NA),
@@ -113,17 +113,15 @@ do_one_run = function(County = "Santa Clara",model.name = 'rrSIR',do.plot=TRUE)
     print(obj$par)
     lb <- obj$par*0-10
     ub <- obj$par*0-1
-    lb["logR"] <- 0.0
-    print(paste('ub:',length(ub)))
-    ub["logbeta"] <- -1.0
-    lb["logbeta"] <- -5.0
-    ub["loggamma"] <- -1.2
-    lb["loggamma"] <- -7.5
-    ub["logmu"] <- -5.0
-    lb["logmu"] <- -10.0
-    lb["logR"] <- 0.0
-    print(paste('lb:',length(lb)))
-    print(lb)
+#   lb["logR"] <- 0.0
+#   print(paste('ub:',length(ub)))
+#   ub["logbeta"] <- -1.0
+#   lb["logbeta"] <- -5.0
+#   ub["loggamma"] <- -1.2
+#   lb["loggamma"] <- -7.5
+#   ub["logmu"] <- -5.0
+#   lb["logmu"] <- -10.0
+#   lb["logR"] <- 0.0
     print(paste('ub:',length(ub)))
     print(ub)
     print(paste('lb:',length(lb)))

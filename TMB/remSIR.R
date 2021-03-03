@@ -1,181 +1,15 @@
 SIR_path = '/home/jsibert/Projects/SIR-Models/'
+graphics_path = paste(SIR_path,'Graphics/remSIR/',sep='')
 fit_path = paste(SIR_path,'fits/remSIR/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
 TMB_path = paste(SIR_path,'TMB/',sep='')
 source(paste(TMB_path,'SIR_read_dat.R',sep=''))
+source(paste(TMB_path,'plot_remSIR_state.R',sep=''))
 #source(paste(TMB_path,'remSIR_fit_to_df.R',sep=''))
 require(TMB)
 require(gtools)
 #rm(fit)
 print('starting')
-
-# ------------------ support functions ------------
-
-make.ytext = function(ylim,prop)
-{
-    ytext = prop*(ylim[2]-ylim[1])+ylim[1]
-    return(ytext)
-}
-
-get.error = function(par,opt,map,tn)
-{
-    if ( is.na(map[tn]) )
-    {   
-        err = par[tn] 
-    }
-    else
-    {   
-        err = opt$par[tn] 
-    } 
-
-    print(paste('get.error',tn,err))
-    return(as.numeric(err))
-}
-
-plot.rv = function(x, obs_y, pred_y, ylab, err, err_name, ylim,pch='+', 
-                   obs_col='red', note_col='blue')
-{
-    plot(x, obs_y, ylab=ylab, ylim=ylim, pch=pch)
-    lines(x, pred_y, col=obs_col,lwd=3)
-    plot.error(x, pred_y, err)
-    ytext = make.ytext(ylim,0.9)
-#   print(paste('mean(err)',mean(err)))
-    print(paste(ylab,err_name,err))
-    if (err > 0.0)
-    {
-        note = paste(err_name,'~',sprintf("%.5g",err))
-    }
-    else
-    {
-        note = err_name
-    }
-    ttext = 0.1*(length(obs_y)-1)
-    text(ttext,ytext,note,col=note_col,pos=4)
-}
-
-plot.log.state = function(fit) #,np=5)
-{
-    attach(fit)
-
-    bias.note = function(name,err=NA)
-    {
-        w = which(names(obj$report()) == name)
-        val = as.numeric(obj$report()[w])
-        note = paste('bias = ',signif(val,3),sep='')
-        return(note)
-    }
-
-    fn = opt$value
-    if (is.null(fn))
-        fn = opt$objective
-    title =  paste(data$county,", f = ",sprintf('%.5g',fn),
-                   ", ",model.name,
-                   ", C = ", opt$convergence,
-                   " (",(opt$convergence==0),")",sep='')
-    width = 8.0
-    height = 8.0
-    x11(width=width,height=height,title=title)#,xpos=100)
-
-    old.par = par(no.readonly = TRUE) 
-    par(mar=c(2.0,4.0,0.5,0.5)+0.1) #,oma = c(5,4,0,0) + 0.1)#mfcol=c(3,2),
- 
-    note.color='blue'
-    point.symb = '+'
-
-    lm = layout(matrix(c(1:8),ncol=2,byrow=FALSE))
-    layout.show(lm)
-#   mtext(title,outer=TRUE,side=1)
-
-
-    tt = seq(0,(length(data$log_obs_cases)-1))
-    ttext = 0.1*(length(data$log_obs_cases)-1)
-
-    poplim = c(0.0,1.2*log(data$N0)) #range(obj$report()$logS)
-
-    plot(tt,obj$report()$logS,ylab='ln S',ylim=poplim, pch=point.symb)
-#   err = SElogS
-#   logspace.plot.error(tt,obj$report()$logS,err)
-    gmlogS = median(obj$report()$logS)
-    abline(h=gmlogS,lty='dashed')
-
-
-    err = exp(get.error(par,opt,map,'logsigma_logC'))
-    plot.rv(tt,data$log_obs_cases, obj$report()$logEye,
-            ylab='ln cases,', err, err_name='sigma_logC',ylim=poplim)
-
-#   err = exp(get.error(par,opt,map,'logsigma_logR'))
-#   plot.rv(tt,data$log_obs_R, obj$report()$logR,
-#           ylab='ln R', err, err_name='sigma_logR',ylim=poplim)
-
-    plot(tt,obj$report()$logR,ylab='ln R',ylim=poplim, col='red',type='l',lwd=3)
-
-    ylim=c(0.0,1.2*max(data$log_obs_deaths,obj$report()$logD))
-    if (hasName(par,'logsigma_logD'))
-    {
-    #   Zero infltated log normal
-        err = exp(get.error(par,opt,map,'logsigma_logD'))
-        ename = 'sigma_logD'
-    }
-    else
-    {
-    #   Poisson error
-        err = 0.0
-        ename = 'lambda'
-    }
-    plot.rv(tt,data$log_obs_deaths, obj$report()$logD,
-            ylab='ln deaths', err, err_name=ename,ylim=ylim)
-
-    rlim = c(-10.0,1.0)
-    err = exp(get.error(par,opt,map,'logsigma_logbeta'))
-    plot.rv(tt,obj$report()$logbeta, obj$report()$logbeta,
-            ylab='ln beta', err=err,
-            err_name='sigma_logbeta',ylim=rlim)
- 
-#   rlim = c(-10.0,1.0)
-#   err = exp(get.error(par,opt,map,'logsigma_logmu'))
-#   plot.rv(tt,obj$report()$logmu, obj$report()$logmu,
-#           ylab='ln mu', err=err,
-#           err_name='sigma_logmu',ylim=rlim)
-
-#   rlim = range(obj$report()$logZ)
-#   err = exp(get.error(par,opt,map,'logsigma_logZ'))
-#   plot.rv(tt,obj$report()$logZ, obj$report()$logZ,
-#           ylab='ln Z', err=err,
-#           err_name='sigma_logZ',ylim=rlim)
-
-
-    plot(tt,obj$report()$loggamma,ylab='ln gamma',ylim=rlim,  col='red',type='l',lwd=3)
-
-#   plot.new()
-#   mtext(title,outer=FALSE)
-
-#   print(dev.cur())
-#   dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
-#   print(dev.cur())
-
-    par(old.par)
-    detach(fit)
-    return(dev.cur())
-}
-
-plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)
-{
-   if (capabilities("cairo"))
-   {
-      sdyu = y+mult*sd
-      sdyl = y-mult*sd
-      frgb = col2rgb(fcol)/255
-      
-      polygon(c(x,rev(x)),c(sdyl,rev(sdyu)),
-              border=bcol,lty="dashed",lwd=1,
-              col=rgb(frgb[1],frgb[2],frgb[3],0.5))
-   }
-   else
-      polygon(c(x,rev(x)),c(sdyl,rev(sdyu)),
-              border=bcol,lty="dashed",lwd=1,col=fcol)
-
-}
-
 
 # ------------------ do_one run -------------------
 
@@ -192,30 +26,33 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     data$log_obs_cases = log(data$obs_cases+eps)
     data$log_obs_deaths = log(data$obs_deaths+eps)
 
-    data$logmu_prior = 0.018 # ~log(0.02)
-    data$sigma_logmu_prior = log(0.001)
+    data$logmu_prior = -4.0 # ~log(0.02)
+    data$sigma_logmu_prior = log(0.2)
+    data$logmu_prior_weight = 1.0/data$N0
 
     print("-data:")
     print(data)
     print(paste('cases:',length(data$obs_cases)))
 
     init = list(
+    #   compartment process errors
         logsigma_logCP    = log(0.105),
         logsigma_logRP    = log(0.223),
-    #   logsigma_logDP    = -5.0, #log(0.105),
+        logsigma_logDP    = log(0.105),
 
-        logsigma_logbeta = log(0.105),
-        logsigma_loggamma =  log(0.105),
+    #   rate random walks
+        logsigma_logbeta  = log(0.105),
+        logsigma_loggamma = log(0.02),
     #   logsigma_logmu   = -0.5, #log(0.223),
     
     
-        logsigma_logC = log(0.05),
-        logsigma_logD = log(0.05),
+        logsigma_logC = log(0.105),
+        logsigma_logD = log(0.105),
 
-        logbeta  = -2.0, #log(0.01),
-        loggamma = -6.0, #log(0.005),
-        logmu    = data$logmu_prior 
-    #   logR     =  data$log_obs_cases
+    #   rate parameter random effects
+        logbeta  = -4.0, #log(0.01),
+        loggamma = -5.0, #log(0.005),
+        logmu    = -5.0
     )
     print("--init parameter values:")
     print(init)
@@ -223,9 +60,9 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     par = list(
         logsigma_logCP = init$logsigma_logCP,
         logsigma_logRP = init$logsigma_logRP,
-    #   logsigma_logDP = init$logsigma_logDP,
+        logsigma_logDP = init$logsigma_logDP,
     
-        logsigma_logbeta = init$logsigma_logbeta,
+        logsigma_logbeta  = init$logsigma_logbeta,
         logsigma_loggamma = init$logsigma_loggamma,
     #   logsigma_logmu = init$logsigma_logmu,
     
@@ -235,15 +72,13 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
         logbeta  = rep(init$logbeta,data$ntime+1),
         loggamma = rep(init$loggamma,data$ntime+1),
         logmu    = init$logmu
-    #   logR     = rep(init$logR,data$ntime+1) 
-    #   logR     = init$logR
     ) 
     print(paste("---initial model parameters: ", length(par)))
     print(par)
     
     map = list(
-               "logsigma_logCP" = as.factor(1),
-               "logsigma_logRP" = as.factor(1),
+    #          "logsigma_logCP" = as.factor(1),
+    #          "logsigma_logRP" = as.factor(1),
     #          "logsigma_logDP" = as.factor(1),
     
     #          "logsigma_logbeta" = as.factor(1),
@@ -251,12 +86,11 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     #          "logsigma_logmu" = as.factor(1),
     
                "logsigma_logC" = as.factor(NA),
-               "logsigma_logD" = as.factor(NA),
+               "logsigma_logD" = as.factor(NA)
 
     #          "logbeta" = rep(as.factor(NA), data$ntime+1),
     #          "loggamma"    = rep(as.factor(NA), data$ntime+1),
-    #          "logR"    = rep(as.factor(NA), data$ntime+1),
-               "logmu"   = as.factor(1)
+    #          "logmu"   = as.factor(1)
     )
     
     print(paste("---- estimation map:",length(map),"variables"))
@@ -271,7 +105,7 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     dyn.load(dynlib(model.name))
     print("Finished compilation and dyn.load-------------",quote=FALSE)
     print("Calling MakeADFun-----------------------------",quote=FALSE)
-    obj = MakeADFun(data,par, random=c("loggamma","logbeta"), 
+    obj = MakeADFun(data,par,  random=c("loggamma","logbeta"), 
                     map=map,DLL=model.name)
     print("--------MakeADFun Finished--------------------",quote=FALSE)
     print("obj$par (1):")
@@ -282,15 +116,12 @@ do_one_run = function(County = "Santa Clara",model.name = 'remSIR',do.plot=TRUE)
     
     #   cmd = 'Rscript --verbose simpleSIR4.R'
     
-    #obj$env$inner.control$tol10 <- 0
 
-    #nlminb.con=list(x.tol = 1e-5) #eval.max=5000,iter.max=5000)
-    inner.control = list(smartsearch=FALSE,maxit=5)
-    #control=list(trace=1,eval.max=1,iter.max=5)
-    control=list(eval.max=10,iter.max=5)
+    control=list(trace=1,eval.max=2,iter.max=4,rel.tol=1e-4,abs.tol=1e-4)
+
     
     print("Starting minimization-------------------------",quote=FALSE)
-    opt = nlminb(obj$par,obj$fn,obj$gr,control=control)
+    opt = nlminb(obj$par,obj$fn,obj$gr,lower=lb, upper=ub,control=control)
     #opt = optim(obj$par,obj$fn,obj$gr)
     
     print("Done minimization-----------------------------",quote=FALSE)

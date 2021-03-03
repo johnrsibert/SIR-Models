@@ -468,13 +468,13 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         fit_path = cv.fit_path + model_name + '/'
         gamma_key = 'loggamma'
         es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta',
-                   'logsigma_logZ','logsigma_logmu',
-                   'logsigma_logC','logsigma_logD','mbeta','mZ','mmu','mgamma']
+                   'logsigma_loggamma','logsigma_logmu',
+                   'logsigma_logC','logsigma_logD','mbeta','mgamma','mmu']
         header = ['County','$n$','$p_0$','$f$','$C$',
                   '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$',
-                  '$\sigma_\\beta$','$\sigma_Z$','$\sigma_\\mu$',
-                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{Z}$',
-                  '$\\tilde{\\mu}$', '$\\tilde\\gamma$']
+                  '$\sigma_\\beta$','$\sigma_\\gamma$','$\sigma_\\mu$',
+                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$',
+                  '$\\tilde{\\beta}$','$\\tilde{\\gamma}$','$\\tilde{\\mu}$']
     else:
         print('Unknown model name passed to make fit table(...):',model_name)
         return(None)
@@ -484,9 +484,8 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
     tt = pd.DataFrame(columns=tt_cols,dtype=None)
 
     func = pd.DataFrame(columns=['fn'])
-    mgamma = pd.DataFrame(columns=['mgamma'])
     mbeta = pd.DataFrame(columns=['mbeta'])
-    mZ = pd.DataFrame(columns=['mZ'])
+    mgamma = pd.DataFrame(columns=['mgamma'])
     mmu = pd.DataFrame(columns=['mmu'])
     sigfigs = 3
     init_gamma = None
@@ -503,6 +502,7 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         row = pd.Series(index=tt_cols)
         county = fit.get_metadata_item('county')  
         row['county'] = GG.pretty_county(county)
+
     #   if (active_gamma is None):
     #   if (model_name == 'simpleSIR4'):
     #       active_gamma = get_active(ests,'loggamma')
@@ -519,13 +519,19 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         row['prop_zero_deaths'] = float(fit.get_metadata_item('prop_zero_deaths'))
         tt = tt.append(row,ignore_index=True)
         func = np.append(func,float(fit.get_metadata_item('fn')))
-        beta = np.exp(diag['logbeta'])
+        beta = diag['logbeta']
         mbeta = np.append(mbeta,stats.median(beta))
-        if any(pd.Series(diag.columns).isin(['logZ'])):
-            Z = np.exp(diag['logZ'])
-            mZ = np.append(mZ,Z.quantile(q=0.5))
-        mu = np.exp(diag['logmu'])
+    #   print('beta:',beta,mbeta)
+        if any(pd.Series(diag.columns).isin(['loggamma'])):
+            gamma = diag['loggamma']
+            mgamma = np.append(mgamma,gamma.quantile(q=0.5))
+        else:
+            print('gamma is missing')
+            sys.exit(1)		
+    #   print('gamma:',gamma,mgamma)
+        mu = diag['logmu']
         mmu = np.append(mmu,mu.quantile(q=0.5))
+    #   print('mu:',mu,mmu)
    
         if (gamma_key == 'gamma'):
             gamma = diag['gamma']
@@ -533,13 +539,13 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
             loggamma = diag['loggamma']
             gamma = np.exp(loggamma)
 
-        mgamma = np.append(mgamma,gamma.quantile(q=0.5))
+#       mgamma = np.append(mgamma,gamma.quantile(q=0.5))
 
     tt['fn'] = func
-    tt['mgamma'] = mgamma
+#   tt['mgamma'] = mgamma
     tt['mbeta'] = mbeta
-    if any(pd.Series(diag.columns).isin(['logZ'])):
-        tt['mZ'] = mZ
+    if any(pd.Series(diag.columns).isin(['loggamma'])):
+        tt['mgamma'] = mgamma
     tt['mmu'] = mmu
 
     mtime = os.path.getmtime(cv.NYT_counties)

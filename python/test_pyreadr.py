@@ -19,7 +19,7 @@ import js_covid as cv
 #os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
 
 print('----------'+os.getcwd())
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/AlamedaCA-20.RData')
 #fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA-mu.RData')
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData
 
