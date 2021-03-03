@@ -20,13 +20,14 @@ print(paste(separator,County,separator),quote=FALSE)
 dat = read.dat.file(datfile)#,max_ntime = 196)
 
 eps = 1e-8
-data=dat$data
+data=dat$dat
 print(names(data))
 print(data)
 data$log_obs_cases = log(data$obs_cases+eps)
 data$log_obs_deaths = log(data$obs_deaths+eps)
 print("-data:")
 print(data)
+print(data$ntime)
 
 init = list(
     logsigma_logCP = log(0.12),
@@ -37,17 +38,16 @@ init = list(
 #    logsigma_logC = log(log(1.25)), # log(0.1), 
 #    logsigma_logD = log(log(1.1)), # log(0.05), 
 
-     logsigma_logC = log(0.223),
-     logsigma_logD = log(0.105),
+     logsigma_logC = log(0.05),
+     logsigma_logD = log(0.05),
 
    
     logbeta = log(0.05),
-    loggamma = log(1e-10), #2.78e-9),
+#   loggamma = log(1e-10), #2.78e-9),
     logmu = log(0.00005) 
 )
 print("--init parameter values:")
 print(init)
-init
 par = list(
     logsigma_logCP = init$logsigma_logCP,
     logsigma_logDP = init$logsigma_logDP,
@@ -56,22 +56,22 @@ par = list(
     logsigma_logC = init$logsigma_logC,
     logsigma_logD = init$logsigma_logD,
 
-    logbeta  = rep(init$logbeta,(data$ntime+1)),
-    loggamma = init$loggamma,
+    logbeta  = rep(init$logbeta,data$ntime+1),
+#   loggamma = init$loggamma,
     logmu    = rep(init$logmu,data$ntime+1) 
 )
 print(paste("---initial model parameters: ", length(par)))
 print(par)
 
 map = list(
-           "logsigma_logCP" = as.factor(1),
-           "logsigma_logDP" = as.factor(1),
+#          "logsigma_logCP" = as.factor(1),
+#          "logsigma_logDP" = as.factor(1),
            "logsigma_logC" = as.factor(NA),
-           "logsigma_logD" = as.factor(NA),
-           "logsigma_logbeta" = as.factor(1),
-           "logsigma_logmu" = as.factor(1),
+           "logsigma_logD" = as.factor(NA)
+#          "logsigma_logbeta" = as.factor(1),
+#          "logsigma_logmu" = as.factor(1),
 
-           "loggamma" = as.factor(NA)
+#          "loggamma" = as.factor(NA)
 )
 
 print(paste("---- estimation map:",length(map),"variables"))
@@ -79,8 +79,8 @@ print(map)
 
 cpp.name = paste(model.name,'.cpp',sep='')
 
-#print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
-#compile(cpp.name)
+print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
+compile(cpp.name)
 
 print(paste("Loading",model.name,"-------------------------"),quote=FALSE)
 dyn.load(dynlib(model.name))
@@ -89,12 +89,14 @@ print("Calling MakeADFun-----------------------------",quote=FALSE)
 obj = MakeADFun(data,par,random=c("logbeta","logmu"), 
                 map=map,DLL=model.name)
 print("--------MakeADFun Finished--------------------",quote=FALSE)
+
+print("Starting minimization-------------------------",quote=FALSE)
 print("obj$par (1):")
 print(obj$par)
 lb <- obj$par*0-Inf
 ub <- obj$par*0+Inf
-
-print("Starting minimization-------------------------",quote=FALSE)
+#control=list(trace=1,eval.max=1,iter.max=4,rel.tol=1e-4,abs.tol=1e-3)
+control=list(trace=1,iter.max=6)
 opt = nlminb(obj$par,obj$fn,obj$gr)
 #opt = optim(obj$par,obj$fn,obj$gr)
 
@@ -111,14 +113,20 @@ mlogbeta = median(obj$report()$logbeta)
 print(paste("median logbeta:",mlogbeta))
 mlogmu = median(obj$report()$logmu)
 print(paste("median logmu:",mlogmu))
+mrho = median(obj$report()$rho)
+print(paste("median rho:",mrho))
 
 fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init,
            model.name=model.name)
 if (do.plot){
     x11()
-    plot.log.state(data,par,obj,opt,map,np=4)
-    dev.file = paste(fit_path,data$county,'.pdf',sep='')
-    dev.copy2pdf(file=dev.file,width=6.5,height=6)
+    plot.log.state(data,par,obj,opt,map,np=5)
+#   dev.file = paste(fit_path,data$county,'.pdf',sep='')
+#   dev.copy2pdf(file=dev.file,width=6.5,height=6)
+    dev.file = paste(fit_path,data$county,'.png',sep='')
+    print(paste('Attempting to save plot as',dev.file))
+    dev.copy(png,file=dev.file,width=6.5,height=9,unit='in',res=300)
+    print(paste('plot saved as',dev.file))
     dev.off()
 }
 
@@ -132,10 +140,10 @@ return(fit)
 
 
 
-nrun = 2
+nrun = 1
 if (nrun < 2) {
-    do_one_run(County="Los_AngelesCA")->fit
-#   do_one_run(County="AlamedaCA")->fit
+#   do_one_run(County="Los_AngelesCA")->fit
+    do_one_run(County="AlamedaCA")->fit
 #   do_one_run(County="HonoluluHI")->fit
 #   do_one_run(County="NassauNY")->fit
 #   do_one_run(County="BrowardFL")->fit

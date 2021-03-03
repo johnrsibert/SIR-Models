@@ -7,9 +7,9 @@ result = pyreadr.read_r('test_data/basic/two.RData', use_objects=["df1"])
 """
 import os
 import pyreadr
-import pandas
+#import pandas
 import numpy as np
-import js_covid as cv
+#import js_covid as cv
 
 #os.chdir('/home/other/pyreadr')
 #result = pyreadr.read_r('test_data/basic/two.RData')
@@ -19,12 +19,18 @@ import js_covid as cv
 #os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
 
 print('----------'+os.getcwd())
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/AlamedaCA-20.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/AlamedaCA.RData')
 #fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA-mu.RData')
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData
 
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/KingWA.RData
 print('keys:',fit.keys())
+
+
+md = fit['meta']
+md.set_index('names',inplace=True)
+print('meta:')
+print(md)
 
 diag = fit['diag']
 print('diag:')
@@ -36,15 +42,16 @@ print(diag)
 #print('median loggamma:',mgamma,np.exp(mgamma))
 mbeta = diag['logbeta'].quantile(q=0.5)
 print('median logbeta:',mbeta,np.exp(mbeta))
-mgamma = diag['loggamma'].quantile(q=0.5)
-print('median loggama:',mgamma,np.exp(mgamma))
+#model = fit['meta'].loc['model']['data']
+if (md.loc['model']['data'] == 'simpleSIR4'):
+    mgamma = diag['gamma'].quantile(q=0.5)
+else:    
+    mgamma = diag['loggamma'].quantile(q=0.5)
+print('median loggamma:',mgamma,np.exp(mgamma))
 mmu = diag['logmu'].quantile(q=0.5)
 print('median logmu:  ',mmu,np.exp(mmu))
 
-md = fit['meta']
-md.set_index('names',inplace=True)
-print('meta:')
-print(md)
+
 #print(md.iloc[0])
 #print(md.data)
 #rs = md['names'].isin(['Date0'])

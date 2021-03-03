@@ -6,6 +6,10 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     sdr = sdreport(obj)
     SElogbeta = as.list(sdr,"Std. Error")$logbeta
     SElogmu   = as.list(sdr,"Std. Error")$logmu
+#   print("finished SElogmu")
+#   SErho   = as.list(sdr,"Std. Error")$rho
+#   print("finished SErho")
+#   print(SErho)
 
     diag = data.frame(stringsAsFactors = FALSE,
            obs_cases = data$obs_cases,
@@ -14,17 +18,22 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
            log_obs_deaths = data$log_obs_deaths,
            log_pred_cases = obj$report()$logEye,
            log_pred_deaths = obj$report()$logD,
-           gamma = obj$report()$gamma,
            logbeta = obj$report()$logbeta,
+    #      gamma = obj$report()$gamma,
            logmu = obj$report()$logmu,
+           rho = obj$report()$rho,
 	   SElogbeta = NA,
            SElogmu = NA
+    #      SErho = NA
     )
  
     for (r in 1:nrow(diag))
     {
         diag[r,'SElogbeta'] = SElogbeta[r]
         diag[r,'SElogmu'] = SElogmu[r]
+    #   print(paste("finished SElogmu, row",r))
+    #   diag[r,'SErho'] = SErho[r]
+    #   print("finished SErho 2")
     }
 
     if (is.null(opt$value))
@@ -66,10 +75,7 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     like = vector(length=length(like_names))
     like[1] = obj$report()$f
     like[2] = obj$report()$betanll
-    if (mod == 'simpleSIR4')
-        like[3] = NA
-    else
-        like[3] = obj$report()$munll
+    like[3] = obj$report()$munll
     like[4] = obj$report()$Pnll
     like[5] = obj$report()$cnll
     like[6] = obj$report()$dnll

@@ -36,7 +36,7 @@ get.error = function(par,opt,map,tn)
     return(as.numeric(err))
 }
 
-plot.log.state = function(dat,par,obj,opt,map,np = 4)
+plot.log.state = function(dat,par,obj,opt,map,np = 5)
 {
     fn = opt$value
     if (is.null(fn))
@@ -89,7 +89,7 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
     if (np > 3)
     {
         ylim = 1.2*range(obj$report()$logmu)
-        plot(tt,obj$report()$logmu,ylab='ln mu',ylim=ylim, pch=point.symb)
+        plot(tt,obj$report()$logmu,ylab='ln mu', pch=point.symb)
         err = exp(get.error(par,opt,map,'logsigma_logmu'))
         logspace.plot.error(tt,obj$report()$logmu,err)
         gmlogmu = median(obj$report()$logmu)
@@ -97,6 +97,10 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
         ytext = make.ytext(ylim,0.9)
         note = paste('sigma_logmu ~',sprintf("%.5g",err))
         text(ttext,ytext,note,col=note.color,pos=4)
+
+        plot(tt,obj$report()$rho,ylab='rho', pch=point.symb)
+        gmrho = median(obj$report()$rho)
+        abline(h=gmrho,lty='dashed')
     }
 #   print(dev.cur())
 #   dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
@@ -106,40 +110,40 @@ plot.log.state = function(dat,par,obj,opt,map,np = 4)
 #   return(dev.cur())
 }
 
-plot.state=function(dat,oo,mod.par,np = 5)
-{
-    old.par = par(no.readonly = TRUE) 
-    par(mar=c(3,4.5,0,4)+0.1)
-
-    lm = layout(matrix(c(1:np),ncol=1,byrow=TRUE))
-    layout.show(lm)
-
-    tt = seq(0,(length(dat$obs_cases)-1))
-
-    plot(tt,log(dat$obs_cases),ylab='ln cases,',
-            ylim=c(0.0,max(log(dat$obs_cases),log(oo$report()$Eye))))
-    lines(tt,log(oo$report()$Eye),col='red')
-    plot.error(tt,log(oo$report()$Eye),mod.par$logsigma_C)
-
-    plot(tt,log(dat$obs_deaths),ylab='ln deaths',
-            ylim=c(0.0,max(dat$obs_deaths,oo$report()$D)))
-    lines(tt,log(oo$report()$D),col='red')
-    plot.error(tt,log(oo$report()$D),mod.par$logsigma_D)
-
-    plot(tt,exp(oo$report()$logbeta),ylab='beta',
-         ylim = range(exp(oo$report()$logbeta)))
-    plot.error(tt,exp(oo$report()$logbeta),exp(mod.par$logsigma_beta))
- 
-    if (np > 3)
-    {
-        plot(oo$report()$S,ylab='susceptible', ylim=c(0,dat$N0))
-
-        plot(oo$report()$R,ylab='recovered')
-    }
-    dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
-
-    par(old.par)
-}
+#plot.state=function(dat,oo,mod.par,np = 5)
+#{
+#    old.par = par(no.readonly = TRUE) 
+#    par(mar=c(3,4.5,0,4)+0.1)
+#
+#    lm = layout(matrix(c(1:np),ncol=1,byrow=TRUE))
+#    layout.show(lm)
+#
+#    tt = seq(0,(length(dat$obs_cases)-1))
+#
+#    plot(tt,log(dat$obs_cases),ylab='ln cases,',
+#            ylim=c(0.0,max(log(dat$obs_cases),log(oo$report()$Eye))))
+#    lines(tt,log(oo$report()$Eye),col='red')
+#    plot.error(tt,log(oo$report()$Eye),mod.par$logsigma_C)
+#
+#    plot(tt,log(dat$obs_deaths),ylab='ln deaths',
+#            ylim=c(0.0,max(dat$obs_deaths,oo$report()$D)))
+#    lines(tt,log(oo$report()$D),col='red')
+#    plot.error(tt,log(oo$report()$D),mod.par$logsigma_D)
+#
+#    plot(tt,exp(oo$report()$logbeta),ylab='beta',
+#         ylim = range(exp(oo$report()$logbeta)))
+#    plot.error(tt,exp(oo$report()$logbeta),exp(mod.par$logsigma_beta))
+# 
+#    if (np > 3)
+#    {
+#        plot(oo$report()$S,ylab='susceptible', ylim=c(0,dat$N0))
+#
+#        plot(oo$report()$R,ylab='recovered')
+#    }
+#    dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
+#
+#    par(old.par)
+#}
 
 plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)
 {
