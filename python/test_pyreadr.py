@@ -7,7 +7,7 @@ result = pyreadr.read_r('test_data/basic/two.RData', use_objects=["df1"])
 """
 import os
 import pyreadr
-#import pandas
+#import pandas/ga
 import numpy as np
 #import js_covid as cv
 
@@ -43,13 +43,13 @@ print(diag)
 mbeta = diag['logbeta'].quantile(q=0.5)
 print('median logbeta:',mbeta,np.exp(mbeta))
 #model = fit['meta'].loc['model']['data']
-if (md.loc['model']['data'] == 'simpleSIR4'):
-    mgamma = diag['gamma'].quantile(q=0.5)
-else:    
+if (md.loc['model']['data'] != 'simpleSIR4'):  
     mgamma = diag['loggamma'].quantile(q=0.5)
-print('median loggamma:',mgamma,np.exp(mgamma))
+    print('median loggamma:',mgamma,np.exp(mgamma))
 mmu = diag['logmu'].quantile(q=0.5)
 print('median logmu:  ',mmu,np.exp(mmu))
+mrho = diag['rho'].quantile(q=0.5)
+print('median rho:  ',mrho)
 
 
 #print(md.iloc[0])
