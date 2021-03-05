@@ -4,10 +4,11 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
     attach(fit)
 
     sdr = sdreport(obj)
-    SElogbeta = as.list(sdr,"Std. Error")$logbeta
+ 
+    SElogbeta = as.vector(unlist(as.list(sdr,"Std. Error")$logbeta))
     SElogmu   = as.list(sdr,"Std. Error")$logmu
 #   print("finished SElogmu")
-#   SErho   = as.list(sdr,"Std. Error")$rho
+#   SErho     = as.list(sdr,"Std. Error")$rho
 #   print("finished SErho")
 #   print(SErho)
 
@@ -19,7 +20,6 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
            log_pred_cases = obj$report()$logEye,
            log_pred_deaths = obj$report()$logD,
            logbeta = obj$report()$logbeta,
-    #      gamma = obj$report()$gamma,
            logmu = obj$report()$logmu,
            rho = obj$report()$rho,
 	   SElogbeta = NA,
@@ -48,28 +48,63 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
            data = data
     ) 
 
-    tinit = vector(length=length(map),mode='numeric')
-    test = vector(length=length(map),mode='numeric')
-    for (n in 1:length(map))
+    tinit = vector(length=length(par))
+    test  = vector(length=length(par))
+    tmap  = vector(length=length(par))
+
+    for (n in 1:length(init))
     {
-        nn = names(map)[n]
-        tinit[n] = unlist(init)[nn] 
-        if (is.na(map[nn]))
+        pname=names(par[n])
+        tmap[pname] = 'NA'
+        tinit[pname] = init[pname]
+        if (is.na(map[pname]))
         {
-            test[n] = unlist(init)[nn] 
+            test[pname] = init[pname]
+            tmap[pname] = 'NA'
         }
         else
         {
-            test[n] = opt$par[nn]
-        }   
+            test[pname] = opt$par[pname]
+            tmap[pname] = 1
+        }
     }
-
+    print(tinit)
+    print(as.vector(unlist(test)))
+    print(as.vector(unlist(tmap)))
+        
     ests = data.frame(stringsAsFactors = FALSE,
-                     names = names(unlist(map)),
+    #                names = names(unlist(init)),
                      init = tinit,
                      est  = test,
-                     map = unlist(map)
+                     map = unlist(tmap)
     )
+    print('ests:')
+    print(ests)
+    print('not ests:')
+
+#   tinit = vector(length=length(map),mode='numeric')
+#   test = vector(length=length(map),mode='numeric')
+#   for (n in 1:length(map))
+#   {
+#       nn = names(map)[n]
+#       tinit[n] = unlist(init)[nn] 
+#       if (is.na(map[nn]))
+#       {
+#           test[n] = unlist(init)[nn] 
+#       }
+#       else
+#       {
+#           test[n] = opt$par[nn]
+#       }   
+#   }
+
+#   ests = data.frame(stringsAsFactors = FALSE,
+#                    names = names(unlist(map)),
+#                    init = tinit,
+#                    est  = test,
+#                    map = unlist(map)
+#   )
+#   print(ests)
 
     like_names = c('f','betanll', 'munll', 'Pnll','cnll','dnll')
     like = vector(length=length(like_names))

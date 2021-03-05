@@ -36,14 +36,19 @@ get.error = function(par,opt,map,tn)
     return(as.numeric(err))
 }
 
-plot.log.state = function(dat,par,obj,opt,map,np = 5)
+plot.log.state = function(fit,file_root,np = 5)
 {
+    attach(fit)
     fn = opt$value
     if (is.null(fn))
         fn = opt$objective
-    title =  paste(dat$county,", f = ",sprintf('%.5g',fn),
+    title =  paste(data$county,", f = ",sprintf('%.5g',fn),
                    ", converge = ", opt$convergence,
                    " (",(opt$convergence==0),")",sep='')
+    width = 6.5
+    height = 9.0
+    x11(width=width,height=height,title=title)#,xpos=100)
+
     old.par = par(no.readonly = TRUE) 
     par(mar=c(2,4.5,2,4)+0.1)
     note.color='blue'
@@ -51,13 +56,12 @@ plot.log.state = function(dat,par,obj,opt,map,np = 5)
 
     lm = layout(matrix(c(1:np),ncol=1,byrow=TRUE))
     layout.show(lm)
+    tt = seq(0,(length(data$log_obs_cases)-1))
+    ttext = 0.1*(length(data$log_obs_cases)-1)
 
-    tt = seq(0,(length(dat$log_obs_cases)-1))
-    ttext = 0.1*(length(dat$log_obs_cases)-1)
-
-    ylim=c(0.0,max(dat$log_obs_cases,obj$report()$logEye))
+    ylim=c(0.0,max(data$log_obs_cases,obj$report()$logEye))
     poplim = ylim
-    plot(tt,dat$log_obs_cases,ylab='ln cases,',ylim=ylim, pch=point.symb)
+    plot(tt,data$log_obs_cases,ylab='ln cases,',ylim=ylim, pch=point.symb)
     lines(tt,obj$report()$logEye,col='red')
     err = exp(get.error(par,opt,map,'logsigma_logC'))
     logspace.plot.error(tt,obj$report()$logEye,err)
@@ -66,8 +70,8 @@ plot.log.state = function(dat,par,obj,opt,map,np = 5)
     text(ttext,ytext,note,col=note.color,pos=4)
     title(main=title,sub='sub')
 
-    ylim=poplim #c(0.0,max(dat$log_obs_deaths,obj$report()$logD))
-    plot(tt,dat$log_obs_deaths,ylab='ln deaths',ylim=ylim, pch=point.symb)
+    ylim=poplim #c(0.0,max(data$log_obs_deaths,obj$report()$logD))
+    plot(tt,data$log_obs_deaths,ylab='ln deaths',ylim=ylim, pch=point.symb)
     lines(tt,obj$report()$logD,col='red')
     err = exp(get.error(par,opt,map,'logsigma_logD'))
     logspace.plot.error(tt,obj$report()$logD,err)
@@ -98,16 +102,23 @@ plot.log.state = function(dat,par,obj,opt,map,np = 5)
         note = paste('sigma_logmu ~',sprintf("%.5g",err))
         text(ttext,ytext,note,col=note.color,pos=4)
 
-        plot(tt,obj$report()$rho,ylab='rho', pch=point.symb)
+        ylim = 1.2*range(obj$report()$rho)
+        plot(tt,obj$report()$rho,ylab='rho', ylim=c(1e-1,5000),pch=point.symb, log='y')
         gmrho = median(obj$report()$rho)
         abline(h=gmrho,lty='dashed')
+        abline(h=1.0,lty='dashed',col='red')
     }
-#   print(dev.cur())
-#   dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
-#   print(dev.cur())
+
+    file =paste(fit_path,file_root,'.png',sep='')
+    print(paste('Attempting to save plot as',file))
+    dev.copy(png,file=file,width=6.5,height=9,unit='in',res=300)
+    dev.off()
+    print(paste('State plot saved as',file))
+
+
 
     par(old.par)
-#   return(dev.cur())
+    detach(fit)
 }
 
 #plot.state=function(dat,oo,mod.par,np = 5)
