@@ -48,35 +48,45 @@ save.fit = function(fit,file_root,mod='simpleSIR4')
            data = data
     ) 
 
-    tinit = vector(length=length(par))
-    test  = vector(length=length(par))
-    tmap  = vector(length=length(par))
+    print(paste('init:',names(init)))
+    print(paste('opt$par"',names(opt$par)))
+#   HPnames = list('logsigma_logCP', 'logsigma_logDP',
+#                  'logsigma_logbeta', 'logsigma_logmu',
+#                  'logsigma_logC', 'logsigma_logD ')
+    HPnames = names(init)
 
-    for (n in 1:length(init))
+    nHP = length(HPnames)
+    tinit = as.vector(unlist(init))
+    test  = vector(length=nHP)
+    tmap  = vector(length=nHP)
+    print(init)
+
+    for (n in 1:nHP)
     {
-        pname=names(par[n])
-        tmap[pname] = 'NA'
-        tinit[pname] = init[pname]
+        pname = HPnames[n]
+        print(paste(n,pname))
+        tmap[n] = 'NA'
+    #   tinit[n] = init[pname]
         if (is.na(map[pname]))
         {
-            test[pname] = init[pname]
-            tmap[pname] = 'NA'
+            test[n] = tinit[n]
+            tmap[n] = 'NA'
         }
         else
         {
-            test[pname] = opt$par[pname]
-            tmap[pname] = 1
+            test[n] = opt$par[pname]
+            tmap[n] = 1
         }
     }
     print(tinit)
-    print(as.vector(unlist(test)))
-    print(as.vector(unlist(tmap)))
+    print(test)
+    print(tmap)
         
     ests = data.frame(stringsAsFactors = FALSE,
-    #                names = names(unlist(init)),
+                     names = HPnames,
                      init = tinit,
                      est  = test,
-                     map = unlist(tmap)
+                     map = tmap
     )
     print('ests:')
     print(ests)

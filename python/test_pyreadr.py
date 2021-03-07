@@ -19,7 +19,7 @@ import numpy as np
 #os.chdir('/home/jsibert/Projects/SIR-Models/fits/')
 
 print('----------'+os.getcwd())
-fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/test.RData')
+fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/AlamedaCA.RData')
 #fit = pyreadr.read_r('/home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA-mu.RData')
 #         saving fit: /home/jsibert/Projects/SIR-Models/fits/rrSIR/Los_AngelesCA.RData
 
@@ -64,8 +64,9 @@ print('like:')
 print(like)
 
 ests = fit['ests']
-ests.set_index('names',inplace=True)
+#ests.set_index('names',inplace=True)
 print('ests:')
+print(ests.columns)
 print(ests)
 
 #print('exp(ests)[est]:')cls
