@@ -433,7 +433,7 @@ def make_fit_plots(ext = '.RData'):
     fit = Fit(cv.fit_path+'Los_AngelesCA'+ext)
     fit.plot(save=True,logscale=False)
 
-def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
+def make_fit_table(model_name = 'simpleSIR4', ext = '.RData', path = None):
 
     def get_active(ests, name):
         try:
@@ -457,13 +457,12 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
     md_cols = ['county','ntime','prop_zero_deaths','fn','C']
     if (model_name == 'simpleSIR4'):
         fit_path = cv.fit_path
-        gamma_key = 'gamma'
+        gamma_key = None #'gamma'
         es_cols = ['logsigma_logCP','logsigma_logDP','logsigma_logbeta','logsigma_logmu',
-                   'logsigma_logC','logsigma_logD','mbeta','mmu','mgamma']
+                   'logsigma_logC','logsigma_logD','mbeta','mmu']
         header = ['County','$n$','$p_0$','$f$','$C$',
                   '$\sigma_{\eta_C}$', '$\sigma_{\eta_D}$', '$\sigma_\\beta$','$\sigma_\\mu$',
-                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$',
-                  '$\\tilde\\gamma$']
+                  '$\sigma_{\ln I}$','$\sigma_{\ln D}$','$\\tilde{\\beta}$','$\\tilde{\\mu}$']
     elif (model_name == 'rrSIR'):
         fit_path = cv.fit_path + model_name + '/'
         gamma_key = 'loggamma'
@@ -490,6 +489,9 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
     sigfigs = 3
     init_gamma = None
     active_gamma = None
+
+    if path is not None:
+        fit_path = fit_path+'/'+path+'/'
 
     fit_files = glob.glob(fit_path+'*'+ext)
     print('found',len(fit_files),ext,'files in',fit_path)
@@ -525,17 +527,18 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData'):
         if any(pd.Series(diag.columns).isin(['loggamma'])):
             gamma = diag['loggamma']
             mgamma = np.append(mgamma,gamma.quantile(q=0.5))
-        else:
-            print('gamma is missing')
-            sys.exit(1)		
+    #   else:
+    #       print('gamma is missing')
+    #       sys.exit(1)		
     #   print('gamma:',gamma,mgamma)
         mu = diag['logmu']
         mmu = np.append(mmu,mu.quantile(q=0.5))
     #   print('mu:',mu,mmu)
    
-        if (gamma_key == 'gamma'):
-            gamma = diag['gamma']
-        else:
+    #   if (gamma_key == 'gamma'):
+    #       gamma = diag['gamma']
+    #   else:
+        if gamma_key is not None:
             loggamma = diag['loggamma']
             gamma = np.exp(loggamma)
 

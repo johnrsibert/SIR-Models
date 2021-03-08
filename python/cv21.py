@@ -763,7 +763,7 @@ print('------- here ------')
 #make_dat_files()
 #update_fits()
 #make_fit_plots()
-#FF.make_fit_table()
+FF.make_fit_table(path='obs_error')
 #FF.make_fit_table(model_name = 'rrSIR')
 
 #tfit = FF.Fit(cv.fit_path+'Los_AngelesCA.RData')

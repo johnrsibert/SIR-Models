@@ -20,12 +20,10 @@ make_data=function(County)
     
     eps = 1e-8
     data=dat$dat
-    print(names(data))
-    print(data)
     data$log_obs_cases = log(data$obs_cases+eps)
     data$log_obs_deaths = log(data$obs_deaths+eps)
-    print("-data:")
-    print(data)
+#   print("-data:")
+#   print(data)
 #   print(data$ntime)
     return(data)
 }
@@ -50,9 +48,9 @@ make_init=function()
         logsigma_logC = log(0.05),
         logsigma_logD = log(0.05)
     )
-    print("--init parameter values:")
-    print(names(init))
-    print(init)
+#   print("--init parameter values:")
+#   print(names(init))
+#   print(init)
     return(init)
 }
 
@@ -169,49 +167,54 @@ test = function(moniker='AlamedaCA')
     return(fit)
 }
 
-obs_error_runs=function(moniker='AlamedaCA',err=c(0.01,0.02,0.05,0.1,0.2))
+obs_error_runs=function(Mlist=c('Los_AngelesCA','New_York_CityNY','AlamedaCA'),
+                        err=c(0.01,0.02,0.05,0.1,0.2),
+                        path='obs_error')
 {
-    data = make_data(moniker)
-    init  = make_init()
-    par  = make_par(data,init)
-    map  = make_map()
     print(paste("Loading",SIRmodel.name,"-------------------------"),quote=FALSE)
     dyn.load(dynlib(SIRmodel.name))
     print("Finished dyn.load-------------",quote=FALSE)
-    print(err)
     nrun = length(err)
-    for (i in 1:(nrun+1))
+    for (moniker in Mlist)
     {
-        if (i <= nrun)
+        data = make_data(moniker)
+        init  = make_init()
+        map  = make_map()
+        for (i in 1:(nrun+1))
         {
-            file = paste(moniker,i,sep='')
-            s = err[i]
-            print(paste('==================',file,'s=',s))
-            init$logsigma_logC = log(s)
-            init$logsigma_logD = log(s)
-            par$logsigma_logC = init$logsigma_logC 
-            par$logsigma_logD = init$logsigma_logD 
-            print('    par:')
-            print(par)
-            obj  = make_model_function(SIRmodel.name,data,par,map,
-                                       rand=c("logbeta","logmu")) 
+            if (i <= nrun)
+            {
+                file = paste(path,'/',moniker,i,sep='')
+                s = err[i]
+                print(paste('==================',file,'s=',s))
+                init$logsigma_logC = log(s)
+                init$logsigma_logD = log(s)
+                par  = make_par(data,init)
+                par$logsigma_logC = init$logsigma_logC 
+                par$logsigma_logD = init$logsigma_logD 
+                obj  = make_model_function(SIRmodel.name,data,par,map,
+                                           rand=c("logbeta","logmu")) 
+            }
+            else
+            {
+                file = paste(path,'/',moniker,0,sep='')
+                print(paste('==================',file,'s= ?'))
+                map$logsigma_logC = as.factor(1)
+                map$logsigma_logD = as.factor(1)
+                par  = make_par(data,init)
+                obj  = make_model_function(SIRmodel.name,data,par,map,
+                                           rand=c("logbeta","logmu")) 
+            }
+            opt = run_model(obj)
+    
+            fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init,
+                       model.name=SIRmodel.name)
+    
+            plot.log.state(fit,file_root=file,np=5)
+            save.fit(fit,file_root=file)
+    
+            rm(par,obj,opt)
         }
-        else
-        {
-            file = paste(moniker,0,sep='')
-            print(paste('==================',file,'s= ?'))
-            map$logsigma_logC = as.factor(1)
-            map$logsigma_logD = as.factor(1)
-
-        }
-        opt = run_model(obj)
-
-        fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init,
-                   model.name=SIRmodel.name)
-
-        plot.log.state(fit,file_root=file,np=5)
-        save.fit(fit,file_root=file)
-
     }
 }
 
