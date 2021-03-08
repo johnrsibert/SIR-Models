@@ -512,7 +512,11 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData', path = None):
 
         for k in range(1,len(tt_cols)):
             v = fit.get_estimate_item(tt_cols[k])
-            row.iloc[k] = v
+            if ('logsigma' in tt_cols[k]):
+                row.iloc[k] = np.exp(v)
+            else:
+                row.iloc[k] = v
+
 
     #   row['N0'] = int(get_metadata('N0',meta))
         row['C'] = fit.get_metadata_item('convergence')
@@ -561,7 +565,8 @@ def make_fit_table(model_name = 'simpleSIR4', ext = '.RData', path = None):
 
 
 #   tt = tt.sort_values(by='mbeta',ascending=True)#,inplace=True)
-    tt = tt.sort_values(by='county',ascending=True)#,inplace=True)
+    sort_by = ['county','logsigma_logC','logsigma_logD']
+    tt = tt.sort_values(by=sort_by,ascending=True)#,inplace=True)
 
     for r in range(0,tt.shape[0]):
         for c in range(3,len(tt.columns)):

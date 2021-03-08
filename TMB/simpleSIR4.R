@@ -168,7 +168,7 @@ test = function(moniker='AlamedaCA')
 }
 
 obs_error_runs=function(Mlist=c('Los_AngelesCA','New_York_CityNY','AlamedaCA'),
-                        err=c(0.01,0.02,0.05,0.1,0.2),
+                        err=c(0.01,0.02,0.05,0.1,0.2,0.5),
                         path='obs_error')
 {
     print(paste("Loading",SIRmodel.name,"-------------------------"),quote=FALSE)
@@ -188,7 +188,7 @@ obs_error_runs=function(Mlist=c('Los_AngelesCA','New_York_CityNY','AlamedaCA'),
                 s = err[i]
                 print(paste('==================',file,'s=',s))
                 init$logsigma_logC = log(s)
-                init$logsigma_logD = log(s)
+                init$logsigma_logD = log(0.02) #log(s)
                 par  = make_par(data,init)
                 par$logsigma_logC = init$logsigma_logC 
                 par$logsigma_logD = init$logsigma_logD 
@@ -200,7 +200,7 @@ obs_error_runs=function(Mlist=c('Los_AngelesCA','New_York_CityNY','AlamedaCA'),
                 file = paste(path,'/',moniker,0,sep='')
                 print(paste('==================',file,'s= ?'))
                 map$logsigma_logC = as.factor(1)
-                map$logsigma_logD = as.factor(1)
+            #   map$logsigma_logD = as.factor(1)
                 par  = make_par(data,init)
                 obj  = make_model_function(SIRmodel.name,data,par,map,
                                            rand=c("logbeta","logmu")) 
