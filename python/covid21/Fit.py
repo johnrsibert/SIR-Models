@@ -346,6 +346,10 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
     else:
         sys.exit('Unknown yvarname '+yvarname)
 
+    d1 = mdates.date2num(datetime.strptime('2020-06-01','%Y-%m-%d'))
+    d2 = mdates.date2num(datetime.strptime('2020-09-30','%Y-%m-%d'))
+    print('date range:',d1,d2)
+
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
 
     if (len(fit_files) < 1):
@@ -359,7 +363,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
 #   rate_lim = pd.DataFrame(columns=['min','max'])
 #   row = pd.Series(index=rate_lim.columns)
     for i,ff in enumerate(fit_files):
-        print(i,ff)
+    #   print(i,ff)
         fit = Fit(ff)
         if (i == 0):
             GU.make_date_axis(ax)
@@ -370,14 +374,24 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
         for t in range(0,len(fit.diag.index)):
             pdate.append(mdates.date2num(Date0 + timedelta(days=t)))
 
+        pdate = pd.Series(pdate)
+        midyear_mask = (pdate > d1) & (pdate <= d2)
+    #   print(pdate[midyear_mask])
+
+
+
         yvar = fit.diag[yvarname]
+        minvar = min(yvar[midyear_mask])
+        if (minvar < -6.0):
+            print(ff,minvar)
+
     #   print(yvar)
     #   row['min'] = np.amin(yvar)
-    #    row['max'] = np.amax(yvar)
+    #   row['max'] = np.amax(yvar)
     #   rate_lim = rate_lim.append(row,ignore_index=True)
         ax.plot(pdate,yvar)
 
-        if (len(fit_files) < 4):
+        if (len(fit_files) < 8):
             sn = GG.short_name(fit.moniker)
             GU.mark_ends(ax,pdate,yvar,sn,'b')
 

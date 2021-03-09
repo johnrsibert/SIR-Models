@@ -762,8 +762,14 @@ print('------- here ------')
 
 #make_dat_files()
 #update_fits()
-#make_fit_plots()
-FF.make_fit_table(path='obs_error')
+#FF.make_fit_plots()
+FF.make_rate_plots('logbeta',show_doubling_time = False, save=False, 
+                   show_order_date = False,
+#                  fit_files=['Los_AngelesCA','New_York_CityNY'])
+                   fit_files=['BrowardFL', 'NassauNY', 'MiddlesexMA',
+                              'MaricopaAZ', 'New_York_CityNY',
+                              'SuffolkNY', 'Miami-DadeFL'])
+#FF.make_fit_table(path='obs_error')
 #FF.make_fit_table(model_name = 'rrSIR')
 
 #tfit = FF.Fit(cv.fit_path+'Los_AngelesCA.RData')
@@ -781,3 +787,13 @@ FF.make_fit_table(path='obs_error')
 #CFR.plot_recent_CFR(save=True)
 #CFR.plot_DC_scatter(save=True)
 #update_assets()
+
+# midsummer beta minima
+# BrowardFL.RData -6.084748271893833
+# NassauNY.RData -6.947424800472592
+# MiddlesexMA.RData -7.785313136692884
+# MaricopaAZ.RData -6.220752133090644
+# New_York_CityNY.RData -6.68737613570856
+# SuffolkNY.RData -6.753055573216654
+# Miami-DadeFL.RData -6.064537518202749
+
