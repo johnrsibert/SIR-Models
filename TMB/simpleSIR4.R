@@ -1,3 +1,5 @@
+args = commandArgs(trailingOnly=TRUE)
+
 SIR_path = '/home/jsibert/Projects/SIR-Models/'
 fit_path = paste(SIR_path,'fits/',sep='')
 dat_path = paste(SIR_path,'dat/',sep='')
@@ -45,7 +47,7 @@ make_init=function()
         logsigma_logbeta = -0.8, # 0.4, #log(0.7),
         logsigma_logmu = -1.5, #log(2.0),
     
-        logsigma_logC = log(0.05),
+        logsigma_logC = log(0.10),
         logsigma_logD = log(0.05)
     )
 #   print("--init parameter values:")
@@ -90,7 +92,7 @@ make_map=function()
 
 build_mode=function(mmeodel.name,do.compile=FALSE)
 {
-    cpp.name = paste(SIRmodel.name,'.cpp',sep='')
+    cpp.name = paste(TMB_path,SIRmodel.name,'.cpp',sep='')
     if (do.compile)
     {
         print(paste("Compiling",cpp.name,"-------------------------"),quote=FALSE)
@@ -150,7 +152,7 @@ test = function(moniker='AlamedaCA')
     map  = make_map()
     build_mode(SIRmodel.name,do.compile=TRUE)
     print(paste("Loading",SIRmodel.name,"-------------------------"),quote=FALSE)
-    dyn.load(dynlib(SIRmodel.name))
+    dyn.load(dynlib(paste(TMB_path,SIRmodel.name,sep="")))
     print("Finished dyn.load-------------",quote=FALSE)
 
     obj  = make_model_function(SIRmodel.name,data,par,map,rand=c("logbeta","logmu")) 
@@ -163,7 +165,7 @@ test = function(moniker='AlamedaCA')
 
     plot.log.state(fit,file=data$county,np=5)
     save.fit(fit,file=data$county)
-    save(fit,file='last_tfit.RData')
+#   save(fit,file='last_tfit.RData')
     return(fit)
 }
 
@@ -218,6 +220,29 @@ obs_error_runs=function(Mlist=c('Los_AngelesCA','New_York_CityNY','AlamedaCA'),
     }
 }
 
+make_runs = function(moniker)
+{
+    data = make_data(moniker)
+    init  = make_init()
+    par  = make_par(data,init)
+    map  = make_map()
+    build_mode(SIRmodel.name,do.compile=TRUE)
+    print(paste("Loading",SIRmodel.name,"-------------------------"),quote=FALSE)
+    dyn.load(dynlib(paste(TMB_path,SIRmodel.name,sep="")))
+    print("Finished dyn.load-------------",quote=FALSE)
+
+    obj  = make_model_function(SIRmodel.name,data,par,map,rand=c("logbeta","logmu")) 
+
+    opt = run_model(obj)
+
+
+    fit = list(data=data,map=map,par=par,obj=obj,opt=opt,init=init,
+               model.name=SIRmodel.name)
+
+    plot.log.state(fit,file=data$county,np=5,remove_plot=TRUE)
+    save.fit(fit,file=data$county)
+}
+
 glob_runs = function(do.plot=FALSE)
 {
 
@@ -254,7 +279,7 @@ glob_runs = function(do.plot=FALSE)
                    model.name=SIRmodel.name)
         if (do.plot)
         {
-            plot.log.state(fit,file_root=data$county,np=5)
+            plot.log.state(fit,file_root=data$county,np=5,remove_plot=TRUE)
         }
         save.fit(fit,file_root=data$county)
 

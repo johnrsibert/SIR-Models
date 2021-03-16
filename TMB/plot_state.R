@@ -36,7 +36,7 @@ get.error = function(par,opt,map,tn)
     return(as.numeric(err))
 }
 
-plot.log.state = function(fit,file_root,np = 5)
+plot.log.state = function(fit,file_root,np = 5,remove_plot=FALSE)
 {
     attach(fit)
     fn = opt$value
@@ -112,49 +112,15 @@ plot.log.state = function(fit,file_root,np = 5)
     file =paste(fit_path,file_root,'.png',sep='')
     print(paste('Attempting to save plot as',file))
     dev.copy(png,file=file,width=6.5,height=9,unit='in',res=300)
-    dev.off()
     print(paste('State plot saved as',file))
+    if (remove_plot)
+        graphics.off()
 
 
 
     par(old.par)
     detach(fit)
 }
-
-#plot.state=function(dat,oo,mod.par,np = 5)
-#{
-#    old.par = par(no.readonly = TRUE) 
-#    par(mar=c(3,4.5,0,4)+0.1)
-#
-#    lm = layout(matrix(c(1:np),ncol=1,byrow=TRUE))
-#    layout.show(lm)
-#
-#    tt = seq(0,(length(dat$obs_cases)-1))
-#
-#    plot(tt,log(dat$obs_cases),ylab='ln cases,',
-#            ylim=c(0.0,max(log(dat$obs_cases),log(oo$report()$Eye))))
-#    lines(tt,log(oo$report()$Eye),col='red')
-#    plot.error(tt,log(oo$report()$Eye),mod.par$logsigma_C)
-#
-#    plot(tt,log(dat$obs_deaths),ylab='ln deaths',
-#            ylim=c(0.0,max(dat$obs_deaths,oo$report()$D)))
-#    lines(tt,log(oo$report()$D),col='red')
-#    plot.error(tt,log(oo$report()$D),mod.par$logsigma_D)
-#
-#    plot(tt,exp(oo$report()$logbeta),ylab='beta',
-#         ylim = range(exp(oo$report()$logbeta)))
-#    plot.error(tt,exp(oo$report()$logbeta),exp(mod.par$logsigma_beta))
-# 
-#    if (np > 3)
-#    {
-#        plot(oo$report()$S,ylab='susceptible', ylim=c(0,dat$N0))
-#
-#        plot(oo$report()$R,ylab='recovered')
-#    }
-#    dev.copy2pdf(file='ests.pdf',width=6.5,height=6.5)
-#
-#    par(old.par)
-#}
 
 plot.error=function(x,y,sd,bcol='black',fcol='gray',mult=2)
 {

@@ -1,0 +1,6 @@
+args = commandArgs(trailingOnly=TRUE)
+source('./simpleSIR4.R')
+print(args)
+print(paste('Calling make_runs for',args[1]))
+junk = make_runs(args[1])
+print(paste('Finished make_runs for',args[1]))

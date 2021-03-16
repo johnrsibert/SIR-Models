@@ -286,18 +286,21 @@ def make_dat_files():
         tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
              show_superspreader=False)
 
-def update_fits():
+def update_fits(njob=4):
     save_wd = os.getcwd()
     print('save:',save_wd)
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
-    # globs s list of counties in runSS4.R
-    # ensure that nrun > 1
-    #        that SIR_pat is set correctly
-    cmd = 'Rscript --verbose simpleSIR4.R'
-    print('running',cmd)
+    # globs list of monikers in dat directory
+    # ensure that SIR_patih is set correctly
+#   cmd = 'Rscript --verbose do_glob_runs.R'
+    cmd = 'make -f' + cv.TMB_path + 'Makefile ' + '-j' + str(njob) + ' -Otarget > '\
+                    + cv.TMB_path + 'make.out'
+    print('Starting',cmd)
+
     os.system(cmd)
+    print('Finished',cmd)
     os.chdir(save_wd)
     print('current',os.getcwd())
 
@@ -425,18 +428,18 @@ def update_everything():
     update_shared_plots()
     print('Finished update_shared_plots()')
     os.system('rm -v' + cv.fit_path + '*.RData')
-#   update_fits()
-#   print('Finished update_fits()')
-#   FF.make_fit_plots()
-#   print('Finished fit_plots')
-#   FF.make_fit_table()
-#   print('Finished fit table')
-#   FF.make_rate_plots('logbeta',show_doubling_time = True, save=True)
-#   FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
-#                   fit_files=['Los_AngelesCA','New_York_CityNY'])
+    update_fits()
+    print('Finished update_fits()')
+    FF.make_fit_plots()
+    print('Finished fit_plots')
+    FF.make_fit_table()
+    print('Finished fit table')
+    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True)
+    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
+                    fit_files=['Los_AngelesCA','New_York_CityNY'])
 #                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-#   FF.make_rate_plots('logmu',save=True)
-#   print('Finished rate_plots')
+    FF.make_rate_plots('logmu',save=True)
+    print('Finished rate_plots')
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
@@ -763,12 +766,12 @@ print('------- here ------')
 #make_dat_files()
 #update_fits()
 #FF.make_fit_plots()
-FF.make_rate_plots('logbeta',show_doubling_time = False, save=False, 
-                   show_order_date = False,
+#FF.make_rate_plots('logbeta',show_doubling_time = False, save=False, 
+#                  #show_order_date = False,
 #                  fit_files=['Los_AngelesCA','New_York_CityNY'])
-                   fit_files=['BrowardFL', 'NassauNY', 'MiddlesexMA',
-                              'MaricopaAZ', 'New_York_CityNY',
-                              'SuffolkNY', 'Miami-DadeFL'])
+#                  fit_files=['BrowardFL', 'NassauNY', 'MiddlesexMA',
+#                             'MaricopaAZ', 'New_York_CityNY',
+#                             'SuffolkNY', 'Miami-DadeFL'])
 #FF.make_fit_table(path='obs_error')
 #FF.make_fit_table(model_name = 'rrSIR')
 
@@ -781,12 +784,13 @@ FF.make_rate_plots('logbeta',show_doubling_time = False, save=False,
 #update_assets()
 
 #update_everything()
+#update_assets()
 #git_commit_push()
 #CFR.pop_percentiles(save=True)   
 #CFR.plot_CFR_lognorm_fit(save=True)
 #CFR.plot_recent_CFR(save=True)
 #CFR.plot_DC_scatter(save=True)
-#update_assets()
+update_fits()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833
