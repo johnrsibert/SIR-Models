@@ -292,13 +292,14 @@ def update_fits(njob=4):
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
+    os.system('rm -f make.out & ls *.out')
+    os.system('touch make.out & ls *.out')
     # globs list of monikers in dat directory
     # ensure that SIR_patih is set correctly
 #   cmd = 'Rscript --verbose do_glob_runs.R'
-    cmd = 'make -f' + cv.TMB_path + 'Makefile ' + '-j' + str(njob) + ' -Otarget > '\
+    cmd = 'make -f' + cv.TMB_path + 'Makefile ' + '-j' + str(njob) + ' -Otarget >> '\
                     + cv.TMB_path + 'make.out'
     print('Starting',cmd)
-
     os.system(cmd)
     print('Finished',cmd)
     os.chdir(save_wd)
@@ -784,13 +785,7 @@ print('------- here ------')
 #update_assets()
 
 #update_everything()
-#update_assets()
 #git_commit_push()
-#CFR.pop_percentiles(save=True)   
-#CFR.plot_CFR_lognorm_fit(save=True)
-#CFR.plot_recent_CFR(save=True)
-#CFR.plot_DC_scatter(save=True)
-update_fits()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833
