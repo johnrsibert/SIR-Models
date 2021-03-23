@@ -167,7 +167,8 @@ class Geography:
         mtime = os.path.getmtime(cspath)
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
-        self.population = None
+   #    self.population = None
+        self.population = self.get_county_pop()
    #    self.source = 'British Columbia Centre for Disease Control'\
         self.source = 'Government of British Columbia'\
                       ' www.bccdc.ca/Health-Info-Site/Documents/' 
@@ -194,7 +195,7 @@ class Geography:
         
 
 
-    def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
+    def plot_prevalence0(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
@@ -219,7 +220,7 @@ class Geography:
         if (self.deaths is None):
             nax = 1
     
-        ax = [None]*nax
+    #   ax = [None]*nax
         fig, pax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
         ax = [None]*nax
         if (nax == 1):
@@ -228,7 +229,7 @@ class Geography:
             ax=pax
 
         ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
-        end_marks = [r'$\Sigma$C','$\Sigma$D','']
+        end_marks = [r'$\Sigma$C','$\Sigma$D',''] # indicate cumulatives
         total_names = ['Cases','Deaths','']
         gdf = pd.DataFrame()
 
