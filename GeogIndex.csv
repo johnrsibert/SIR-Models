@@ -1,4 +1,5 @@
 county,state,fips,code,flag,population
+Vancouver Island, British Columbia,0,BC,sS,870297
 Los Angeles,California,6037,CA,sm,10039107
 New York City,New York,36999,NY,m,8336817
 Cook,Illinois,17031,IL,m,5150233
@@ -17,7 +18,7 @@ Bexar,Texas,48029,TX,m,2003554
 Broward,Florida,12011,FL,m,1952778
 Santa Clara,California,6085,CA,sm,1927852
 Wayne,Michigan,26163,MI,m,1749343
-Alameda,California,6001,CA,sm,1671329
+Alameda,California,6001,CA,Ssm,1671329
 Middlesex,Massachusetts,25017,MA,m,1611699
 Philadelphia,Pennsylvania,42101,PA,m,1584064
 Sacramento,California,6067,CA,m,1552058
@@ -44,7 +45,7 @@ Collin,Texas,48085,TX, ,1034730
 Fresno,California,6019,CA, ,999101
 St. Louis,Missouri,29189,MO, ,994205
 Pinellas,Florida,12103,FL, ,974996
-Honolulu,Hawaii,15003,HI,s,974563
+Honolulu,Hawaii,15003,HI,Ss,974563
 Westchester,New York,36119,NY, ,967506
 Marion,Indiana,18097,IN, ,964582
 Duval,Florida,12031,FL, ,957755
@@ -89,7 +90,7 @@ Denver,Colorado,8031,CO, ,727211
 Polk,Florida,12105,FL, ,724777
 El Paso,Colorado,8041,CO, ,720403
 Norfolk,Massachusetts,25021,MA, ,706775
-District of Columbia,District of Columbia,11001,DC,s,705749
+District of Columbia,District of Columbia,11001,DC,Ss,705749
 Jackson,Missouri,29095,MO, ,703011
 Lake,Illinois,17097,IL, ,696535
 Davidson,Tennessee,47037,TN, ,694144
