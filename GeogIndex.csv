@@ -1,5 +1,4 @@
 county,state,fips,code,flag,population
-Vancouver Island, British Columbia,0,BC,sS,870297
 Los Angeles,California,6037,CA,sm,10039107
 New York City,New York,36999,NY,m,8336817
 Cook,Illinois,17031,IL,m,5150233
@@ -3128,3 +3127,4 @@ McPherson,Nebraska,31117,NE, ,494
 Blaine,Nebraska,31009,NE, ,465
 Arthur,Nebraska,31005,NE, ,463
 Kenedy,Texas,48261,TX, ,404
+Vancouver Island, British Columbia,0,BC,sS,870297

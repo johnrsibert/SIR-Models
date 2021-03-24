@@ -131,9 +131,9 @@ def add_order_date(ax):
     #       (0, ax.get_ylim()[1]),
             color='0.5', linewidth=3,alpha=0.5)
 
-def add_data_source(fig,source=None):
-    if source is None:
-        source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
+def add_data_source(fig,source='Multiple sources.'):
+#   if source is None:
+#       source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
     fig.text(0.0,0.0,' Data source: '+ source , ha='left',va='bottom', fontsize=8)
     mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
     dtime = datetime.fromtimestamp(mtime)

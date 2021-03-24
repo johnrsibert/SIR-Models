@@ -195,7 +195,7 @@ class Geography:
         
 
 
-    def plot_prevalence0(self,yscale='linear', per_capita=False, delta_ts=True,
+    def plot_prevalence(self,yscale='linear', per_capita=False, delta_ts=True,
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
@@ -366,6 +366,122 @@ class Geography:
 
         plt.show()
 
+
+def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
+                    window=7, plot_dt = False, cumulative = False,
+                    show_order_date = False, 
+                    show_superspreader = False,
+                    annotation = True, signature = False, 
+                    save = True):
+    """ 
+    Plots cases and deaths vs calendar date 
+
+    per_capita: plot numbers per 1000 (see mult)  False
+    delta_ts: plot daily new cases True
+    window: plot moving agerage window [11]
+    plot_dt: plot initial doubling time slopes on log scale False
+    annotations: add title and acknowledgements True
+    save : save plot as file
+    """
+    firstDate = mdates.date2num(cv.FirstNYTDate)
+    lastDate  = mdates.date2num(cv.EndOfTime)
+    orderDate = mdates.date2num(cv.CAOrderDate)
+
+    nax = 3
+    fig, ax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
+    plt.rcParams['lines.linewidth'] = 1.5
+
+    ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+    if (per_capita):
+        for a in range(0,2):
+            ylabel[a] = ylabel[a] +'/'+str(mult)
+    total_names = ['Cases','Deaths','']
+    save_path = cv.graphics_path
+
+    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+    gg_filter = nyt_counties['flag'].str.contains(flag)
+    gg = nyt_counties[gg_filter]
+
+    ymax = [0.0]*3
+    nG = len(gg)
+    for g in range(0,len(gg)):
+        print(gg['county'].iloc[g],gg['code'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        if (gg['code'].iloc[g] == 'BC'):
+            tmpG.read_BCHA_data()
+        else:
+            tmpG.read_nyt_data('county')
+ 
+        do_plot = [True]*3
+        if (tmpG.deaths is None):
+            cfr = None
+            deaths = None
+        else:
+            cfr = tmpG.deaths/tmpG.cases
+
+        if (per_capita):
+            cases  =  mult*tmpG.cases/(tmpG.population + cv.eps)
+            if tmpG.deaths is not None:
+                deaths =  mult*tmpG.deaths/(tmpG.population + cv.eps)
+        else:
+            cases  =  tmpG.cases
+            deaths =  tmpG.deaths
+    
+        gdf = pd.DataFrame()
+        gdf['cases'] = cases
+        gdf['deaths'] = deaths
+        gdf['cfr'] = cfr
+
+        for a in range(0,nax):
+            if (any(pd.isna(gdf.iloc[:,a]))):
+                do_plot[a] = False
+        
+        nn = tmpG.ntime-1
+        max_cases = cases[nn]
+
+        Date = pd.Series(tmpG.get_pdate())
+        for a in range(0,nax):
+            GU.make_date_axis(ax[a],firstDate)
+            ax[a].set_ylabel(ylabel[a])
+            if (do_plot[a]):
+                if (a < 2):
+                    delta = np.diff(gdf.iloc[:,a]) # first differences
+                #   moving average:
+                    yvar = pd.Series(delta).rolling(window=window).mean()
+                    ax[a].plot(Date[1:],yvar) #,linewidth=2)
+                    GU.mark_ends(ax[a],Date[1:],yvar,short_name(tmpG.moniker),'r')
+                    ymax[a] = max(ymax[a],yvar.max())
+                    ax[a].set_ylim((0.0,1.2*ymax[a]))
+                else:
+                    yvar = pd.Series(gdf.iloc[:,a]).rolling(window=window).mean()
+                    ax[a].plot(Date,yvar) #,linewidth=2)
+                    GU.mark_ends(ax[a],Date,yvar,short_name(tmpG.moniker),'r')
+                    ax[a].set_ylim((0.0,0.08))
+
+                if show_superspreader:
+                    GU.add_superspreader_events(Date,adc,ax[a])
+    
+    
+    if (annotation):
+        title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
+        fig.text(0.5,1.0,title ,ha='center',va='top')
+        GU.add_data_source(fig)
+
+    if (signature):
+        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+
+    else:
+        if save:
+            gfile = cv.graphics_path+'prevalence_comp_'+flag+str(nG)+'.png'
+            plt.savefig(gfile,dpi=300)
+            plt.show(block=False)
+            plt.pause(3)
+            plt.close()
+            print('plot saved as',gfile)
+        else:
+            plt.show()
+
 def short_name(s):
     """
     Create 4 byte abbreviation for getography names
@@ -375,6 +491,8 @@ def short_name(s):
         sn = s[0:2]+s[-2:]
     else:
         sn = w[0][0]+w[1][0]+s[-2:]
+    if (sn == 'DoDC'):
+        sn = 'WaDC'
     return(sn)  
 
 def set_moniker(name, code):
