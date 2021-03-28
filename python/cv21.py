@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib
 from matplotlib import rc
 import numpy as np
 import os
@@ -283,7 +284,7 @@ def make_dat_files():
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
-        tmpG.plot_prevalence0(save=True,cumulative=False, show_order_date=False,
+        tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
              show_superspreader=False)
 
 def update_fits(njob=4):
@@ -319,12 +320,12 @@ def update_shared_plots():
         tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
-        tmpG.plot_prevalence0(save=True,signature=True,cumulative=False,
+        tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                              show_order_date=False)
 
     tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
     tmpG.read_BCHA_data()
-    tmpG.plot_prevalence0(save=True,signature=True,cumulative=False,
+    tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                          show_order_date=False)
 
     cv.graphics_path = save_path
@@ -745,6 +746,9 @@ def plot_CFR_ridge(CFRfile):
 
 # --------------------------------------------------       
 print('------- here ------')
+print('python',pd.__version__)
+print('matplotib',matplotlib.__version__)
+
 #CFR_comp(nG=5)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
@@ -762,8 +766,13 @@ print('------- here ------')
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False)
 
-#update_shared_plots()
+#tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+#tmpG.read_BCHA_data()
+#tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
+#                         show_order_date=False)
 
+
+#update_shared_plots()
 #make_dat_files()
 #update_fits()
 #FF.make_fit_plots()
@@ -796,4 +805,8 @@ print('------- here ------')
 # SuffolkNY.RData -6.753055573216654
 # Miami-DadeFL.RData -6.064537518202749
 
-#GG.plot_prevalence_comp(save=True, signature=False)
+GG.plot_prevalence_comp(flag='S',save=True, signature=False,window=7,show_SE=True)
+#GG.plot_prevalence_comp(flag='m',save=True, signature=False,window=7)#, ymaxdefault=[0.75,0.05,0.1])
+
+#GG.plot_prevalence_comp(flag='S',save=True, signature=False)
+#GG.plot_prevalence_comp(flag='S',save=True, signature=False,ymaxdefault=[0.2,0.01,0.04])

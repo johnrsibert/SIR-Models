@@ -32,7 +32,7 @@ FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 mtime = os.path.getmtime(NYT_home+'us-counties.csv')
 dtime = datetime.fromtimestamp(mtime)
-EndOfTime = dtime.date()+timedelta(days=14)
+EndOfTime = dtime.date()+timedelta(days=21)
    
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
 #print(GeoIndex.head())

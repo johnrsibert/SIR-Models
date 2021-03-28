@@ -372,6 +372,9 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
                     show_order_date = False, 
                     show_superspreader = False,
                     annotation = True, signature = False, 
+                    ymaxdefault = None,
+                    show_SE = False,
+#                   ymax = [None,None,None], #[0.2,0.01,0.04],
                     save = True):
     """ 
     Plots cases and deaths vs calendar date 
@@ -402,7 +405,11 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
     gg_filter = nyt_counties['flag'].str.contains(flag)
     gg = nyt_counties[gg_filter]
 
-    ymax = [0.0]*3
+    if (ymaxdefault is None):
+        ymax = [0.0]*3
+    else:
+        ymax = ymaxdefault
+
     nG = len(gg)
     for g in range(0,len(gg)):
         print(gg['county'].iloc[g],gg['code'].iloc[g])
@@ -421,9 +428,9 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
             cfr = tmpG.deaths/tmpG.cases
 
         if (per_capita):
-            cases  =  mult*tmpG.cases/(tmpG.population + cv.eps)
+            cases  =  mult*tmpG.cases/tmpG.population
             if tmpG.deaths is not None:
-                deaths =  mult*tmpG.deaths/(tmpG.population + cv.eps)
+                deaths =  mult*tmpG.deaths/tmpG.population
         else:
             cases  =  tmpG.cases
             deaths =  tmpG.deaths
@@ -432,6 +439,7 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
         gdf['cases'] = cases
         gdf['deaths'] = deaths
         gdf['cfr'] = cfr
+    #   print(gdf)
 
         for a in range(0,nax):
             if (any(pd.isna(gdf.iloc[:,a]))):
@@ -441,6 +449,7 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
         max_cases = cases[nn]
 
         Date = pd.Series(tmpG.get_pdate())
+        df_correction = np.sqrt(window-1)
         for a in range(0,nax):
             GU.make_date_axis(ax[a],firstDate)
             ax[a].set_ylabel(ylabel[a])
@@ -449,19 +458,32 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
                     delta = np.diff(gdf.iloc[:,a]) # first differences
                 #   moving average:
                     yvar = pd.Series(delta).rolling(window=window).mean()
-                    ax[a].plot(Date[1:],yvar) #,linewidth=2)
+                    ax[a].plot(Date[1:],yvar)
+                    if show_SE:
+                        serr = pd.Series(delta).rolling(window=window).std()/df_correction
+                        GU.plot_error(ax[a],Date[1:],yvar,serr,logscale=True,mult=2)
                     GU.mark_ends(ax[a],Date[1:],yvar,short_name(tmpG.moniker),'r')
-                    ymax[a] = max(ymax[a],yvar.max())
-                    ax[a].set_ylim((0.0,1.2*ymax[a]))
+                    if (ymaxdefault is None):
+                    #   ymax[a] = max(ymax[a],1.2*yvar.max())
+                        ymax[a] = max(ymax[a],2*yvar.iloc[-1])
+
                 else:
                     yvar = pd.Series(gdf.iloc[:,a]).rolling(window=window).mean()
-                    ax[a].plot(Date,yvar) #,linewidth=2)
+                    ax[a].plot(Date,yvar)
+                    if show_SE:
+                        serr = pd.Series(gdf.iloc[:,a]).rolling(window=window).std()/df_correction
+                        GU.plot_error(ax[a],Date,yvar,serr,logscale=True,mult=2)
                     GU.mark_ends(ax[a],Date,yvar,short_name(tmpG.moniker),'r')
-                    ax[a].set_ylim((0.0,0.08))
+                    if (ymaxdefault is None):
+                    #   ymax[a] = max(ymax[a],1.2*yvar.max())
+                        ymax[a] = max(ymax[a],2*yvar.iloc[-1])
 
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
     
+    # loop: for g in range(0,len(gg)):
+    for a in range(0,nax):
+        ax[a].set_ylim((0.0,ymax[a]))
     
     if (annotation):
         title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'

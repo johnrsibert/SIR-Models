@@ -74,15 +74,16 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
 #   print('color, alpha:',c,a)
-    if ( (end =='l') | (end == 'b')):
-        mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',fontsize=8,
-                color=c) #,alpha=a)
+    if ( (end =='l') | (end == 'b') ):
+        mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',
+                      fontsize=8, color=c) #,alpha=a)
 
-    if ( (end =='r') | (end == 'b')):
+    if ( (end =='r') | (end == 'b') ):
         i = len(x)-1
-        mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',fontsize=8,
-                color=c) #,alpha=a)
-                      # Set the alpha value used for blendingD - 
+        mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',
+                       fontsize=8, color=c) #,alpha=a)
+
+                      # Set the alpha value used for blending
     mark.set_alpha(a) # not supported on all backends
 
 def add_superspreader_events(Date,adc,ax):
@@ -118,8 +119,9 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
     xp = np.transpose(xy).shape
     c = ax.get_lines()[-1].get_color()
-    sd_region = plt.Polygon(np.transpose(xy), alpha=0.2,
-                            facecolor=c, edgecolor='0.1',lw=0.5)
+    sd_region = plt.Polygon(np.transpose(xy), alpha=0.2, facecolor=c,
+                            edgecolor=c,lw=0.5)
+#                           edgecolor='0.1',lw=0.5)
     ax.add_patch(sd_region)
 
 
