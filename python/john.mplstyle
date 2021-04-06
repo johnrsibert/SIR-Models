@@ -46,9 +46,9 @@ font.size: 12.0
 #savefig.facecolor: f0f0f0
 savefig.edgecolor: ffffff
 savefig.facecolor: ffffff
-savefig.dpi      : 100      # figure dots per inch
-savefig.format   : eps      # png, ps, pdf, svg
-#savefig.bbox     : tight    # 'tight' or 'standard'.
+savefig.dpi      : 300      # figure dots per inch
+savefig.format   : png      # png, ps, pdf, svg
+savefig.bbox     : tight    # 'tight' or 'standard'.
 
 
 figure.dpi       : 100

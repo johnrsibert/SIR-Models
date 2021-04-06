@@ -10,13 +10,13 @@ Miami-Dade,Florida,12086,FL,m,2716940
 Dallas,Texas,48113,TX,m,2635516
 Riverside,California,6065,CA,m,2470546
 Clark,Nevada,32003,NV,m,2266715
-King,Washington,53033,WA,m,2252782
+King,Washington,53033,WA,Cm,2252782
 San Bernardino,California,6071,CA,m,2180085
 Tarrant,Texas,48439,TX,m,2102515
 Bexar,Texas,48029,TX,m,2003554
 Broward,Florida,12011,FL,m,1952778
 Santa Clara,California,6085,CA,sm,1927852
-Wayne,Michigan,26163,MI,m,1749343
+Wayne,Michigan,26163,MI,Cm,1749343
 Alameda,California,6001,CA,Ssm,1671329
 Middlesex,Massachusetts,25017,MA,m,1611699
 Philadelphia,Pennsylvania,42101,PA,m,1584064
@@ -25,10 +25,10 @@ Palm Beach,Florida,12099,FL,m,1496770
 Suffolk,New York,36103,NY,m,1476601
 Hillsborough,Florida,12057,FL,m,1471968
 Orange,Florida,12095,FL,m,1393452
-Nassau,New York,36059,NY,m,1356924
+Nassau,New York,36059,NY,Cm,1356924
 Franklin,Ohio,39049,OH,m,1316756
 Travis,Texas,48453,TX,m,1273954
-Hennepin,Minnesota,27053,MN,m,1265843
+Hennepin,Minnesota,27053,MN,Cm,1265843
 Oakland,Michigan,26125,MI, ,1257584
 Cuyahoga,Ohio,39035,OH, ,1235072
 Allegheny,Pennsylvania,42003,PA, ,1216045
@@ -62,6 +62,7 @@ Hartford,Connecticut,9003,CT, ,891720
 Denton,Texas,48121,TX, ,887207
 San Francisco,California,6075,CA,s,881549
 Macomb,Michigan,26099,MI, ,873972
+Vancouver Island,British Columbia,0,BC,Ss,870297
 Hidalgo,Texas,48215,TX, ,868707
 New Haven,Connecticut,9009,CT, ,854757
 Ventura,California,6111,CA, ,846006
@@ -3127,4 +3128,3 @@ McPherson,Nebraska,31117,NE, ,494
 Blaine,Nebraska,31009,NE, ,465
 Arthur,Nebraska,31005,NE, ,463
 Kenedy,Texas,48261,TX, ,404
-Vancouver Island,British Columbia,0,BC,Ss,870297

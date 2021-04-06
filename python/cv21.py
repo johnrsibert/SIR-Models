@@ -285,7 +285,7 @@ def make_dat_files():
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
-             show_superspreader=False)
+             show_superspreader=False,per_capita=True)
 
 def update_fits(njob=4):
     save_wd = os.getcwd()
@@ -319,14 +319,19 @@ def update_shared_plots():
         print(gg['county'].iloc[g])
         tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
-        tmpG.read_nyt_data('county')
-        tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=False)
+        if (gg['code'].iloc[g] == 'BC'):
+            tmpG.read_BCHA_data('province')
+        else:
+            tmpG.read_nyt_data('county')
 
-    tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-    tmpG.read_BCHA_data()
-    tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                         show_order_date=False)
+#       tmpG.read_nyt_data('county')
+        tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
+                             show_order_date=False,per_capita=True)
+
+#   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
+#   tmpG.read_BCHA_data()
+#   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
+#                        show_order_date=False)
 
     cv.graphics_path = save_path
 
@@ -764,7 +769,7 @@ print('matplotib',matplotlib.__version__)
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False)
+#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,per_capita=True)
 
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
@@ -805,7 +810,7 @@ print('matplotib',matplotlib.__version__)
 # SuffolkNY.RData -6.753055573216654
 # Miami-DadeFL.RData -6.064537518202749
 
-GG.plot_prevalence_comp(flag='S',save=True, signature=False,window=7,show_SE=True)
+#GG.plot_prevalence_comp(flag='C',save=True, signature=False,window=7,show_SE=True)
 #GG.plot_prevalence_comp(flag='m',save=True, signature=False,window=7)#, ymaxdefault=[0.75,0.05,0.1])
 
 #GG.plot_prevalence_comp(flag='S',save=True, signature=False)

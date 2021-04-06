@@ -158,9 +158,10 @@ class Geography:
         for r in range(0,len(self.date)):
             O.write('%7d %6d\n'%(self.cases[r],self.deaths[r]))
 
-    def read_BCHA_data(self,gtype='hsa'):
+    def read_BCHA_data(self,gtype='province'):
         self.gtype = gtype
         cspath = cv.BCHA_path
+        print(cspath)
 
         dat = pd.read_csv(cspath,header=0)
 
@@ -231,16 +232,20 @@ class Geography:
         ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
         end_marks = [r'$\Sigma$C','$\Sigma$D',''] # indicate cumulatives
         total_names = ['Cases','Deaths','']
+        totals=[0]*3
+        totals[0] = self.cases[self.ntime-1]
         gdf = pd.DataFrame()
 
         if (self.deaths is None):
+            totals[1] = 0
             cfr = 0.0
         else:
+            totals[1] = self.deaths[self.ntime-1]
             cfr = self.deaths/self.cases
 
         if (per_capita):
             for a in range(0,2):
-                ylabel[a] = ylabel[a] +' per '+str(mult)
+                ylabel[a] = ylabel[a] +'/'+str(mult)
         
             cases =  mult*self.cases/self.population + cv.eps
             if (nax > 1):
@@ -296,7 +301,8 @@ class Geography:
                 ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
                 ty = GU.prop_scale(ax[a].get_ylim(), 0.95)
-                note = '{0:,} {1}'.format(int(gdf.iloc[-1,a]),total_names[a])
+            #   note = '{0:,} {1}'.format(int(gdf.iloc[-1,a]),total_names[a])
+                note = '{0:,} {1}'.format(int(totals[a]),total_names[a])
                 ax[a].text(tx,ty,note ,ha='center',va='top',fontsize=10)
 
                 if (cumulative):
@@ -416,7 +422,7 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         if (gg['code'].iloc[g] == 'BC'):
-            tmpG.read_BCHA_data()
+            tmpG.read_BCHA_data('province')
         else:
             tmpG.read_nyt_data('county')
  
@@ -488,7 +494,7 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
     if (annotation):
         title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
         fig.text(0.5,1.0,title ,ha='center',va='top')
-        GU.add_data_source(fig)
+        GU.add_data_source(fig, 'Multiple sources')
 
     if (signature):
         GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
