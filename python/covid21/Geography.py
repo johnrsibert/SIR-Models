@@ -161,16 +161,16 @@ class Geography:
     def read_BCHA_data(self,gtype='province'):
         self.gtype = gtype
         cspath = cv.BCHA_path
-        print(cspath)
+    #   print(cspath)
 
         dat = pd.read_csv(cspath,header=0)
 
         mtime = os.path.getmtime(cspath)
         dtime = datetime.fromtimestamp(mtime)
         self.updated = str(dtime.date())
-   #    self.population = None
+    #   self.population = None
         self.population = self.get_county_pop()
-   #    self.source = 'British Columbia Centre for Disease Control'\
+    #   self.source = 'British Columbia Centre for Disease Control'\
         self.source = 'Government of British Columbia'\
                       ' www.bccdc.ca/Health-Info-Site/Documents/' 
 

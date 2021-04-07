@@ -19,23 +19,19 @@ from datetime import date, datetime, timedelta
 from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
 from numpy import linalg as LA
 
-def cov_comp(df):
-    """
-    expects rows with NaNs to be removed
-    normalize
-    compute covariance matrix from normalized data
-    """
+#def cov_comp(df):
+#    """
+#    expects rows with NaNs to be removed
+#    compute covariance matrix from normalized data
+#    """
+#    cov = df.transpose().dot()
+#    return(cov)
+    
+def Z_comp(df):
     z = pd.DataFrame(index=df.index,columns=df.columns)
     for c in df.columns:
-        tmp = pd.Series(data=df[c],index = df.index)
-#        z[c] = (df[c] - df[c].mean())/df[c].std()
-        
-        tmp = (tmp-tmp.mean())/tmp.std()
-        z[c] = tmp
-
-
-    cov = z.transpose().dot(z)
-    return(cov)
+        z[c] = (df[c] - df[c].mean())/df[c].std()
+    return(z)    
     
 def show_save(plt,save,which,what):
     if save:
@@ -93,59 +89,72 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     print('gg:')
     print(gg)
     nG = len(gg)
+    ggcode  = ['XX']*nG
+
     for g in range(0,nG):#len(gg)):
         tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                             code=gg['code'].iloc[g])
-#        tmpG = GG.Geography(name=gg['county'].iloc[g], 
-#                            enclosed_by=gg['state'].iloc[g], 
-#                            code=gg['code'].iloc[g])
         print(g,gg['county'].iloc[g],gg['code'].iloc[g])
+        ggcode[g] = gg['code'].iloc[g]
         if (gg['code'].iloc[g] == 'BC'):
             tmpG.read_BCHA_data()
         else:
             tmpG.read_nyt_data('county')
  
-#    print(g,cols[g])
         date = pd.Series(tmpG.get_pdate()[1:])
-#    print(date)
         cases  =  np.diff(tmpG.cases)/tmpG.population
-#       print(g,'cases:')
-#       print(cases)
 
         if (tmpG.deaths is not None):
             deaths = np.diff(tmpG.deaths)/tmpG.population
         else:
-            deaths = None
-
+            deaths = [None]*len(cases)  #pd.Series(data=[None]*len(date),index = date)
+        #    print('deaths:',deaths)
+        #    return(np.NaN)
         if (which=='Cases'):
-            dat = pd.Series(data=cases,index = date)
-            #    print('normalized DCA:')
-            #    print(dat)
+            dat = pd.Series(data=cases, index = date)
         elif (which == 'Deaths'):
             dat = pd.Series(data=deaths,index = date)
         else:
             print('which =',which,'not currently supported')
             return(2)
                 
-#       gdf[cols[g]]=dat
         gdf[tmpG.moniker] = dat   
 
     
+    print('gdf before drop:',gdf.shape)
+#    print(gdf)
+#   drop all columns with all NA        
+    gdf = gdf.dropna(axis=1,how='all')
+    print('gdf after drop 1:',gdf.shape)
+#   drop all rows with aany NA       
     gdf = gdf.dropna(axis=0,how='any')
+    print('gdf after drop 2:',gdf.shape)
+#    print(gdf)
 
     gname = gdf.columns
-    stcode = ['XX']*len(gname)
-#   print(stcode)
+    ggcolor = ['k']*len(gname)
     for k, g in enumerate(gname):
-#        print(k,g,len(g))
-        stcode[k] = g[len(g)-2:len(g)]
+        if ggcode[k] in ['CA','AZ','NV','OR','WA','NM']:
+            ggcolor[k] = colors[0]
+        elif ggcode[k] in ['TX','FL','LA','AL']:
+            ggcolor[k] = colors[1]
+        elif ggcode[k] in ['NY','NJ','CT','MA','PA','RI','ME']:
+            ggcolor[k] = colors[2]
+        elif ggcode[k] in ['IL','MN','MI','ID','OH']:    
+            ggcolor[k] = colors[3]
+        else:
+            ggcolor[k] = 'k'
 #    print(stcode)
 
     for k, s in enumerate(season_dates):
         smask = gdf.index.isin(season_range[k])
 
-    gcov = pd.DataFrame(cov_comp(gdf))
+    gZ = Z_comp(gdf)
+#    gcov = cov_comp(gZ)
+    gcov = gZ.transpose().dot(gZ)
+
     print('gcov:',gcov.shape)
+#    print(gcov)
     
     gw, gv = LA.eig(gcov)
     gw = np.real(gw)
@@ -163,11 +172,9 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 
     LL = 3
     gvL = gv[:,0:LL]
-    gy = pd.DataFrame(gdf.dot(gvL),index=gdf.index)
+    gy = pd.DataFrame(gZ.dot(gvL),index=gdf.index)
     print('gy:',gy.shape)
  
-#    nax = 2
-#    gfig, gax = plt.subplots(nax,1,figsize=(6.5,nax*3.0))
     gfig = plt.figure(figsize=(6.5,9.0))
     gax1 = plt.subplot2grid((3, 3), (0, 0), colspan=3,rowspan=1)
     gax2 = plt.subplot2grid((3, 3), (1, 0), colspan=3,rowspan=2)
@@ -191,21 +198,16 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 #        print(a,str(a))
         GU.mark_ends(gax1,gdate,gy[a].values,str(a+1),'b')
         
-    gax1.set_ylabel('Component', ha="center")
-
-#    plt.show()#block=False)
-#   def show_save(plt,save,which,what):
+    gax1.set_ylabel('Component Score', ha="center")
 
     show_save(plt,save=True,which=which,what='gdf')
 
 
 ##############################################################
     
-#   tdf= gdf.transpose()
-    tdf= gdf
-
-    tcov = tdf.dot(tdf.transpose())
-#   cov2 = gdf.dot(gdf.transpose())
+    tdf= gdf.transpose()
+    tZ = Z_comp(tdf)
+    tcov = tZ.transpose().dot(tZ)
     print('tcov:',tcov.shape)
 #    print(tcov)
  
@@ -223,36 +225,40 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 
     print('Sum:',ww)
 
-#    LL = 3
     tvL = tv[:,0:LL]
     print('tvL:',tvL.shape)
-    ty = tdf.transpose().dot(tvL)
-
+#    ty = tdf.transpose().dot(tvL)
+    ty = pd.DataFrame(tZ.dot(tvL),index=tdf.index)
     print('ty:',ty.shape)
     
     nax = 1
     tfig, tax = plt.subplots(nax,1,figsize=(6.5,nax*6.5))
-    tax.scatter(ty[0],ty[1],alpha=0.5,s=5)
+    tax.scatter(ty[0],ty[1],c=ggcolor, marker=',')#,s=9)
     tax.set_xlabel('C 1')
     tax.set_ylabel('C 2')
 
-    for g in range(0,len(stcode)):
-        if stcode[g] in ['CA','AZ','NV','OR','WA','NM']:
-            col = colors[0]
-        elif stcode[g] in ['TX','FL','LA']:
-            col = colors[1]
-        elif stcode[g] in ['NY','NY','CT','MA','PA','IL','MN','MI']:
-            col = colors[2]
-        else:
-            col = 'k'
-        tax.text(ty.iloc[g,0], ty.iloc[g,1],stcode[g], color=col,
-                 ha='center',va='center',fontsize=10) #,alpha=0.5)
+#   col = ['k']*len(stcode)
+    for g in range(0,len(ggcode)):
+        tax.text(ty.iloc[g,0], ty.iloc[g,1],ggcode[g], color=ggcolor[g],
+                 ha='center',va='center',fontsize=10,alpha=0.5)
 
-#    plt.show()#block=False)
     show_save(plt,save=True,which=which,what='tdf')
+    
+    fig3 = plt.figure()
+    ax3 = fig3.add_subplot(projection='3d')
+    ax3.scatter(ty[0],ty[1],ty[2],c=ggcolor,marker=',',depthshade=True)
+    for g in range(0,len(ggcode)):
+        ax3.text(ty.iloc[g,0],ty.iloc[g,1],ty.iloc[g,2],ggcode[g],
+                 c=ggcolor[g],ha='center',va='center',fontsize=10) #,alpha=0.5)
+    ax3.set_xlabel('C 1')
+    ax3.set_ylabel('C 2')
+    ax3.set_zlabel('C 3')
+    plt.show()
+    
+    show_save(plt,save=True,which=which,what='tdf3d')   
+    
 
-    if (1):
-        return('Finished PCA(...)')
+    return('Finished PCA(...)')
 
  
-print(PCA(flag=None,minpop=100000,which='Deaths'))   
+print(PCA(flag='m')) #None,minpop=100000))#,which='Deaths')) #None,minpop=50000,which='Deaths'))   
