@@ -814,4 +814,4 @@ print('matplotib',matplotlib.__version__)
 #GG.plot_prevalence_comp(flag='m',save=True, signature=False,window=7)#, ymaxdefault=[0.75,0.05,0.1])
 
 #GG.plot_prevalence_comp(flag='S',save=True, signature=False)
-#GG.plot_prevalence_comp(flag='S',save=True, signature=False,ymaxdefault=[0.2,0.01,0.04])
+#GG.plot_prevalence_comp(flag='m',save=True, signature=False)#,ymaxdefault=[0.2,0.01,0.04])

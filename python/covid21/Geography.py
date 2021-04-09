@@ -59,14 +59,13 @@ class Geography:
 
     def print_data(self):
         self.get_pdate()
-    #   if (self.deaths != None):
-        if (len(self.deaths) > 0):
+    #   if (len(self.deaths) > 0):
+        if (self.deaths is not None):
             print('date','cases','deaths','pdate')
         else:
             print('date','cases','pdate')
         for k in range(0,len(self.date)):
-        #   if (self.deaths != None):
-            if (len(self.deaths) > 0):
+            if (self.deaths is not None):
                 print(self.date[k],self.cases[k],self.deaths[k],self.pdate[k])
             else:
                 print(self.date[k],self.cases[k],self.pdate[k])
@@ -81,7 +80,7 @@ class Geography:
         return(Gdf)
 
     def get_pdate(self):
-        if (self.pdate != None):
+        if (self.pdate is not None):
             return(self.pdate)
 
         else:
