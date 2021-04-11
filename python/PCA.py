@@ -19,6 +19,7 @@ import matplotlib.patches as mpatches
 from datetime import date, datetime, timedelta
 from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
 from numpy import linalg as LA
+import os
 
 plt.rcParams['lines.linewidth'] = 1.5
 plt.rcParams["scatter.marker"] = '.' 
@@ -58,7 +59,11 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
                     save = True):
     
     firstDate = cv.FirstNYTDate
-    lastDate  = cv.EndOfTime
+#   lastDate  = cv.EndOfTime
+    mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
+    dtime = datetime.fromtimestamp(mtime)
+    lastDate = dtime.date() - timedelta(days=1)
+ 
 #    orderDate = mdates.date2num(cv.CAOrderDate)
     date_index = pd.date_range(start=firstDate, end=lastDate)#, freq='D')
     date_index = mdates.date2num(date_index)
@@ -130,16 +135,18 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
                 
         gdf[tmpG.moniker] = dat   
 
+    gdf.to_csv('gdf.csv')
     
     print('gdf before drop:',gdf.shape)
-#    print(gdf)
+    print(gdf)
 #   drop all columns with all NA        
     gdf = gdf.dropna(axis=1,how='all')
     print('gdf after drop 1:',gdf.shape)
-#   drop all rows with aany NA       
-    gdf = gdf.dropna(axis=0,how='any')
+#   drop all rows with any NA       
+#   gdf = gdf.dropna(axis=0,how='any')
+    gdf = gdf.fillna(cv.eps,axis=1)
     print('gdf after drop 2:',gdf.shape)
-#    print(gdf)
+    print(gdf)
 
     gname = gdf.columns
     ggcolor = ['k']*len(gname)
@@ -178,8 +185,11 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 
     groot = 'PCA_'+which+'_'+str(nG)
 
+    tprop = pd.DataFrame(0.0,index=np.arange(0,max(gdf.shape)),
+                             columns=['gdf','cgdf','tdf','ctdf'])
+    print(tprop.shape)
+
     gZ = Z_comp(gdf)
-#    gcov = cov_comp(gZ)
     gcov = gZ.transpose().dot(gZ)
 
     print('gcov:',gcov.shape)
@@ -189,15 +199,13 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     gw = np.real(gw)
     gv = np.real(gv)
     ww = sum(gw)
-    tprop = 0
+    tprop['cgdf'][0] = tprop['gdf'][0]
     for k in range(0,len(gw)):
-        prop=gw[k]/ww
-        tprop = tprop+prop
-        print('{0: 3d}{1: .3f}{2: .3f}'.format(k,prop,tprop))
-        if (tprop > 0.9):
-            break
-
-    print('Sum:',ww)
+        tprop['gdf'][k] = gw[k]/ww
+        if (k>0):
+            tprop['cgdf'][k] = tprop['cgdf'][k-1] + tprop['gdf'][k]
+        else:
+            tprop['cgdf'][k] = tprop['gdf'][k]
 
     LL = 3
     gvL = gv[:,0:LL]
@@ -220,6 +228,8 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
                  markerfirst=False, fontsize='x-small', markerscale=3)
     if (annotation):
         GU.add_data_source(gfig, 'Multiple sources')
+        GU.add_signature(gfig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+
 
 
     GU.make_date_axis(gax1)
@@ -233,28 +243,37 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 
     show_save(plt,groot+'_gdf')
 
-
 ##############################################################
     
     tdf= gdf.transpose()
+    print(tdf)
     tZ = Z_comp(tdf)
     tcov = tZ.transpose().dot(tZ)
     print('tcov:',tcov.shape)
-#    print(tcov)
+    print(tcov)
+
+    print('isnan:')
+    print(np.isnan(tcov).any())
+    print('isinf:')
+    print(np.isinf(tcov).any())
+    if(any(np.isinf(tcov).any())):
+        tcov = np.nan_to_num(tcov)
+        print(np.isinf(tcov).any())
+
  
     tw, tv = LA.eig(tcov)
     tw=np.real(tw)
     tv=np.real(tv)
     ww = sum(tw)
-    tprop = 0
+    tprop['ctdf'][0] = tprop['tdf'][0]
     for k in range(0,len(tw)):
-        prop=tw[k]/ww
-        tprop = tprop+prop
-        print('{0: 3d}{1: .3f}{2: .3f}'.format(k,prop,tprop))
-        if (tprop > 0.9):
-            break
+        tprop['tdf'][k] = tw[k]/ww
+        if (k>0):
+            tprop['ctdf'][k] = tprop['ctdf'][k-1] + tprop['tdf'][k]
+        else:
+            tprop['ctdf'][k] = tprop['tdf'][k]
 
-    print('Sum:',ww)
+    tprop.to_csv('var_prop_'+which+'_'+str(nG)+'.csv',index=False)
 
     tvL = tv[:,0:LL]
     print('tvL:',tvL.shape)
@@ -272,6 +291,7 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     tfig.suptitle(title+" C(X')",y=1.02)
     if (annotation):
         GU.add_data_source(tfig, 'Multiple sources')
+        GU.add_signature(tfig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
 
 
 #   col = ['k']*len(stcode)
@@ -293,6 +313,7 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     fig3.suptitle(title+" C(X')")
     if (annotation):
         GU.add_data_source(fig3, 'Multiple sources')
+        GU.add_signature(fig3,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
 
 #   plt.show()
     
@@ -301,4 +322,4 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     return('Finished PCA(...)')
 
 
-print(PCA(None,minpop=50000))#,which='Deaths')) #None,minpop=50000,which='Deaths'))   
+print(PCA(None,minpop=50000)) #,which='Deaths')) #None,minpop=50000,which='Deaths'))   
