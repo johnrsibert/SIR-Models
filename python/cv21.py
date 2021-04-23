@@ -799,7 +799,7 @@ print('matplotib',matplotlib.__version__)
 #update_assets()
 
 #update_everything()
-#git_commit_push()
+git_commit_push()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833

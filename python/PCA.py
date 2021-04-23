@@ -5,7 +5,6 @@ Created on Sun Apr  4 06:57:45 2021
 
 @author: jsibert
 """
-
 from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import GraphicsUtilities as GU
@@ -66,7 +65,9 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
  
 #    orderDate = mdates.date2num(cv.CAOrderDate)
     date_index = pd.date_range(start=firstDate, end=lastDate)#, freq='D')
+    print('date_index:',date_index)
     date_index = mdates.date2num(date_index)
+
     season_dates = [datetime.strptime('2020-05-31','%Y-%m-%d'),
                datetime.strptime('2020-09-30','%Y-%m-%d'),
                datetime.strptime('2021-02-28','%Y-%m-%d'),
@@ -74,6 +75,10 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     season_dates = mdates.date2num(season_dates)   
     season_names=('Spring 2020','Summer 2020','Winter 2020','Spring 2021')    
     season_range =[[]]*len(season_dates)
+
+    month_names = ('Jan-Feb','Mar-Apr','May-Jun','Jul-Aug','Sep-Oct','Nov-Dec')
+    print(month_names)
+
     fromd = mdates.date2num(firstDate)
     for k, s in enumerate(season_dates):
         print(k,season_names[k]+':',fromd,'to',s)
@@ -141,12 +146,28 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     print(gdf)
 #   drop all columns with all NA        
     gdf = gdf.dropna(axis=1,how='all')
-    print('gdf after drop 1:',gdf.shape)
+    print('gdf after drop column with all NA:',gdf.shape)
 #   drop all rows with any NA       
-#   gdf = gdf.dropna(axis=0,how='any')
-    gdf = gdf.fillna(cv.eps,axis=1)
-    print('gdf after drop 2:',gdf.shape)
+    gdf = gdf.dropna(axis=0,how='any')
+    print('gdf after drop drop with any NA:',gdf.shape)
     print(gdf)
+
+    gdf_index = gdf.index
+    mcolors = pd.Series(0,index=gdf_index)
+    mlabels = pd.Series('  ',index=gdf_index)
+    for g in gdf_index:
+    #    print(d.strftime("%m"))
+    # date_index = mdates.date2num(date_index)
+         d = mdates.num2date(g)
+         m = int(d.strftime("%m"))
+         c = int((m+1)/2)-1
+         mcolors[g] = c
+         mlabels[g] = month_names[c]
+         print(g,d, d.strftime("%m"),m,c,mcolors[g],mlabels[g])
+
+    print(mcolors)
+ #  if (1): return('Stopped HERE')
+
 
     gname = gdf.columns
     ggcolor = ['k']*len(gname)
@@ -169,11 +190,13 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
             ggcolor[k] = 'k'
 #    print(stcode)
             
-    patches = [plt.Artist]*len(colors)
-    clabels = ['West','Mountain','Prairie','Midwest','Northeast','South']
+    monpatches = [plt.Artist]*len(colors)
+    rpatches = [plt.Artist]*len(colors)
+    rlabels = ['West','Mountain','Prairie','Midwest','Northeast','South']
  #   print('patches:',patches)
     for k in range(0,len(colors)):
-        patches[k] = mpatches.Patch(color=colors[k],label=clabels[k])
+        rpatches[k]   = mpatches.Patch(color=colors[k],label=rlabels[k])
+    #   monpatches[k] = mpatches.Patch(color='k',label=mlabels[k])
  
     for k, s in enumerate(season_dates):
         smask = gdf.index.isin(season_range[k])
@@ -193,7 +216,7 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     gcov = gZ.transpose().dot(gZ)
 
     print('gcov:',gcov.shape)
-#    print(gcov)
+    print(gcov)
     
     gw, gv = LA.eig(gcov)
     gw = np.real(gw)
@@ -211,6 +234,7 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     gvL = gv[:,0:LL]
     gy = pd.DataFrame(gZ.dot(gvL),index=gdf.index)
     print('gy:',gy.shape)
+    print(gy)
  
     gfig = plt.figure(figsize=(6.5,9.0))
     gax1 = plt.subplot2grid((3, 3), (0, 0), colspan=3,rowspan=1)
@@ -219,13 +243,18 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 
     for k, s in enumerate(season_dates):
         smask = gdf.index.isin(season_range[k])
-        gax2.scatter(gy.iloc[smask,0], gy.iloc[smask,1], s=9,
+        gax2.scatter(gy.iloc[smask,0], gy.iloc[smask,1], s=100,
                       label=season_names[k])
+#   gax2.scatter(gy[0],gy[1],c=mcolors,marker='.',s=50)#s=11)
         
     gax2.set_xlabel('C 1')
     gax2.set_ylabel('C 2')
+#   gax2.legend(handles=monpatches,frameon=False, framealpha=0.5,
+#                markerfirst=False, fontsize='x-small', markerscale=3)
     gax2.legend(loc='lower right', frameon=False, framealpha=0.5,
                  markerfirst=False, fontsize='x-small', markerscale=3)
+#   gax2.legend(frameon=False, framealpha=0.5, labels=mlabels,
+#                markerfirst=False, fontsize='x-small', markerscale=3)
     if (annotation):
         GU.add_data_source(gfig, 'Multiple sources')
         GU.add_signature(gfig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
@@ -240,25 +269,27 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
         GU.mark_ends(gax1,gdate,gy[a].values,str(a+1),'b')
         
     gax1.set_ylabel('Component Score', ha="center")
+    gax2.set_ylim(gax1.get_ylim())
+    gax2.set_xlim(gax1.get_ylim())
 
     show_save(plt,groot+'_gdf')
 
 ##############################################################
     
     tdf= gdf.transpose()
-    print(tdf)
+    print('transposed gdf:',tdf.shape)
     tZ = Z_comp(tdf)
     tcov = tZ.transpose().dot(tZ)
     print('tcov:',tcov.shape)
     print(tcov)
 
-    print('isnan:')
-    print(np.isnan(tcov).any())
-    print('isinf:')
-    print(np.isinf(tcov).any())
+#   print('isnan:')
+#   print(np.isnan(tcov).any())
+#   print('isinf:')
+#   print(np.isinf(tcov).any())
     if(any(np.isinf(tcov).any())):
         tcov = np.nan_to_num(tcov)
-        print(np.isinf(tcov).any())
+#       print(np.isinf(tcov).any())
 
  
     tw, tv = LA.eig(tcov)
@@ -280,12 +311,13 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
 #    ty = tdf.transpose().dot(tvL)
     ty = pd.DataFrame(tZ.dot(tvL),index=tdf.index)
     print('ty:',ty.shape)
+    print(ty)
     
     tfig, tax = plt.subplots(1,1,figsize=(6.5,6.5))
     tax.scatter(ty[0],ty[1],c=ggcolor, marker=',')#,s=9)
     tax.set_xlabel('C 1')
     tax.set_ylabel('C 2')
-    tax.legend(handles=patches,frameon=False, framealpha=0.5,
+    tax.legend(handles=rpatches,frameon=False, framealpha=0.5,
                  markerfirst=False, fontsize='x-small', markerscale=3)
                  #loc='lower right', 
     tfig.suptitle(title+" C(X')",y=1.02)
@@ -322,4 +354,4 @@ def PCA(flag='m', minpop=250000, which = 'Cases',
     return('Finished PCA(...)')
 
 
-print(PCA(None,minpop=50000)) #,which='Deaths')) #None,minpop=50000,which='Deaths'))   
+print(PCA(None,minpop=int(1e6))) #,which='Deaths')) #None,minpop=50000,which='Deaths'))   

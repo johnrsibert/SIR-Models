@@ -38,6 +38,8 @@ GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
 #print(GeoIndex.head())
 nyt_county_dat = pd.read_csv(NYT_counties,header=0)
 #print(nyt_county_dat.head())
+nyt_state_dat = pd.read_csv(NYT_states,header=0)
+#print(nyt_state_dat)
 
 eps = 1e-5
  
