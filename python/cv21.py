@@ -751,8 +751,9 @@ def plot_CFR_ridge(CFRfile):
 
 # --------------------------------------------------       
 print('------- here ------')
-print('python',pd.__version__)
-print('matplotib',matplotlib.__version__)
+print('python:',sys.version)
+print('pandas:',pd.__version__)
+print('matplotib:',matplotlib.__version__)
 
 #CFR_comp(nG=5)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)

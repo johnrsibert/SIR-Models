@@ -199,6 +199,7 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
+                        low_prev = 0.05,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
         """ 
@@ -328,6 +329,11 @@ class Geography:
 
         if (signature):
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+        if (low_prev > 0.0):
+            ax[0].plot((Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
+                       color='red',linewidth=0.5,linestyle=':')
+            GU.mark_ends(ax[0],(Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
+                           str(low_prev),'r')
 
         if (dashboard):
         #   out_img = BytesIO()
