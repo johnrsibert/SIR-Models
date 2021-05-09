@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import re
 from cycler import cycler
+import scipy.stats as stats
 
 class Geography:
 
@@ -378,7 +379,7 @@ class Geography:
         plt.show()
 
 
-def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
+def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
                     show_order_date = False, 
                     show_superspreader = False,
@@ -413,8 +414,13 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
     save_path = cv.graphics_path
 
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
-    gg_filter = nyt_counties['flag'].str.contains(flag)
+
+    if flag.isnumeric():
+        gg_filter = nyt_counties['population'] > float(flag)
+    else:
+        gg_filter = nyt_counties['flag'].str.contains(flag)
     gg = nyt_counties[gg_filter]
+
 
     if (ymaxdefault is None):
         ymax = [0.0]*3
@@ -422,8 +428,12 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
         ymax = ymaxdefault
 
     nG = len(gg)
-    for g in range(0,len(gg)):
-        print(gg['county'].iloc[g],gg['code'].iloc[g])
+    recent = pd.DataFrame(index=range(0,nG),
+                          columns=('fips','cases','deaths','population'))
+    print('nG =',nG,'flag =',flag,'recent',recent)
+
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         if (gg['code'].iloc[g] == 'BC'):
@@ -461,6 +471,8 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
 
         Date = pd.Series(tmpG.get_pdate())
         df_correction = np.sqrt(window-1)
+        recent['fips'][g] = gg['fips'][g] 
+        recent['population'][g] = tmpG.population
         for a in range(0,nax):
             GU.make_date_axis(ax[a],firstDate)
             ax[a].set_ylabel(ylabel[a])
@@ -470,6 +482,12 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
                 #   moving average:
                     yvar = pd.Series(delta).rolling(window=window).mean()
                     ax[a].plot(Date[1:],yvar)
+                    print(g,short_name(tmpG.moniker),a,Date.iloc[-1],delta[-1])
+                    if (a == 0):
+                        recent['cases'][g] = delta[-1]
+                    else:
+                        recent['deaths'][g] = delta[-1]
+
                     if show_SE:
                         serr = pd.Series(delta).rolling(window=window).std()/df_correction
                         GU.plot_error(ax[a],Date[1:],yvar,serr,logscale=True,mult=2)
@@ -493,6 +511,7 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
                     GU.add_superspreader_events(Date,adc,ax[a])
     
     # loop: for g in range(0,len(gg)):
+
     for a in range(0,nax):
         ax[a].set_ylim((0.0,ymax[a]))
     
@@ -515,6 +534,33 @@ def plot_prevalence_comp(flag='S',per_capita=True, mult = 1000, delta_ts=True,
         else:
             plt.show()
 
+    print('recent',recent)           
+    print(stats.describe(recent['cases']))
+
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+
+    bins = np.linspace(0.0,0.5,50)
+    print(bins)
+    nbin = len(bins)
+    weights = np.ones_like(recent['cases']) / len(recent)
+    hist,edges,patches = ax.hist(recent['cases'],bins,weights=weights,density=False)
+
+    print('quantiles:')     
+    qq = [0.01,0.05,0.10]
+    for q in qq:
+        pq = np.quantile(recent['cases'],q=q)
+        print(q,pq)
+        GU.vline(ax,pq,str(q)) #,pos='right')
+#          vline(ax,mean,note,pos='left')
+
+    GU.vline(ax,0.05,'0.05',pos='right')
+    print('ylim:',ax.get_ylim())
+    ax.scatter(0.05,0.02,color='red',marker=7)#,s=50)
+    
+
+    plt.show()
+ 
+   
 def short_name(s):
     """
     Create 4 byte abbreviation for getography names

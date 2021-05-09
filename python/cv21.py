@@ -748,6 +748,82 @@ def plot_CFR_ridge(CFRfile):
     print('ridgeline plot saved as',gfile)
     plt.show()
 
+def recent_prevalence(min_pop=1000000,mult=1000):
+    dat = pd.read_csv(cv.NYT_counties,header=0)
+    dat['fips'] = dat['fips'].fillna(0).astype(np.int64) 
+    dat.loc[dat['county'] == 'New York City','fips'] = 36999
+    dat['deaths'] = dat['deaths'].fillna(0).astype(np.int64)
+    print(dat)
+    most_recent = dat['date'].iloc[-1]
+    print('most recent date:',most_recent,mdates.date2num(most_recent))
+ 
+    previous = mdates.num2date(mdates.date2num(most_recent)-1)
+#   previous = mdates.date2num(most_recent)-1
+    print('previous date:',previous)
+#   then = datetime.datetime.strptime(when, '%Y-%m-%d').dat
+#   previous =  datetime.strptime(previous,'%Y-%m-%d').date()
+#   FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
+#   print('previous date:',previous)
+
+    gndx = cv.GeoIndex.set_index(cv.GeoIndex['fips'])
+    print(gndx)
+    gndx.to_csv('gndx.csv',index=True)
+    print('gpop',gndx['population'][36999])
+    cmask = dat['cases'] > 1.0
+    date_mask = dat['date'] == previous #most_recent
+    fmask = dat['fips']  <= 56000 # restrict to mainland counties
+    zmask = cmask & date_mask & fmask
+    dat = dat[zmask]
+    print(dat)
+
+    per_capita = pd.DataFrame(index=dat.index,columns=('fips','cases','deaths','population'))
+
+    for dd in range(0,len(dat)):
+    #   print(dd,dat.iloc[dd])
+        fips = dat.iloc[dd]['fips']
+    #   print('fips:',fips)
+        pop = gndx['population'][fips]
+    #   print('pop:',pop)
+        per_capita.iloc[dd]['fips']=dat.iloc[dd]['fips']
+        per_capita.iloc[dd]['cases']=dat.iloc[dd]['cases']/float(pop)
+        per_capita.iloc[dd]['deaths']=dat.iloc[dd]['deaths']/float(pop)
+        per_capita.iloc[dd]['population']=pop#get_population(dat.iloc[dd]['fips'])
+
+    print(per_capita)
+    print(stats.describe(per_capita['cases']))
+
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+
+    bins = np.linspace(0.0,0.25,50)
+    print(bins)
+    nbin = len(bins)
+    weights = np.ones_like(per_capita['cases']) / len(per_capita)
+    hist,edges,patches = ax.hist(per_capita['cases'],bins,weights=weights,density=False)
+
+#   q = np.linspace(0.0,0.9,10)
+#   print(q)
+#   qq = np.quantile(per_capita['cases'],bins)
+#   print(qq)
+
+#   qx = ax.twinx()
+#   qx.plot(bins,qq,color='red')
+
+    print('quantiles:')     
+    qq = [0.01,0.05,0.10]
+    for q in qq:
+        pq = np.quantile(per_capita['cases'],q=q)
+        print(q,pq)
+        GU.vline(ax,pq,str(q),pos='right')
+#          vline(ax,mean,note,pos='left')
+ 
+    plt.show()
+ 
+    
+  
+
+   
+ 
+
 
 # --------------------------------------------------       
 print('------- here ------')
@@ -778,6 +854,7 @@ print('matplotib:',matplotlib.__version__)
 #                         show_order_date=False)
 
 
+#web_update()
 #update_shared_plots()
 #make_dat_files()
 #update_fits()
@@ -799,8 +876,8 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything()
-git_commit_push()
+#$update_everything()
+#git_commit_push()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833
@@ -814,5 +891,7 @@ git_commit_push()
 #GG.plot_prevalence_comp(flag='C',save=True, signature=False,window=7,show_SE=True)
 #GG.plot_prevalence_comp(flag='m',save=True, signature=False,window=7)#, ymaxdefault=[0.75,0.05,0.1])
 
-#GG.plot_prevalence_comp(flag='S',save=True, signature=False)
+GG.plot_prevalence_comp(flag='500000',save=False, signature=False)
 #GG.plot_prevalence_comp(flag='m',save=True, signature=False)#,ymaxdefault=[0.2,0.01,0.04])
+
+#recent_prevalence()

@@ -9,6 +9,7 @@ Created on Tue Jul  7 15:08:58 2020
 """
 from datetime import datetime, timedelta
 import pandas as pd
+#import numpy as np
 import os
 import matplotlib.pyplot as plt
 
@@ -35,6 +36,8 @@ dtime = datetime.fromtimestamp(mtime)
 EndOfTime = dtime.date()+timedelta(days=21)
    
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
+#GeoIndex['fips'] = GeoIndex['fips'].fillna(0).astype(np.int64) 
+ 
 #print(GeoIndex.head())
 nyt_county_dat = pd.read_csv(NYT_counties,header=0)
 #print(nyt_county_dat.head())

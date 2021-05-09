@@ -150,5 +150,12 @@ def prop_scale(lim,prop):
     s = lim[0] + prop*(lim[1]-lim[0])
     return(s)
 
+def vline(ax, x, label=None, ylim=None, pos='center'):
+    if ylim is None:
+        ylim = ax.get_ylim()
+    ax.plot((x,x), ylim, linewidth=1, linestyle=':')
+    c = ax.get_lines()[-1].get_color()
+    ax.text(x,ylim[1], label, ha=pos,va='bottom', linespacing=1.8,
+            fontsize=8, color=c)
 
 
