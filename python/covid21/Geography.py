@@ -379,7 +379,7 @@ class Geography:
         plt.show()
 
 
-def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
+def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
                     show_order_date = False, 
                     show_superspreader = False,
@@ -428,9 +428,6 @@ def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
         ymax = ymaxdefault
 
     nG = len(gg)
-    recent = pd.DataFrame(index=range(0,nG),
-                          columns=('fips','cases','deaths','population'))
-    print('nG =',nG,'flag =',flag,'recent',recent)
 
     for g in range(0,nG):
         print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
@@ -471,8 +468,6 @@ def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
 
         Date = pd.Series(tmpG.get_pdate())
         df_correction = np.sqrt(window-1)
-        recent['fips'][g] = gg['fips'][g] 
-        recent['population'][g] = tmpG.population
         for a in range(0,nax):
             GU.make_date_axis(ax[a],firstDate)
             ax[a].set_ylabel(ylabel[a])
@@ -482,12 +477,7 @@ def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
                 #   moving average:
                     yvar = pd.Series(delta).rolling(window=window).mean()
                     ax[a].plot(Date[1:],yvar)
-                    print(g,short_name(tmpG.moniker),a,Date.iloc[-1],delta[-1])
-                    if (a == 0):
-                        recent['cases'][g] = delta[-1]
-                    else:
-                        recent['deaths'][g] = delta[-1]
-
+                #   print(g,short_name(tmpG.moniker),a,Date.iloc[-1],delta[-1])
                     if show_SE:
                         serr = pd.Series(delta).rolling(window=window).std()/df_correction
                         GU.plot_error(ax[a],Date[1:],yvar,serr,logscale=True,mult=2)
@@ -525,7 +515,7 @@ def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
 
     else:
         if save:
-            gfile = cv.graphics_path+'prevalence_comp_'+flag+str(nG)+'.png'
+            gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+str(nG)+'.png'
             plt.savefig(gfile,dpi=300)
             plt.show(block=False)
             plt.pause(3)
@@ -534,31 +524,183 @@ def plot_prevalence_comp(flag=None,per_capita=True, mult = 1000, delta_ts=True,
         else:
             plt.show()
 
+def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=True,
+                    window=7, plot_dt = False, cumulative = False,
+                    show_order_date = False, 
+                    show_superspreader = False,
+                    annotation = True, signature = False, 
+                    ymaxdefault = None,
+                    show_SE = False,
+#                   ymax = [None,None,None], #[0.2,0.01,0.04],
+                    save = True):
+    """ 
+    Plots cases and deaths vs calendar date 
+
+    per_capita: plot numbers per 1000 (see mult)  False
+    delta_ts: plot daily new cases True
+    window: plot moving agerage window [11]
+    plot_dt: plot initial doubling time slopes on log scale False
+    annotations: add title and acknowledgements True
+    save : save plot as file
+    """
+    firstDate = mdates.date2num(cv.FirstNYTDate)
+    lastDate  = mdates.date2num(cv.EndOfTime)
+    orderDate = mdates.date2num(cv.CAOrderDate)
+
+#   fig, ax = plt.subplots(2,figsize=(6.5,9.0))
+    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    plt.rcParams['lines.linewidth'] = 1.5
+
+    save_path = cv.graphics_path
+
+    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+
+    if flag.isnumeric():
+        gg_filter = nyt_counties['population'] > float(flag)
+    else:
+        gg_filter = nyt_counties['flag'].str.contains(flag)
+    gg = nyt_counties[gg_filter]
+
+
+    if (ymaxdefault is None):
+        ymax = [0.0]*3
+    else:
+        ymax = ymaxdefault
+
+    nG = len(gg)
+    recent = pd.DataFrame(index=range(0,nG),
+                          columns=('fips','cases','population','sname'))
+    print('nG =',nG,'flag =',flag,'recent',recent)
+
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        if (gg['code'].iloc[g] == 'BC'):
+            tmpG.read_BCHA_data('province')
+        else:
+            tmpG.read_nyt_data('county')
+ 
+    #   do_plot = [True]*3
+    #   if (tmpG.deaths is None):
+    #       cfr = None
+    #       deaths = None
+    #   else:
+    #       cfr = tmpG.deaths/tmpG.cases
+
+    #   if (per_capita):
+    #       cases  =  mult*tmpG.cases/tmpG.population
+    #   else:
+    #       cases  =  tmpG.cases
+    
+    #   gdf = pd.DataFrame()
+    #   gdf['cases'] = cases
+    #   print(gdf)
+
+        nn = tmpG.ntime-1
+        Date = pd.Series(tmpG.get_pdate())
+        df_correction = np.sqrt(window-1)
+        recent['fips'][g] = gg['fips'][g] 
+        recent['population'][g] = tmpG.population
+        recent['sname'][g] = short_name(tmpG.moniker)
+
+    #   delta = np.diff(gdf.iloc[:,a]) # first differences
+        delta = pd.Series(np.diff(tmpG.cases)) # first differences
+     #  recent['cases'][g] = delta[-1]
+        recent['cases'][g] = mult*delta.tail(window).mean()/tmpG.population
+        if (recent['cases'][g] < 0.0):
+            print(g,tmpG.moniker,delta.tail(window))
+
+    # loop: for g in range(0,len(gg)):
+    print(recent)
+#   tcases = recent['cases'].sum()*mult
+#   print(tcases)
+
     print('recent',recent)           
     print(stats.describe(recent['cases']))
 
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-
     bins = np.linspace(0.0,0.5,50)
-    print(bins)
+    print('bins:',bins)
     nbin = len(bins)
     weights = np.ones_like(recent['cases']) / len(recent)
-    hist,edges,patches = ax.hist(recent['cases'],bins,weights=weights,density=False)
+
+    hist,edges,patches = ax.hist(recent['cases'],bins,density=False)
+    print(hist)
+    print(edges)
+    print(plt.xticks())
+    print(ax.get_xticks())
+
+#   hhist,hedges = np.histogram(recent['cases'],bins,weights=weights,density=True)
+#   print(hhist)
+#   print(hedges)
+#   ax[1].bar(hedges[:-1],hhist,width=(bins[1]-bins[0]),align='edge')
+
+    recent = recent.sort_values(by='cases',ascending=True)
+    recent.to_csv('recent_per_capita.csv',index=False)
+    p05 = np.quantile(recent['cases'],q=0.05)
+    t_filter = (recent['cases'] <= p05) & (recent['cases'] >= 0.0)
+    print(t_filter)
+    print(recent[t_filter])
+    tt = recent[t_filter]
+    print(tt)
+    print(tt.index)
 
     print('quantiles:')     
-    qq = [0.01,0.05,0.10]
+    qq = [0.01,0.05,0.10,0.9,0.95,0.99]
     for q in qq:
         pq = np.quantile(recent['cases'],q=q)
         print(q,pq)
-        GU.vline(ax,pq,str(q)) #,pos='right')
-#          vline(ax,mean,note,pos='left')
+#       GU.vline(ax,pq,str(q)) #,pos='right')
+#       vline(ax,mean,note,pos='left')
 
-    GU.vline(ax,0.05,'0.05',pos='right')
-    print('ylim:',ax.get_ylim())
-    ax.scatter(0.05,0.02,color='red',marker=7)#,s=50)
-    
+    for k in tt.index:
+        print(k,tt['sname'][k])#,tt['cases'][k],tt['sname'][k])
+        GU.vline(ax,tt['cases'][k],tt['sname'][k],pos='left')
 
-    plt.show()
+
+    GU.vline(ax,p05,'q=0.05',pos='right')
+    ax.set_xlabel('Current Prevalence'+' per '+str(mult))
+    ax.set_ylabel('Number of Areas')
+    tx = ax.get_xlim()[1]
+    ylim = ax.get_ylim()
+    ty = ylim[0]+0.90*(ylim[1]-ylim[0])
+#   note = '{0} Largest Counties; {1:,} Cases; {2:,} Deaths'.format(nG,tcases,tdeaths)
+    if flag.isnumeric():
+    #   note = '{0} Regions with population greater than {1:,}; {2:,} Cases'.format(nG,int(flag),int(tcases))
+        note = '{0} Regions with population greater than {1:,}'.format(nG,int(flag))
+    else:
+        note = '{0} Counties{1:,} Cases; {2:,}'.format(nG,tcases)
+
+    print(note)
+    ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
+ 
+#   ax.scatter(0.05,0.0,color='red',marker=6)#,s=50)
+#   fig,ax=plt.subplots()
+#   x=linspace(0,10,1000)
+#   x.plot(x,exp(-(x-pi)**2))
+#   plt.draw() # this is required, or the ticklabels may not exist (yet) at the next step
+#   labels = [w.get_text() for w in ax.get_xticklabels()]
+#   locs=list(ax.get_xticks())
+#   labels+=[r'$\pi$']
+#   locs+=[pi]
+#   ax.set_xticklabels(labels)
+#   ax.set_xticks(locs)
+#   ax.grid()
+#   plt.draw()
+
+    if save:
+        gfile = cv.graphics_path+'prevalence_comp_histo_'+flag+str(nG)+'.png'
+        plt.savefig(gfile,dpi=300)
+        plt.show(block=False)
+        plt.pause(3)
+        plt.close()
+        print('plot saved as',gfile)
+    else:
+        plt.show()
+
+
+
+
  
    
 def short_name(s):

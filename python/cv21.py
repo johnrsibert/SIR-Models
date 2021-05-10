@@ -888,10 +888,8 @@ print('matplotib:',matplotlib.__version__)
 # SuffolkNY.RData -6.753055573216654
 # Miami-DadeFL.RData -6.064537518202749
 
-#GG.plot_prevalence_comp(flag='C',save=True, signature=False,window=7,show_SE=True)
-#GG.plot_prevalence_comp(flag='m',save=True, signature=False,window=7)#, ymaxdefault=[0.75,0.05,0.1])
 
-GG.plot_prevalence_comp(flag='500000',save=False, signature=False)
-#GG.plot_prevalence_comp(flag='m',save=True, signature=False)#,ymaxdefault=[0.2,0.01,0.04])
+#GG.plot_prevalence_comp_TS(flag='m',save=True, signature=False)
+GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 
 #recent_prevalence()
