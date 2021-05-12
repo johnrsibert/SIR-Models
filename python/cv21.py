@@ -27,6 +27,7 @@ from io import BytesIO
 import base64
 import scipy.stats as stats
 
+
 #from sigfig import round
 #from tabulate import tabulate
 #from collections import OrderedDict
@@ -332,6 +333,8 @@ def update_shared_plots():
 #   tmpG.read_BCHA_data()
 #   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
 #                        show_order_date=False)
+
+    GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 
     cv.graphics_path = save_path
 
@@ -851,7 +854,7 @@ print('matplotib:',matplotlib.__version__)
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
 #tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
-#                         show_order_date=False)
+#                     per_capita=True,show_order_date=False)
 
 
 #web_update()
@@ -876,7 +879,7 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#$update_everything()
+#update_everything()
 #git_commit_push()
 
 # midsummer beta minima
@@ -889,7 +892,7 @@ print('matplotib:',matplotlib.__version__)
 # Miami-DadeFL.RData -6.064537518202749
 
 
-#GG.plot_prevalence_comp_TS(flag='m',save=True, signature=False)
+GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 
 #recent_prevalence()
