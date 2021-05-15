@@ -512,17 +512,18 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
 
     if (signature):
         GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+        GU.add_data_source(fig)
 
+    if save:
+        gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+'.png'
+        plt.savefig(gfile,dpi=300)
+        plt.show(block=False)
+        plt.pause(3)
+        plt.close()
+        print('plot saved as',gfile)
     else:
-        if save:
-            gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+str(nG)+'.png'
-            plt.savefig(gfile,dpi=300)
-            plt.show(block=False)
-            plt.pause(3)
-            plt.close()
-            print('plot saved as',gfile)
-        else:
-            plt.show()
+        plt.show()
+
 
 def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
@@ -624,14 +625,34 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     table['rank'] = range(0,nG)
     print('table')
     print(table)
+
+    """
+    <style>
+    p.date {
+      text-align: right;
+      font-size:10px;
+    }
+    </style>
+    <p </p>
+    <p class="date">Updated 2020-05-01</p>
+    """
+
     with open(file+'.html','w') as hh:
-        nreg=6
+    #   hh.write('<style> p.date { text-align: right; font-size:10px; } </style>')
+
+        nreg=10
         tab = pd.DataFrame(table.head(nreg))
     #   tab = tab.append(['...','...','...'])
         tab = tab.append(table.tail(nreg))
         hh.write(tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
                           numalign="right", floatfmt=".3f",
                           stralign='left', showindex=False))
+
+        mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
+        dtime = datetime.fromtimestamp(mtime)
+
+    #   hh.write('<p </p> <p class="date">Updated '+str(dtime.date())+'</p>')
+        hh.write('Updated '+str(dtime.date()))
     
     #print(tabulate(recent,tablefmt='html'))
 
@@ -685,6 +706,9 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
         plt.show()
 
 
+#   fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+#   ax.scatter(recent['population'],recent['cases'])
+#   plt.show()
 
 
  

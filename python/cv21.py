@@ -342,7 +342,8 @@ def update_shared_plots():
 #   os.system('git push')
 
 def update_assets():
-    asset_files = ['logbeta_summary_2.png', 'logbeta_summary_g.png',
+    asset_files = ['recent_prevalence_histo_pop.png','prevalence_comp_TS_m.png',
+                   'logbeta_summary_2.png', 'logbeta_summary_g.png',
                    'days_of_week_5.png','days_of_week_1000.png', 
                    'CFR_all_0000.png', 'CFR_all_5.png', 'CFR_hist_all_recent.png',
                    'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
@@ -453,6 +454,9 @@ def update_everything():
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
+    GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
+    GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+    print('Finished prevealence comp plots')
     update_assets()
     print('Finishing update asset directory')
     print('Finished Everything!')
@@ -892,7 +896,6 @@ print('matplotib:',matplotlib.__version__)
 # Miami-DadeFL.RData -6.064537518202749
 
 
-GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
+#GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 
-#recent_prevalence()
