@@ -29,6 +29,7 @@ TMB_path = cv_home + 'TMB/'
 # mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
 BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
 
+DexamethasoneDate = datetime.strptime('2020-06-25','%Y-%m-%d')
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 mtime = os.path.getmtime(NYT_home+'us-counties.csv')

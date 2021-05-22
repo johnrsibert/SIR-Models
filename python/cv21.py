@@ -897,5 +897,5 @@ print('matplotib:',matplotlib.__version__)
 
 
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 

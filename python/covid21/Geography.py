@@ -497,6 +497,9 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
                     #   ymax[a] = max(ymax[a],1.2*yvar.max())
                         ymax[a] = max(ymax[a],2*yvar.iloc[-1])
 
+                    dexDate = mdates.date2num(cv.DexamethasoneDate)
+                    ax[a].axvline(dexDate,linewidth=5,color='lightgreen',alpha=0.1)
+
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
     
