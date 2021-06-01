@@ -640,21 +640,21 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     <p class="date">Updated 2020-05-01</p>
     """
 
-    with open(file+'.html','w') as hh:
-    #   hh.write('<style> p.date { text-align: right; font-size:10px; } </style>')
-
+    with open(cv.assets_path+file+'.html','w') as hh:
+        tab = pd.DataFrame(columns=table.columns,dtype='object')
         nreg=10
-        tab = pd.DataFrame(table.head(nreg))
-    #   tab = tab.append(['...','...','...'])
-        tab = tab.append(table.tail(nreg))
+        tab = tab.append(table.head(nreg),ignore_index=True)
+        tab = tab.append(pd.Series(['...']*3,index=table.columns),ignore_index=True)
+        tab = tab.append(table.tail(nreg),ignore_index=True)
+
         hh.write(tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
                           numalign="right", floatfmt=".3f",
                           stralign='left', showindex=False))
+        print('tab:',tab) 
 
         mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
         dtime = datetime.fromtimestamp(mtime)
 
-    #   hh.write('<p </p> <p class="date">Updated '+str(dtime.date())+'</p>')
         hh.write('Updated '+str(dtime.date()))
     
     #print(tabulate(recent,tablefmt='html'))
@@ -712,9 +712,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 #   fig, ax = plt.subplots(1,figsize=(6.5,4.5))
 #   ax.scatter(recent['population'],recent['cases'])
 #   plt.show()
-
-
- 
+    return(pq)
    
 def short_name(s):
     """

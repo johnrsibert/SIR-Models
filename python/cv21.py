@@ -308,6 +308,10 @@ def update_fits(njob=4):
     print('current',os.getcwd())
 
 def update_shared_plots():
+    quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, 
+                                              signature=True)
+    print('precalence quartiles:',quartiles)
+
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
 #   print(gg_filter)
@@ -327,14 +331,13 @@ def update_shared_plots():
 
 #       tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=False,per_capita=True)
+                             show_order_date=False,per_capita=True,quartiles=quartiles)
 
 #   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #   tmpG.read_BCHA_data()
 #   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
 #                        show_order_date=False)
 
-    GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 
     cv.graphics_path = save_path
 
@@ -897,5 +900,5 @@ print('matplotib:',matplotlib.__version__)
 
 
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-#GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
 

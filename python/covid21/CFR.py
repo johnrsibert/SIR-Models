@@ -209,12 +209,12 @@ def plot_recent_CFR(save = False):
 #   print('meanlog =',meanlog)
     std = np.std(dat['cfr'])
     print('mean, std:', mean, std)
-#   median = np.median(dat['cfr'])+hb
+    median = np.median(dat['cfr'])+hb
     Q95 = np.quantile(dat['cfr'],q=0.975)+hb
     mode = bins[pd.Series(pdf).idxmax()]+hb
     ylim = ax.get_ylim()
     ylim = (ylim[0],0.95*ylim[1])
-#   vline(ax,median,'Median',ylim=ylim,pos='left')
+    vline(ax,median,'Median',ylim=ylim,pos='right')
     note = ' Mean\n {: .4f}'.format(mean)
     vline(ax,mean,note,pos='left')
    
