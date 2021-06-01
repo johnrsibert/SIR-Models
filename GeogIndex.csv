@@ -45,7 +45,7 @@ Collin,Texas,48085,TX, ,1034730
 Fresno,California,6019,CA, ,999101
 St. Louis,Missouri,29189,MO, ,994205
 Pinellas,Florida,12103,FL, ,974996
-Honolulu,Hawaii,15003,HI,Ss,974563
+Honolulu,Hawaii,15003,HI,HSs,974563
 Westchester,New York,36119,NY, ,967506
 Marion,Indiana,18097,IN, ,964582
 Duval,Florida,12031,FL, ,957755
@@ -333,7 +333,7 @@ Benton,Washington,53005,WA, ,204390
 Calcasieu,Louisiana,22019,LA, ,203436
 Anderson,South Carolina,45007,SC, ,202558
 Richmond,Georgia,13245,GA, ,202518
-Hawaii,Hawaii,15001,HI, ,201513
+Hawaii,Hawaii,15001,HI,H,201513
 St. Louis,Minnesota,27137,MN, ,199070
 Trumbull,Ohio,39155,OH, ,197974
 Onslow,North Carolina,37133,NC, ,197938
@@ -392,7 +392,7 @@ Paulding,Georgia,13223,GA, ,168667
 Carroll,Maryland,24013,MD, ,168447
 Pueblo,Colorado,8101,CO, ,168424
 Davidson,North Carolina,37057,NC, ,167609
-Maui,Hawaii,15009,HI, ,167417
+Maui,Hawaii,15009,HI,H,167417
 Kenton,Kentucky,21117,KY, ,166998
 Guadalupe,Texas,48187,TX, ,166847
 Ector,Texas,48135,TX, ,166223
@@ -750,7 +750,7 @@ Wood,Wisconsin,55141,WI, ,72999
 Jackson,Georgia,13157,GA, ,72977
 Walker,Texas,48471,TX, ,72971
 Pottawatomie,Oklahoma,40125,OK, ,72592
-Kauai,Hawaii,15007,HI, ,72293
+Kauai,Hawaii,15007,HI,H,72293
 Tooele,Utah,49045,UT, ,72259
 Apache,Arizona,4001,AZ, ,71887
 Robertson,Tennessee,47147,TN, ,71813
