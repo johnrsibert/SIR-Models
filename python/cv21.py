@@ -294,6 +294,7 @@ def update_fits(njob=4):
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
+    os.system('rm -v' + cv.fit_path + '*.RData')
     os.system('rm -f make.out & ls *.out')
     os.system('touch make.out & ls *.out')
     # globs list of monikers in dat directory
@@ -310,7 +311,9 @@ def update_fits(njob=4):
 def update_shared_plots():
     quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, 
                                               signature=True)
-    print('precalence quartiles:',quartiles)
+    print('precalence quartiles:',type(quartiles))
+    print(quartiles)
+    print(quartiles[0.05])
 
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
@@ -331,7 +334,7 @@ def update_shared_plots():
 
 #       tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=False,per_capita=True,quartiles=quartiles)
+                             show_order_date=False,per_capita=True,low_prev=quartiles[0.05])
 
 #   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #   tmpG.read_BCHA_data()
@@ -345,14 +348,20 @@ def update_shared_plots():
 #   os.system('git push')
 
 def update_assets():
-    asset_files = ['recent_prevalence_histo_pop.png','prevalence_comp_TS_m.png',
-                   'logbeta_summary_2.png', 'logbeta_summary_g.png',
-                   'days_of_week_5.png','days_of_week_1000.png', 
-                   'CFR_all_0000.png', 'CFR_all_5.png', 'CFR_hist_all_recent.png',
-                   'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
-                   'New_York_CityNY_prevalence.png','CFR_quantiles_boxplot.png']
+    asset_files=['prevalence_comp_TS_m.png','recent_prevalence_histo_pop.png',
+                 'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
+                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
+                 'logbeta_summary_g.png','logbeta_summary_2.png','logmu_summary_g.png',
+                 'CFR_quantiles_boxplot.png', 'days_of_week_5.png','days_of_week_1000.png']
+
+#   asset_files = ['recent_prevalence_histo_pop.png','prevalence_comp_TS_m.png',
+#                  'logbeta_summary_2.png', 'logbeta_summary_g.png',
+#                  'days_of_week_5.png','days_of_week_1000.png', 
+#                  'CFR_all_0000.png', 'CFR_all_5.png', 'CFR_hist_all_recent.png',
+#                  'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
+#                  'New_York_CityNY_prevalence.png','CFR_quantiles_boxplot.png']
     for file in asset_files:
-        cmd = 'cp -p '+cv.graphics_path+file+' '+cv.assets_path
+        cmd = 'cp -pvf '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
 
 #   os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
@@ -433,7 +442,7 @@ def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
         plt.show()
 
 
-def update_everything():
+def update_everything(do_fits = True):
     web_update()
     print('Finished web_update ...')
     os.system('rm -v '+ cv.dat_path + '*.dat')
@@ -441,19 +450,6 @@ def update_everything():
     print('Finished make_dat_files()')
     update_shared_plots()
     print('Finished update_shared_plots()')
-    os.system('rm -v' + cv.fit_path + '*.RData')
-    update_fits()
-    print('Finished update_fits()')
-    FF.make_fit_plots()
-    print('Finished fit_plots')
-    FF.make_fit_table()
-    print('Finished fit table')
-    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True)
-    FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
-                    fit_files=['Los_AngelesCA','New_York_CityNY'])
-#                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
-    FF.make_rate_plots('logmu',save=True)
-    print('Finished rate_plots')
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
@@ -462,6 +458,20 @@ def update_everything():
     print('Finished prevealence comp plots')
     update_assets()
     print('Finishing update asset directory')
+    if (do_fits):
+        update_fits()
+        print('Finished update_fits()')
+        FF.make_fit_plots()
+        print('Finished fit_plots')
+        FF.make_fit_table()
+        print('Finished fit table')
+        FF.make_rate_plots('logbeta',show_doubling_time = True, save=True)
+        FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
+                    fit_files=['Los_AngelesCA','New_York_CityNY'])
+    #                   fit_files=['Miami-DadeFL','HonoluluHI','NassauNY','CookIL'])
+        FF.make_rate_plots('logmu',save=True)
+        print('Finished rate_plots')
+
     print('Finished Everything!')
 
 
@@ -545,6 +555,9 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
+#   git -C /home/jsibert/Projects/JonzPandemic/ diff
+    cmd = 'git -C ' + CV.Jon_path + " commit index.md -m 'update table'"
+    cmd = 'git -C ' + CV.Jon_path + ' push'
 
 def CFR_comp(nG=5):
     d1 = cv.nyt_county_dat['date'][0]
@@ -865,7 +878,7 @@ print('matplotib:',matplotlib.__version__)
 
 
 #web_update()
-#update_shared_plots()
+update_shared_plots()
 #make_dat_files()
 #update_fits()
 #FF.make_fit_plots()
@@ -886,7 +899,7 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything()
+#update_everything(do_fits=False)
 #git_commit_push()
 
 # midsummer beta minima
@@ -899,6 +912,7 @@ print('matplotib:',matplotlib.__version__)
 # Miami-DadeFL.RData -6.064537518202749
 
 
+#GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
-
+#GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#CFR.plot_recent_CFR(save=True)

@@ -201,7 +201,7 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
-                        low_prev = 0.05, mult = 1000,
+                        low_prev = 0.0, mult = 1000,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
         """ 
@@ -298,7 +298,10 @@ class Geography:
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
 
-                ylim[a] = (0.0,1.2*adc.max())
+                if (low_prev > 0.0):
+                    ylim[a] = (0.0,0.5*adc.max())
+                else: 
+                    ylim[a] = (0.0,1.2*adc.max())
                 ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
                 ty = GU.prop_scale(ax[a].get_ylim(), 0.95)
@@ -332,9 +335,10 @@ class Geography:
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
         if (low_prev > 0.0):
             ax[0].plot((Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
-                       color='red',linewidth=0.5,linestyle=':')
+                       color='red',linewidth=1.0,linestyle=':')
             GU.mark_ends(ax[0],(Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
-                           str(low_prev),'r')
+                         '$P_{05}$','b')
+            #            ' p05={:.2f}'.format(low_prev),'r')
 
         if (dashboard):
         #   out_img = BytesIO()
@@ -615,10 +619,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 
     hist,edges,patches = ax.hist(recent['cases'],bins,density=False)
     print(hist)
-#   print(edges)
-#   print(plt.xticks())
-#   print(ax.get_xticks())
 
+#   sort recent cases
     recent = recent.sort_values(by='cases',ascending=True)
     recent.to_csv(file+'.csv',index=False)
 
@@ -629,60 +631,47 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     print('table')
     print(table)
 
-    """
-    <style>
-    p.date {
-      text-align: right;
-      font-size:10px;
-    }
-    </style>
-    <p </p>
-    <p class="date">Updated 2020-05-01</p>
-    """
-
     with open(cv.assets_path+file+'.html','w') as hh:
         tab = pd.DataFrame(columns=table.columns,dtype='object')
         nreg=10
         tab = tab.append(table.head(nreg),ignore_index=True)
+        # insertion of '...' intoduces nan into cases column
         tab = tab.append(pd.Series(['...']*3,index=table.columns),ignore_index=True)
         tab = tab.append(table.tail(nreg),ignore_index=True)
-
-        hh.write(tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
-                          numalign="right", floatfmt=".3f",
-                          stralign='left', showindex=False))
-        print('tab:',tab) 
-
+    
+        tab['cases'] = pd.to_numeric(tab['cases'],errors='coerce')
+        hh.write('<!---START TABLE--->')
+        # make tabulation string and then replace nan with ...
+        tt = tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
+                      numalign="right", floatfmt=".3f",
+                      stralign='left', showindex=False).replace(' nan',' ...')
+        hh.write(tt)
         mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
         dtime = datetime.fromtimestamp(mtime)
 
-        hh.write('Updated '+str(dtime.date()))
+        hh.write('<br>\nUpdated '+str(dtime.date())+'<br>\n')
+        hh.write('<!---END TABLE--->')
     
-    #print(tabulate(recent,tablefmt='html'))
-
     pref = np.quantile(recent['cases'],q=0.05)
     t_filter = (recent['cases'] <= pref) & (recent['cases'] >= 0.0)
- #  print(t_filter)
- #  print(recent[t_filter])
     tt = recent[t_filter]
- #  print(tt)
- #  print(tt.index)
 
     print('quantiles:')     
     qq = [0.01,0.05,0.10,0.9,0.95,0.99]
+    quantiles = pd.Series(index=qq)
     for q in qq:
-        pq = np.quantile(recent['cases'],q=q)
-        print(q,pq)
-#       GU.vline(ax,pq,str(q)) #,pos='right')
-#       vline(ax,mean,note,pos='left')
+        quantiles[q] = np.quantile(recent['cases'],q=q)
+    print(quantiles)
+   
 
     for k in tt.index:
-        print(k,tt['sname'][k])#,tt['cases'][k],tt['sname'][k])
+        print(k,tt['sname'][k],tt['cases'][k])#,tt['sname'][k])
         GU.vline(ax,tt['cases'][k],tt['sname'][k],pos='left')
 
 
 #   GU.vline(ax,pref,'q=0.1',pos='right')
     ax.axvline(pref,linewidth=3,color='red',alpha=0.5)
-    ax.set_xlabel('Current Prevalence'+' per '+str(mult))
+    ax.set_xlabel('Mean '+str(window)+' Day Prevalence'+' per '+str(mult))
     ax.set_ylabel('Number of Areas')
     tx = ax.get_xlim()[1]
     ylim = ax.get_ylim()
@@ -692,6 +681,9 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 
     print(note)
     ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
+
+    plt.title('Recent Prevalence Frequency')
+#   plt.title('Most Recent '+str(window)+' Day Prevalence')
 
  
     if (signature):
@@ -708,11 +700,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     else:
         plt.show()
 
-
-#   fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-#   ax.scatter(recent['population'],recent['cases'])
-#   plt.show()
-    return(pq)
+    return(quantiles)
    
 def short_name(s):
     """

@@ -210,17 +210,20 @@ def plot_recent_CFR(save = False):
     std = np.std(dat['cfr'])
     print('mean, std:', mean, std)
     median = np.median(dat['cfr'])+hb
-    Q95 = np.quantile(dat['cfr'],q=0.975)+hb
+    Q95 = np.quantile(dat['cfr'],q=0.95)+hb
     mode = bins[pd.Series(pdf).idxmax()]+hb
     ylim = ax.get_ylim()
     ylim = (ylim[0],0.95*ylim[1])
-    vline(ax,median,'Median',ylim=ylim,pos='right')
-    note = ' Mean\n {: .4f}'.format(mean)
+
+    note = ' Median\n {: .4f}'.format(median)
+    vline(ax,median,note,ylim=ylim,pos='right')
+
+    note = 'Mean\n {:.4f}'.format(mean)
     vline(ax,mean,note,pos='left')
    
     note = ' Mode\n {: .4f}'.format(mode)
     vline(ax,mode, note,pos='right')
-    vline(ax,Q95,' 97.5%')
+    vline(ax,Q95,' 95%')
     
     xlim = ax.get_xlim()
 #   tx = xlim[0]+0.95*(xlim[1]-xlim[0])
