@@ -314,6 +314,7 @@ def update_shared_plots():
     print('precalence quartiles:',type(quartiles))
     print(quartiles)
     print(quartiles[0.05])
+    update_html()
 
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
@@ -441,6 +442,32 @@ def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
     else:
         plt.show()
 
+def update_html():
+    index_md = cv.Jon_path+'index.md'
+#   print(index_md)
+
+    tmp = cv.Jon_path+'tmp.md'
+#   print(tmp)
+ 
+    cmd = 'git -C ' + cv.Jon_path + ' pull'
+    table = cv.assets_path+'recent_prevalence_histo_pop.html'
+#   print(table)
+    cmd = 'cp -fv '+index_md + ' ' +index_md +'.bak'
+#   print(cmd)
+    os.system(cmd)
+
+    cmd =   "sed -e '/<!---START TABLE--->/,/<!---END TABLE--->/!b' " 
+#   print(cmd)
+    cmd = cmd + "-e '/<!---END TABLE--->/!d;r"+table+"' "
+#   print(cmd)
+    cmd = cmd + "-e 'd' "+index_md+" > "+tmp
+#   print(cmd)
+    os.system(cmd)
+
+    cmd = 'cp -fv '+tmp + ' ' +index_md
+#   print(cmd)
+    os.system(cmd)
+    print('Finished update html table in index.md')
 
 def update_everything(do_fits = True):
     web_update()
@@ -454,10 +481,11 @@ def update_everything(do_fits = True):
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
     GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-    GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#   GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
     print('Finished prevealence comp plots')
     update_assets()
-    print('Finishing update asset directory')
+
+    print('Finished update asset directory')
     if (do_fits):
         update_fits()
         print('Finished update_fits()')
@@ -555,9 +583,8 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
-#   git -C /home/jsibert/Projects/JonzPandemic/ diff
-    cmd = 'git -C ' + CV.Jon_path + " commit index.md -m 'update table'"
-    cmd = 'git -C ' + CV.Jon_path + ' push'
+    cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
+    cmd = 'git -C ' + cv.Jon_path + ' push'
 
 def CFR_comp(nG=5):
     d1 = cv.nyt_county_dat['date'][0]
@@ -878,7 +905,7 @@ print('matplotib:',matplotlib.__version__)
 
 
 #web_update()
-update_shared_plots()
+#update_shared_plots()
 #make_dat_files()
 #update_fits()
 #FF.make_fit_plots()
@@ -915,4 +942,5 @@ update_shared_plots()
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#update_html()
 #CFR.plot_recent_CFR(save=True)

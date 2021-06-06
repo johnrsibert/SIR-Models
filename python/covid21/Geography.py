@@ -631,7 +631,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     print('table')
     print(table)
 
-    with open(cv.assets_path+file+'.html','w') as hh:
+    html_file = cv.assets_path+file+'.html' 
+    with open(html_file,'w') as hh:
         tab = pd.DataFrame(columns=table.columns,dtype='object')
         nreg=10
         tab = tab.append(table.head(nreg),ignore_index=True)
@@ -651,7 +652,9 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 
         hh.write('<br>\nUpdated '+str(dtime.date())+'<br>\n')
         hh.write('<!---END TABLE--->')
+        print('prevalence rankings saved as',html_file)
     
+
     pref = np.quantile(recent['cases'],q=0.05)
     t_filter = (recent['cases'] <= pref) & (recent['cases'] >= 0.0)
     tt = recent[t_filter]
