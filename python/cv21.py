@@ -313,13 +313,14 @@ def update_shared_plots():
                                               signature=True)
     print('precalence quartiles:',type(quartiles))
     print(quartiles)
-    print(quartiles[0.05])
+    print('q[0.05] =',quartiles[0.05])
     update_html()
 
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('s')
 #   print(gg_filter)
     gg = nyt_counties[gg_filter]
+    print('gg:')
     print(gg)
     save_path = cv.graphics_path
     cv.graphics_path = cv.cv_home+'PlotsToShare/'
@@ -450,6 +451,8 @@ def update_html():
 #   print(tmp)
  
     cmd = 'git -C ' + cv.Jon_path + ' pull'
+    print(cmd)
+    os.system(cmd)
     table = cv.assets_path+'recent_prevalence_histo_pop.html'
 #   print(table)
     cmd = 'cp -fv '+index_md + ' ' +index_md +'.bak'
@@ -584,7 +587,11 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
     cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
+    print(cmd)
+    os.system(cmd)
     cmd = 'git -C ' + cv.Jon_path + ' push'
+    print(cmd)
+    os.system(cmd)
 
 def CFR_comp(nG=5):
     d1 = cv.nyt_county_dat['date'][0]
@@ -905,7 +912,6 @@ print('matplotib:',matplotlib.__version__)
 
 
 #web_update()
-#update_shared_plots()
 #make_dat_files()
 #update_fits()
 #FF.make_fit_plots()
@@ -926,8 +932,8 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything(do_fits=False)
-#git_commit_push()
+#update_everything()#do_fits=False)
+git_commit_push()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833
@@ -942,5 +948,6 @@ print('matplotib:',matplotlib.__version__)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#update_shared_plots()
 #update_html()
 #CFR.plot_recent_CFR(save=True)
