@@ -294,11 +294,13 @@ def update_fits(njob=4):
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
-    os.system('rm -v' + cv.fit_path + '*.RData')
-    os.system('rm -f make.out & ls *.out')
+    cmd = 'rm -fv' + cv.fit_path + '*.RData'
+    print(cmd)
+    os.system(cmd)
+    os.system('rm -fv make.out & ls *.out')
     os.system('touch make.out & ls *.out')
     # globs list of monikers in dat directory
-    # ensure that SIR_patih is set correctly
+    # ensure that SIR_path is set correctly
 #   cmd = 'Rscript --verbose do_glob_runs.R'
     cmd = 'make -f' + cv.TMB_path + 'Makefile ' + '-j' + str(njob) + ' -Otarget >> '\
                     + cv.TMB_path + 'make.out'
@@ -309,7 +311,7 @@ def update_fits(njob=4):
     print('current',os.getcwd())
 
 def update_shared_plots():
-    quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, 
+    quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, 
                                               signature=True)
     print('precalence quartiles:',type(quartiles))
     print(quartiles)
@@ -450,9 +452,9 @@ def update_html():
     tmp = cv.Jon_path+'tmp.md'
 #   print(tmp)
  
-    cmd = 'git -C ' + cv.Jon_path + ' pull'
-    print(cmd)
-    os.system(cmd)
+#   cmd = 'git -C ' + cv.Jon_path + ' pull'
+#   print(cmd)
+#   os.system(cmd)
     table = cv.assets_path+'recent_prevalence_histo_pop.html'
 #   print(table)
     cmd = 'cp -fv '+index_md + ' ' +index_md +'.bak'
@@ -586,12 +588,13 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
-    cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
-    print(cmd)
-    os.system(cmd)
-    cmd = 'git -C ' + cv.Jon_path + ' push'
-    print(cmd)
-    os.system(cmd)
+
+#   cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
+#   print(cmd)
+#   os.system(cmd)
+#   cmd = 'git -C ' + cv.Jon_path + ' push'
+#   print(cmd)
+#   os.system(cmd)
 
 def CFR_comp(nG=5):
     d1 = cv.nyt_county_dat['date'][0]
@@ -932,8 +935,8 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything()#do_fits=False)
-##git_commit_push()
+#update_everything(do_fits=False)
+git_commit_push()
 
 # midsummer beta minima
 # BrowardFL.RData -6.084748271893833
@@ -947,7 +950,7 @@ print('matplotib:',matplotlib.__version__)
 
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-#GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+#GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
 #update_shared_plots()
 #update_html()
 #CFR.plot_recent_CFR(save=True)

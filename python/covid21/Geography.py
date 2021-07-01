@@ -600,17 +600,30 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
         recent['sname'][g] = short_name(tmpG.moniker)
 
         delta = pd.Series(np.diff(tmpG.cases)) # first differences
-        recent['cases'][g] = mult*delta.tail(window).mean()/tmpG.population
-        if (recent['cases'][g] < 0.0):
-            print(g,tmpG.moniker,delta.tail(window))
+        window_delta = delta.tail(window)
+        pd_filter = (window_delta > 0.0)
+        window_delta = window_delta[pd_filter]
+        recent['cases'][g] = mult*window_delta.sum()/window/tmpG.population
 
-    # loop: for g in range(0,len(gg)):
+    #   window_len = window #len(window_delta)
+    #   
+    #   if window_len > 0:
+    #       recent['cases'][g] = mult*window_delta.sum()/window_len/tmpG.population
+    #   recent['cases'][g] = mult*delta.tail(window).mean()/tmpG.population
+    #   if (recent['cases'][g] < 0.0):
+    #       print('negative cases:')
+    #       print(g,tmpG.moniker)
+    #       print(delta.tail(window))
+    #       print(pd.DataFrame(tmpG.cases).tail(window))
+    #       print('  ')
+
+#   ---- loop: for g in range(0,len(gg)):
     print(recent)
 #   tcases = recent['cases'].sum()*mult
 #   print(tcases)
 
-    print('recent',recent)           
-    print(stats.describe(recent['cases']))
+    summary = str(stats.describe(recent['cases']))
+    print('recent summary:',summary)           
 
     bins = np.linspace(0.0,0.5,50)
     print('bins:',bins)
@@ -624,6 +637,11 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     recent = recent.sort_values(by='cases',ascending=True)
     recent.to_csv(file+'.csv',index=False)
 
+#   tfig, tax = plt.subplots(1,figsize=(6.5,4.5))
+#   tax.scatter(recent['population'],recent['cases'])
+#   plt.show()
+
+
     table = pd.DataFrame(columns=('rank','county_code','cases'))
     table['county_code'] = recent['county_code']
     table['cases'] = recent['cases']
@@ -633,15 +651,19 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 
     html_file = cv.assets_path+file+'.html' 
     with open(html_file,'w') as hh:
+        hh.write('<!--- recent summary\n')
+        hh.write(summary)
+        hh.write('\n--->\n')
+         
         tab = pd.DataFrame(columns=table.columns,dtype='object')
-        nreg=10
+        nreg=20
         tab = tab.append(table.head(nreg),ignore_index=True)
         # insertion of '...' intoduces nan into cases column
         tab = tab.append(pd.Series(['...']*3,index=table.columns),ignore_index=True)
         tab = tab.append(table.tail(nreg),ignore_index=True)
     
         tab['cases'] = pd.to_numeric(tab['cases'],errors='coerce')
-        hh.write('<!---START TABLE--->')
+        hh.write('<!---START TABLE--->\n')
         # make tabulation string and then replace nan with ...
         tt = tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
                       numalign="right", floatfmt=".3f",
@@ -650,7 +672,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
         mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
         dtime = datetime.fromtimestamp(mtime)
 
-        hh.write('<br>\nUpdated '+str(dtime.date())+'<br>\n')
+        hh.write('\n<br>\nUpdated '+str(dtime.date())+'\n<br>\n')
         hh.write('<!---END TABLE--->')
         print('prevalence rankings saved as',html_file)
     
