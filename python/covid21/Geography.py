@@ -402,11 +402,16 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
     annotations: add title and acknowledgements True
     save : save plot as file
     """
-    firstDate = mdates.date2num(cv.FirstNYTDate)
-    lastDate  = mdates.date2num(cv.EndOfTime)
-    orderDate = mdates.date2num(cv.CAOrderDate)
+    #FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
+    #firstDate = mdates.date2num(cv.FirstNYTDate):w
 
-    nax = 3
+    firstDate = mdates.date2num(datetime.strptime('2021-04-01','%Y-%m-%d'))
+    lastDate  = mdates.date2num(cv.EndOfTime)
+#   print('GG lastDate:',lastDate)
+    orderDate = mdates.date2num(cv.CAOrderDate)
+#   print('GG firstDate,lastDate:',firstDate,lastDate)
+ 
+    nax = 2#3
     fig, ax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
     plt.rcParams['lines.linewidth'] = 1.5
 

@@ -14,7 +14,7 @@ def make_date_axis(ax, first_prev_date = None):
         firstDate = first_prev_date
         
     lastDate  = mdates.date2num(cv.EndOfTime)
-#   print('firstDate,lastDate:',firstDate,lastDate)
+#   print('GU firstDate,lastDate:',firstDate,lastDate)
     ax.set_xlim([firstDate,lastDate])
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 #   ax.xaxis.set_major_locator(mdates.YearLocator())

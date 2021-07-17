@@ -294,7 +294,7 @@ def update_fits(njob=4):
     print(cv.TMB_path)
     os.chdir(cv.TMB_path)
     print('current',os.getcwd())
-    cmd = 'rm -fv' + cv.fit_path + '*.RData'
+    cmd = 'rm -fv ' + cv.fit_path + '*.RData'
     print(cmd)
     os.system(cmd)
     os.system('rm -fv make.out & ls *.out')
@@ -935,7 +935,7 @@ print('matplotib:',matplotlib.__version__)
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything(do_fits=False)
+#update_everything()#do_fits=False)
 git_commit_push()
 
 # midsummer beta minima
