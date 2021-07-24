@@ -438,6 +438,11 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
 
     nG = len(gg)
 
+#   EndOfTime = dtime.date()+timedelta(days=21)
+    oldEndOfTime = cv.EndOfTime
+    cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
+
+
     for g in range(0,nG):
         print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
         tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
@@ -490,10 +495,13 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
                     if show_SE:
                         serr = pd.Series(delta).rolling(window=window).std()/df_correction
                         GU.plot_error(ax[a],Date[1:],yvar,serr,logscale=True,mult=2)
-                    GU.mark_ends(ax[a],Date[1:],yvar,short_name(tmpG.moniker),'r')
+                    GU.mark_ends(ax[a],Date[1:],yvar,' '+short_name(tmpG.moniker),'r')
                     if (ymaxdefault is None):
                     #   ymax[a] = max(ymax[a],1.2*yvar.max())
                         ymax[a] = max(ymax[a],2*yvar.iloc[-1])
+                    if (a == 0):
+                        ax[a].axhline(y=0.03,color='green',linewidth=5,alpha=0.25)
+
 
                 else:
                     yvar = pd.Series(gdf.iloc[:,a]).rolling(window=window).mean()
@@ -501,7 +509,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
                     if show_SE:
                         serr = pd.Series(gdf.iloc[:,a]).rolling(window=window).std()/df_correction
                         GU.plot_error(ax[a],Date,yvar,serr,logscale=True,mult=2)
-                    GU.mark_ends(ax[a],Date,yvar,short_name(tmpG.moniker),'r')
+                    GU.mark_ends(ax[a],Date,yvar,' '+short_name(tmpG.moniker),'r')
                     if (ymaxdefault is None):
                     #   ymax[a] = max(ymax[a],1.2*yvar.max())
                         ymax[a] = max(ymax[a],2*yvar.iloc[-1])
@@ -536,6 +544,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
     else:
         plt.show()
 
+    
+    cv.EndOfTime = oldEndOfTime = cv.EndOfTime
 
 def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,

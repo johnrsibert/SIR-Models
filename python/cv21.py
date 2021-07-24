@@ -936,20 +936,11 @@ print('matplotib:',matplotlib.__version__)
 #update_assets()
 
 #update_everything()#do_fits=False)
-git_commit_push()
-
-# midsummer beta minima
-# BrowardFL.RData -6.084748271893833
-# NassauNY.RData -6.947424800472592
-# MiddlesexMA.RData -7.785313136692884
-# MaricopaAZ.RData -6.220752133090644
-# New_York_CityNY.RData -6.68737613570856
-# SuffolkNY.RData -6.753055573216654
-# Miami-DadeFL.RData -6.064537518202749
-
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
+#GG.plot_prevalence_comp_TS(flag='500000',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
 #update_shared_plots()
 #update_html()
