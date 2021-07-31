@@ -688,7 +688,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
         dtime = datetime.fromtimestamp(mtime)
 
         hh.write('\n<br>\nUpdated '+str(dtime.date())+'\n<br>\n')
-        hh.write('<!---END TABLE--->')
+        hh.write('<!---END TABLE--->\n')
         print('prevalence rankings saved as',html_file)
     
 
