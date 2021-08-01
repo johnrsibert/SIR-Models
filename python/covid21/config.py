@@ -42,6 +42,7 @@ https://www.ajmc.com/view/a-timeline-of-covid-19-vaccine-developments-in-2021
 https://apnews.com/article/joe-biden-coronavirus-pandemic-coronavirus-vaccine-6b624ae3a0ebdda0d91e867d59c8ca46?
 '''
 HalfMillionShotDate = datetime.strptime('2021-02-25','%Y-%m-%d')
+IndependenceDay = datetime.strptime('2021-07-04','%Y-%m-%d')
    
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
 #GeoIndex['fips'] = GeoIndex['fips'].fillna(0).astype(np.int64) 

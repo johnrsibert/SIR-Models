@@ -338,7 +338,7 @@ def update_shared_plots():
 
 #       tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=False,per_capita=True,low_prev=quartiles[0.05])
+                             show_order_date=True,per_capita=True,low_prev=quartiles[0.05])
 
 #   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #   tmpG.read_BCHA_data()
@@ -903,10 +903,11 @@ print('matplotib:',matplotlib.__version__)
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
+#tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
 #tgeog.read_nyt_data('county')
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,per_capita=True)
+#tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,per_capita=True,show_order_date = True)
 
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
@@ -936,7 +937,7 @@ print('matplotib:',matplotlib.__version__)
 #update_assets()
 
 #update_everything()#do_fits=False)
-#git_commit_push()
+git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)

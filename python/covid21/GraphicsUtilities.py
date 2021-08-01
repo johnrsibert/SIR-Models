@@ -125,13 +125,17 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
     ax.add_patch(sd_region)
 
 
-def add_order_date(ax):
+def add_order_date(ax,linewidth=5,alpha=0.5):
 #   Newsome's shelter in place order
-    orderDate = mdates.date2num(cv.CAOrderDate)
-    ax.plot((orderDate,orderDate),
-            (ax.get_ylim()[0], ax.get_ylim()[1]),
-    #       (0, ax.get_ylim()[1]),
-            color='0.5', linewidth=3,alpha=0.5)
+#   orderDate = mdates.date2num(cv.CAOrderDate)
+    ax.axvline(mdates.date2num(cv.CAOrderDate),color='black', 
+              linewidth=linewidth,alpha=alpha)
+    ax.axvline(mdates.date2num(cv.HalfMillionShotDate),color='green',
+              linewidth=linewidth,alpha=alpha)
+    ax.axvline(mdates.date2num(cv.DexamethasoneDate),color='blue',
+              linewidth=linewidth,alpha=alpha)
+    ax.axvline(mdates.date2num(cv.IndependenceDay),color='red', 
+              linewidth=linewidth,alpha=alpha)
 
 def add_data_source(fig,source='Multiple sources.'):
 #   if source is None:

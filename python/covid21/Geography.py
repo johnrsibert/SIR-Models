@@ -217,7 +217,7 @@ class Geography:
         """
 
         firstDate = datetime.strptime(self.date[0],'%Y-%m-%d')
-        orderDate = mdates.date2num(cv.CAOrderDate)
+    #   orderDate = mdates.date2num(cv.CAOrderDate)
 
         if (self.deaths is None):
             nax = 1
@@ -298,10 +298,11 @@ class Geography:
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
 
-                if (low_prev > 0.0):
-                    ylim[a] = (0.0,0.5*adc.max())
-                else: 
-                    ylim[a] = (0.0,1.2*adc.max())
+            #   if (low_prev > 0.0):
+            #       ylim[a] = (0.0,0.5*adc.max())
+            #   else: 
+            #       ylim[a] = (0.0,1.2*adc.max())
+                ylim[a] = (0.0,1.2*adc.max())
                 ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
                 ty = GU.prop_scale(ax[a].get_ylim(), 0.95)
@@ -318,6 +319,9 @@ class Geography:
                 ax[a].plot(Date,gdf.iloc[:,a]) 
                 ax[a].set_ylim(ylim[a])
 
+            if show_order_date:
+                GU.add_order_date(ax[a])
+
         if ((yscale == 'log') & (plot_dt) & (cumulative) ):
             # this is a bad idea
             ax[0] = GU.plot_dtslopes(ax[0],Date,gdf.iloc[:,0])
@@ -330,6 +334,7 @@ class Geography:
             title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
             GU.add_data_source(fig,self.source)
+
 
         if (signature):
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
