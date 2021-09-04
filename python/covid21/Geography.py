@@ -298,11 +298,8 @@ class Geography:
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
 
-            #   if (low_prev > 0.0):
-            #       ylim[a] = (0.0,0.5*adc.max())
-            #   else: 
-            #       ylim[a] = (0.0,1.2*adc.max())
-                ylim[a] = (0.0,1.2*adc.max())
+                ylim[a] = (cv.eps,1.2*adc.max())
+            #   print(ylim[a])
                 ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
                 ty = GU.prop_scale(ax[a].get_ylim(), 0.95)

@@ -909,6 +909,8 @@ print('matplotib:',matplotlib.__version__)
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,per_capita=True,show_order_date = True)
 
+#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
+
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
 #tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
@@ -937,7 +939,7 @@ print('matplotib:',matplotlib.__version__)
 #update_assets()
 
 #update_everything()#do_fits=False)
-git_commit_push()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)

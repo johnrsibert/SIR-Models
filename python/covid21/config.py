@@ -30,7 +30,7 @@ TMB_path = cv_home + 'TMB/'
 # mget http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv
 BCHA_path=cv_home+'BCCDC_COVID19_Dashboard_Case_Details.csv'
 
-DexamethasoneDate = datetime.strptime('2020-06-25','%Y-%m-%d')
+DexamethasoneDate = datetime.strptime('2020-06-22','%Y-%m-%d')
 FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
 CAOrderDate = datetime.strptime('2020-03-19','%Y-%m-%d')
 mtime = os.path.getmtime(NYT_home+'us-counties.csv')
@@ -41,9 +41,10 @@ https://www.ajmc.com/view/a-timeline-of-covid-19-vaccine-developments-in-2021
 
 https://apnews.com/article/joe-biden-coronavirus-pandemic-coronavirus-vaccine-6b624ae3a0ebdda0d91e867d59c8ca46?
 '''
+PfizerEUADate = datetime.strptime('2021-01-06','%Y-%m-%d')
 HalfMillionShotDate = datetime.strptime('2021-02-25','%Y-%m-%d')
 IndependenceDay = datetime.strptime('2021-07-04','%Y-%m-%d')
-   
+
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
 #GeoIndex['fips'] = GeoIndex['fips'].fillna(0).astype(np.int64) 
  
