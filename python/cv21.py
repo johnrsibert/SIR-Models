@@ -4,6 +4,7 @@
 @author: jsibert
 """
 
+
 from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import Fit as FF
@@ -26,6 +27,7 @@ from io import StringIO
 from io import BytesIO
 import base64
 import scipy.stats as stats
+import time
 
 
 #from sigfig import round
@@ -340,6 +342,8 @@ def update_shared_plots():
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                              show_order_date=True,per_capita=True,low_prev=quartiles[0.05])
 
+    GG.plot_prevalence_comp_TS(flag='m',low_prev=quartiles[0.05],save=True, signature=True)
+
 #   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #   tmpG.read_BCHA_data()
 #   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
@@ -371,7 +375,7 @@ def update_assets():
 #   os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
 #   os.system('git push')
 
-def plot_multi_prev(Gfile='top30.csv',mult = 1000,save=False):
+def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
 #   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
     gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
     #                encoding = "ISO-8859-3")
@@ -485,12 +489,13 @@ def update_everything(do_fits = True):
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
-    GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
+#   GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 #   GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
     print('Finished prevealence comp plots')
-    update_assets()
 
+    update_assets()
     print('Finished update asset directory')
+
     if (do_fits):
         update_fits()
         print('Finished update_fits()')
@@ -596,7 +601,8 @@ def git_commit_push():
 #   print(cmd)
 #   os.system(cmd)
 
-def CFR_comp(nG=5):
+
+def _NOT_CFR_comp(nG=5):
     d1 = cv.nyt_county_dat['date'][0]
     d2 = cv.nyt_county_dat['date'].iloc[-1]
     date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
@@ -635,8 +641,14 @@ def CFR_comp(nG=5):
 #   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             # more options can be specified also
     
+    print(gdeaths)
+    print(gcases)
+
     for date in pd.DatetimeIndex(date_list):
+    #   print(date,gdeaths.loc[date],gdeaths.loc[date].sum())
         CFR.loc[date]  = gdeaths.loc[date]/(gcases.loc[date]+1e-8) + 1e-8
+    #   CFR.loc[date]  = gdeaths.loc[date].sum()/(gcases.loc[date].sum()+1e-8)
+    #   print('    CFR    ',CFR.loc[date]) 
  
 #   print(CFR)
     file_name = 'CFR'+str(nG)+'.csv'
@@ -645,6 +657,83 @@ def CFR_comp(nG=5):
     CFR.to_csv(csv,index=True)
 
     print('CFR for',nG,'geographies and',len(date_list),'written to',file_name)
+
+def CFR_comp(nG=5):
+    dat = cv.nyt_county_dat 
+    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
+    NYC_mask = dat['county'] == 'New York City' 
+    dat.loc[NYC_mask,'fips'] = 36999
+
+    # find first death
+    k = 0
+    while dat['deaths'][k]< 1.0:
+        k += 1
+    d1 = cv.nyt_county_dat['date'].iloc[k]
+    d2 = cv.nyt_county_dat['date'].iloc[-1]
+    date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
+    print('processing',nG,'geographies and',len(date_list),'dates:')
+    print(d1,d2)
+    print(date_list)
+
+    gcases =  pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
+    dcases =  pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
+    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
+    ddeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
+    CFR =     pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
+
+    gg = cv.GeoIndex
+
+    for g in range(0,nG):
+        fips = gg['fips'].iloc[g]
+        print(g,':',gg['county'].iloc[g] ,fips)
+        fips_mask = dat['fips'] == fips
+   
+        gindex =  dat[fips_mask].index
+        for k in gindex:
+            tmp = dat.loc[k]
+            date = tmp['date']
+            if (date >= d1):
+                gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
+                gdeaths.loc[date,g] = gdeaths.loc[date,g]+tmp['deaths']
+
+        dcases[g] = np.diff(gcases[g])
+        ddeaths[g] = np.diff(gdeaths[g])
+
+#   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            # more options can be specified also
+    
+    print('deaths')
+    print(gdeaths)
+#   print(gdeaths[11])
+    print(ddeaths)
+#   print(ddeaths[11])
+    print('cases')
+    print(gcases)
+#   print(gcases[11])
+    print(dcases)
+#   print(dcases[11])
+#   print(gdeaths[72])
+#   print(gcases[72])
+#   print(dcases[72])
+#   if (1): sys.exit(1)
+
+#   for date in date_list: #pd.DatetimeIndex(date_list):
+    for dd, ts in enumerate(date_list):
+        date = ts.strftime('%Y-%m-%d')
+    #   print(dd,ts,type(ts),date)
+        if (dd > 0):
+            CFR.loc[date]  = ddeaths.loc[date]/(dcases.loc[date]+1e-8)
+    #   print('    CFR    ',CFR.loc[date]) 
+ 
+    print('CFR for',nG,'geographies and',len(date_list),'days')
+    print(CFR)
+#   print(CFR[11])
+    file_name = 'CFR'+str(nG)+'.csv'
+    csv = open(file_name,'w')
+#   csv.write(str(nG)+'\n')
+    CFR.to_csv(csv,index=True)
+
+    print('CFR for',nG,'geographies and',len(date_list),'days written to',file_name)
 
 def fit_lnCFR(CFRfile,Floc=None):
     CFR = pd.read_csv(CFRfile,header=0,index_col=0)
@@ -753,14 +842,20 @@ def plot_CFR_ridge(CFRfile):
     from joypy import joyplot
     from matplotlib import cm
     CFR = pd.read_csv(CFRfile,header=0,index_col=0)
-    nG = len(CFR.columns)
     print('finished reading',CFRfile,CFR.shape)
+    nG = len(CFR.columns)
+    print(CFR.shape)
+    print(nG,CFR.shape[1])
+    nd = CFR.shape[0]
+    print(nd)
+    print(CFR)
 
-    ntail = 0
-    if (ntail > 0):
-        shortCFR = CFR.tail(ntail)
-    else:
-        shortCFR = CFR.iloc[58:]
+#   ntail = 0
+#   if (ntail > 0):
+#       shortCFR = CFR.tail(ntail)
+#   else:
+#       shortCFR = CFR.iloc[58:]
+    shortCFR = pd.DataFrame(CFR)
 
     print('building labels')
     labels = [None]*len(shortCFR)
@@ -785,6 +880,7 @@ def plot_CFR_ridge(CFRfile):
 
 
     print('building "flat" file ... very slowly')
+    t0 = time.time()
     flatCFR = pd.DataFrame(columns=('date','ratio'))
     for d in shortCFR.index:
         row = pd.Series(0.0,index=flatCFR.columns)
@@ -793,14 +889,52 @@ def plot_CFR_ridge(CFRfile):
             row['ratio'] = c
             flatCFR = flatCFR.append(row,ignore_index = True)
 
+    t1 = time.time()
+    total = t1-t0
+    print('time for method 1 is',total)
     print(flatCFR)
-    print(flatCFR.dtypes)
-    print('plotting ridgeline')
+#   time for method 1 is 34.769570112228 [597 rows x 30 columns]
+#   time for method 1 is 126.8467698097229 [597 rows x 100 columns]
+
+    size = CFR.size
+    print('building "flat" file with',size,'elements')
+    t0 = time.time()
+    dates = ['']*size
+    ratio = [0.0]*size
+    flatCFR = pd.DataFrame(columns=('date','ratio'))
+    flatCFR['date'] = date
+    flatCFR['ratio'] = ratio
+#   print(flatCFR*size)
+    i = 0
+    for d in range(0,nd):
+        ndx = CFR.index[d]
+        row = CFR.loc[ndx]
+        for g in range(0,nG):
+            flatCFR['date'][i] = ndx #CFR.index[d]
+            flatCFR['ratio'][i] = row[g]
+            i += 1
+
+    t1 = time.time()
+    total = t1-t0
+    print('time for method 2 is',total)
+#   time for method 2 is 18.012922286987305 [597 rows x 30 columns]
+#   time for method 2 is 69.01189374923706 [597 rows x 30 columns]
+    print(flatCFR)
+#   print(flatCFR.dtypes)
+    flatCFR.to_csv('flatCSV.csv',index=True)
+    if (1):sys.exit(1)
+
+    print('plotting ridgeline ... even more very slowly')
     fig,axes = joyplot(flatCFR, by='date', column='ratio', labels = labels,
-                       range_style='own', overlap = 2, x_range=[0.0,0.4],
-                       grid="y", linewidth=0.25, legend=False, figsize=(6.5,6.5),
-                       title='Case Fatality Ratio\n('+str(nG) + ' counties)',
-                       colormap=cm.Blues_r) #cm.autumn_r)
+                       range_style='own', overlap = 3, x_range=[0.0,0.05],
+                       grid="y", linewidth=0.25, legend=False, figsize=(6.5,8.0),
+                       title='Case Fatality Ratio\n'+str(nG) + ' Largest US Counties',
+              #        colormap=cm.autumn_r)
+                       colormap=cm.Blues_r)
+
+    print(type(axes),len(axes),type(axes[0]))
+    print('xlim: ',axes[0].get_xlim())
+    print('ylim: ',axes[0].get_ylim())
 
     gfile = 'CFRridgeline'+str(nG)+'.png' 
     print('saving',gfile)
@@ -808,7 +942,7 @@ def plot_CFR_ridge(CFRfile):
     print('ridgeline plot saved as',gfile)
     plt.show()
 
-def recent_prevalence(min_pop=1000000,mult=1000):
+def recent_prevalence(min_pop=1000000,mult=10000):
     dat = pd.read_csv(cv.NYT_counties,header=0)
     dat['fips'] = dat['fips'].fillna(0).astype(np.int64) 
     dat.loc[dat['county'] == 'New York City','fips'] = 36999
@@ -891,11 +1025,12 @@ print('python:',sys.version)
 print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
-#CFR_comp(nG=5)
+CFR_comp(100)
+plot_CFR_ridge('CFR100.csv')
+
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
 #plot_CFR_contour('CFRstats_1000_0.0.csv')
-#plot_CFR_ridge('CFR5.csv')
 
 #tgeog = GG.Geography(name='Santa Clara',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Harris',enclosed_by='Texas',code='TX')
@@ -939,6 +1074,7 @@ print('matplotib:',matplotlib.__version__)
 #update_assets()
 
 #update_everything()#do_fits=False)
+#update_html()
 #git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
@@ -946,5 +1082,10 @@ print('matplotib:',matplotlib.__version__)
 #GG.plot_prevalence_comp_TS(flag='500000',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
 #update_shared_plots()
-#update_html()
 #CFR.plot_recent_CFR(save=True)
+
+
+#update_shared_plots()
+#qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
+#GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=True, signature=True)
+#update_assets()

@@ -201,14 +201,14 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
-                        low_prev = 0.0, mult = 1000,
+                        low_prev = 0.0, mult = 10000,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 3):
         """ 
         Plots cases and deaths vs calendar date 
 
         scale: select linear of log scale 'linear'
-        per_capita: plot numbers per 1000 (see mult)  False
+        per_capita: plot numbers per 10000 (see mult)  False
         delta_ts: plot daily new cases True
         window: plot moving agerage window [11]
         plot_dt: plot initial doubling time slopes on log scale False
@@ -366,7 +366,7 @@ class Geography:
             else:
                 plt.show()
 
-    def plot_per_capita_curvature(self,mult = 1000,save=False):
+    def plot_per_capita_curvature(self,mult = 10000,save=False):
         pc_cases = self.cases/self.population * mult
         
         fig, ax = plt.subplots(1,figsize=(6.5,4.5))
@@ -385,19 +385,20 @@ class Geography:
         plt.show()
 
 
-def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=True,
+def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
                     show_order_date = False, 
                     show_superspreader = False,
                     annotation = True, signature = False, 
                     ymaxdefault = None,
                     show_SE = False,
+                    low_prev = 1.0,
 #                   ymax = [None,None,None], #[0.2,0.01,0.04],
                     save = True):
     """ 
     Plots cases and deaths vs calendar date 
 
-    per_capita: plot numbers per 1000 (see mult)  False
+    per_capita: plot numbers per 10000 (see mult)  False
     delta_ts: plot daily new cases True
     window: plot moving agerage window [11]
     plot_dt: plot initial doubling time slopes on log scale False
@@ -407,7 +408,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
     #FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
     #firstDate = mdates.date2num(cv.FirstNYTDate):w
 
-    firstDate = mdates.date2num(datetime.strptime('2021-04-01','%Y-%m-%d'))
+    firstDate = mdates.date2num(datetime.strptime('2021-07-01','%Y-%m-%d'))
     lastDate  = mdates.date2num(cv.EndOfTime)
 #   print('GG lastDate:',lastDate)
     orderDate = mdates.date2num(cv.CAOrderDate)
@@ -501,8 +502,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
                     if (ymaxdefault is None):
                     #   ymax[a] = max(ymax[a],1.2*yvar.max())
                         ymax[a] = max(ymax[a],2*yvar.iloc[-1])
-                    if (a == 0):
-                        ax[a].axhline(y=0.03,color='green',linewidth=5,alpha=0.25)
+               #    if (a == 0):
+               #        ax[a].axhline(y=low_prev,color='green',linewidth=5,alpha=0.1)
 
 
                 else:
@@ -527,6 +528,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
     for a in range(0,nax):
         ax[a].set_ylim((0.0,ymax[a]))
     
+    ax[0].axhline(y=low_prev,color='green',linewidth=5,alpha=0.5)
+
     if (annotation):
         title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
         fig.text(0.5,1.0,title ,ha='center',va='top')
@@ -549,7 +552,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 1000, delta_ts=Tru
     
     cv.EndOfTime = oldEndOfTime = cv.EndOfTime
 
-def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=True,
+def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
                     show_order_date = False, 
                     annotation = True, signature = False, 
@@ -563,6 +566,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     window: agerage window for recent prevalence
     annotations: add title and acknowledgements True
     save : save plot as file
+
+    returns quantiles
     """
     firstDate = mdates.date2num(cv.FirstNYTDate)
     lastDate  = mdates.date2num(cv.EndOfTime)
@@ -642,7 +647,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
     summary = str(stats.describe(recent['cases']))
     print('recent summary:',summary)           
 
-    bins = np.linspace(0.0,0.5,50)
+#   bins = np.linspace(0.0,0.5,50)
+    bins = np.linspace(0.0,5.0,50)
     print('bins:',bins)
     nbin = len(bins)
     weights = np.ones_like(recent['cases']) / len(recent)
@@ -712,7 +718,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 1000, delta_ts=
 
 
 #   GU.vline(ax,pref,'q=0.1',pos='right')
-    ax.axvline(pref,linewidth=3,color='red',alpha=0.5)
+    ax.axvline(pref,linewidth=3,color='green',alpha=0.5)
     ax.set_xlabel('Mean '+str(window)+' Day Prevalence'+' per '+str(mult))
     ax.set_ylabel('Number of Areas')
     tx = ax.get_xlim()[1]
