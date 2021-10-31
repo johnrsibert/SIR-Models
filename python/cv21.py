@@ -631,7 +631,9 @@ def _NOT_CFR_comp(nG=5):
     #   print('fips_entries:', fips_entries)
    
         gindex =  dat[fips_mask].index
+        print(gindex)
         for k in gindex:
+        #   print('k:',k)
             tmp = dat.loc[k]
             date = tmp['date']
             gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
@@ -669,53 +671,117 @@ def CFR_comp(nG=5):
     while dat['deaths'][k]< 1.0:
         k += 1
     d1 = cv.nyt_county_dat['date'].iloc[k]
-    d2 = cv.nyt_county_dat['date'].iloc[-1]
+    d2 = '2020-10-01' #cv.nyt_county_dat['date'].iloc[-1]
+#   d1 = cv.nyt_county_dat['date'][0]
+#   d2 = cv.nyt_county_dat['date'].iloc[-1]
     date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
     print('processing',nG,'geographies and',len(date_list),'dates:')
     print(d1,d2)
     print(date_list)
+    print(date_list[0])
+    size = nG*len(date_list)
+    print('Computing',size,'CFR estimates for',nG,'geographies and',len(date_list),'dates')
+#   if (1): sys.exit(1)
 
-    gcases =  pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-    dcases =  pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
-    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-    ddeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
-    CFR =     pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list[1:])
+    cases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
+    deaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
 
     gg = cv.GeoIndex
 
     for g in range(0,nG):
         fips = gg['fips'].iloc[g]
         print(g,':',gg['county'].iloc[g] ,fips)
+    #   print(cases[g])
         fips_mask = dat['fips'] == fips
+        fips_entries = fips_mask.value_counts()[1]
+    #   print('fips_entries:', fips_entries)
    
         gindex =  dat[fips_mask].index
+    #   print(gindex)
         for k in gindex:
+        #   print('k:',k)
             tmp = dat.loc[k]
+        #   print(k,tmp)
+        #   print(tmp['date'],type(tmp['date']))
             date = tmp['date']
-            if (date >= d1):
-                gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
-                gdeaths.loc[date,g] = gdeaths.loc[date,g]+tmp['deaths']
+        #   date = datetime.strptime(tmp['date'],'%Y-%m-%d')
+        #   print('date:',date)
+            if date in date_list:
+                cases.loc[date,g]  = tmp['cases']
+                deaths.loc[date,g] = tmp['deaths']
 
-        dcases[g] = np.diff(gcases[g])
-        ddeaths[g] = np.diff(gdeaths[g])
 
 #   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             # more options can be specified also
     
-    print('deaths')
-    print(gdeaths)
-#   print(gdeaths[11])
-    print(ddeaths)
-#   print(ddeaths[11])
-    print('cases')
-    print(gcases)
-#   print(gcases[11])
-    print(dcases)
-#   print(dcases[11])
-#   print(gdeaths[72])
-#   print(gcases[72])
-#   print(dcases[72])
+    print(deaths)
+    print(cases)
+
+    dcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
+    ddeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
+
+    for g in range(0,nG):
+        dcases[g][1:]  = np.diff(cases[g])
+        ddeaths[g][1:] = np.diff(deaths[g])
+
+    sddeaths = pd.DataFrame(ddeaths.stack())#,columns=('date','G','ddeaths'))
+    print(sddeaths)
+#   print(sddeaths.shape)
+#   print(sddeaths.drop('G',axis=1))
+   
+
+#   print(cases.join(deaths,lsuffix='cases',rsuffix='deaths'))
+    '''
+    cases  = np.zeros(size)
+    dcases  = np.zeros(size)
+    deaths = np.zeros(size)
+    dates  = ['']*size
 #   if (1): sys.exit(1)
+
+    gg = cv.GeoIndex
+
+    d = 0
+    for dd in range(0,len(date_list)):
+        date = date_list[dd].strftime('%Y-%m-%d')
+        date_mask = dat['date'] == date
+
+        print('------- d =',d)
+        for g in range(0,nG):
+            fips = gg['fips'].iloc[g]
+            print(g,':',gg['county'].iloc[g] ,fips)
+            fips_mask = dat['fips'] == fips
+   
+            tmp = dat[date_mask & fips_mask]
+            dates[d] = date
+            if (len(tmp) > 0):
+                cases[d] = tmp['cases']
+                deaths[d] = tmp['deaths']
+         #  else:
+         #      cases[d] = 0.0
+         #      deaths[d] = 0.0
+            d += 1
+
+
+
+    dcd = pd.DataFrame(columns=['date','cases','dcases','deaths'])
+    dcd['date'] = dates
+    dcd['cases'] = cases
+    dcd['deaths'] = deaths
+#   dcases[1:] = pd.Series(np.diff(dcd['cases']))
+    dcd['dcases'] = dcases
+   
+    pd.Series
+    print(dcd)
+    dcd.to_csv('dcd.csv',index=True)
+    '''
+    if (1): sys.exit(1)
+
+    df = pd.DataFrame(columns=['date','cases','deaths'])
+    df['date'] = dates
+    df['cases'] = casess
+    df['deaths'] = deathss
+    print(df)
+    if (1): sys.exit(1)
 
 #   for date in date_list: #pd.DatetimeIndex(date_list):
     for dd, ts in enumerate(date_list):
@@ -1025,8 +1091,10 @@ print('python:',sys.version)
 print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
-CFR_comp(100)
-plot_CFR_ridge('CFR100.csv')
+#_NOT_CFR_comp(3)
+CFR_comp(3)
+
+#plot_CFR_ridge('CFR100.csv')
 
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
