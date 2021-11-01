@@ -660,146 +660,111 @@ def _NOT_CFR_comp(nG=5):
 
     print('CFR for',nG,'geographies and',len(date_list),'written to',file_name)
 
-def CFR_comp(nG=5):
+def CFR_comp(nG=5, w = 14):
     dat = cv.nyt_county_dat 
     dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
     NYC_mask = dat['county'] == 'New York City' 
     dat.loc[NYC_mask,'fips'] = 36999
 
-    # find first death
+    # creat vector of dates from first reported death untill ...
     k = 0
     while dat['deaths'][k]< 1.0:
         k += 1
-    d1 = cv.nyt_county_dat['date'].iloc[k]
-    d2 = '2020-10-01' #cv.nyt_county_dat['date'].iloc[-1]
+    d1 = cv.nyt_county_dat['date'].iloc[k] # first death
+#   d2 = '2020-10-01' #cv.nyt_county_dat['date'].iloc[-1]
 #   d1 = cv.nyt_county_dat['date'][0]
-#   d2 = cv.nyt_county_dat['date'].iloc[-1]
+    d2 = cv.nyt_county_dat['date'].iloc[-1]
     date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
     print('processing',nG,'geographies and',len(date_list),'dates:')
-    print(d1,d2)
-    print(date_list)
-    print(date_list[0])
-    size = nG*len(date_list)
+    ndate = len(date_list)
+    size = nG*ndate
+
+#   create stacked date vector
+    all_dates = pd.Series(['']*size)
+    k2 = -1
+    for g in range(0,nG):
+        k1 = k2 + 1
+        k2 = k1 + ndate -1
+        for d in range(0,ndate):
+            k = k1 + d
+            all_dates[k] = datetime.strftime(date_list[d],'%Y-%m-%d')#date_list[d]
+
+    
+#   print(all_dates)
     print('Computing',size,'CFR estimates for',nG,'geographies and',len(date_list),'dates')
 #   if (1): sys.exit(1)
 
+    # extract cumulative cases and deaths from NYT data
+    # for first (ie largest) nG Geographies
     cases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
     deaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-
     gg = cv.GeoIndex
-
     for g in range(0,nG):
         fips = gg['fips'].iloc[g]
         print(g,':',gg['county'].iloc[g] ,fips)
-    #   print(cases[g])
         fips_mask = dat['fips'] == fips
         fips_entries = fips_mask.value_counts()[1]
-    #   print('fips_entries:', fips_entries)
    
         gindex =  dat[fips_mask].index
-    #   print(gindex)
         for k in gindex:
-        #   print('k:',k)
             tmp = dat.loc[k]
-        #   print(k,tmp)
-        #   print(tmp['date'],type(tmp['date']))
             date = tmp['date']
-        #   date = datetime.strptime(tmp['date'],'%Y-%m-%d')
-        #   print('date:',date)
             if date in date_list:
                 cases.loc[date,g]  = tmp['cases']
                 deaths.loc[date,g] = tmp['deaths']
 
+ #  print(deaths)
+ #  print(cases)
 
-#   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            # more options can be specified also
-    
-    print(deaths)
-    print(cases)
-
+    # compute daily cases and deaths by first differences
     dcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
     ddeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-
     for g in range(0,nG):
         dcases[g][1:]  = np.diff(cases[g])
         ddeaths[g][1:] = np.diff(deaths[g])
 
-    sddeaths = pd.DataFrame(ddeaths.stack())#,columns=('date','G','ddeaths'))
-    print(sddeaths)
-#   print(sddeaths.shape)
-#   print(sddeaths.drop('G',axis=1))
-   
+ #  print('dcases:')
+ #  print(dcases)
 
-#   print(cases.join(deaths,lsuffix='cases',rsuffix='deaths'))
+    # compute w point moving averates of daily cases and deaths
+    wdcases = dcases.rolling(window=w,min_periods=1).mean()
+    wddeaths = ddeaths.rolling(window=w,min_periods=1).mean()
+    print('wdcases, w =',w,':')
+    print(wdcases)
+    print(wddeaths)
+
+
+
     '''
-    cases  = np.zeros(size)
-    dcases  = np.zeros(size)
-    deaths = np.zeros(size)
-    dates  = ['']*size
+    sddeaths = pd.DataFrame(columns =['date','ddeaths'],index=[])
+    sddeaths['date'] = all_dates
+    sddeaths['ddeaths'] = ddeaths.stack().values
+    print(sddeaths)
+    print(sddeaths.sort_values(by='date',ascending=True))
+
+    '''
+
+    ratio = (wddeaths/wdcases).fillna(0.0)
+#   print(ratio)
+#   print('stacked:')
+    sratio = pd.DataFrame(columns =['date','ratio'],index=[])
+    sratio['date'] = all_dates
+    sratio['ratio'] = ratio.stack().values
+#   print(sratio)
 #   if (1): sys.exit(1)
 
-    gg = cv.GeoIndex
-
-    d = 0
-    for dd in range(0,len(date_list)):
-        date = date_list[dd].strftime('%Y-%m-%d')
-        date_mask = dat['date'] == date
-
-        print('------- d =',d)
-        for g in range(0,nG):
-            fips = gg['fips'].iloc[g]
-            print(g,':',gg['county'].iloc[g] ,fips)
-            fips_mask = dat['fips'] == fips
-   
-            tmp = dat[date_mask & fips_mask]
-            dates[d] = date
-            if (len(tmp) > 0):
-                cases[d] = tmp['cases']
-                deaths[d] = tmp['deaths']
-         #  else:
-         #      cases[d] = 0.0
-         #      deaths[d] = 0.0
-            d += 1
-
-
-
-    dcd = pd.DataFrame(columns=['date','cases','dcases','deaths'])
-    dcd['date'] = dates
-    dcd['cases'] = cases
-    dcd['deaths'] = deaths
-#   dcases[1:] = pd.Series(np.diff(dcd['cases']))
-    dcd['dcases'] = dcases
-   
-    pd.Series
-    print(dcd)
-    dcd.to_csv('dcd.csv',index=True)
-    '''
-    if (1): sys.exit(1)
-
-    df = pd.DataFrame(columns=['date','cases','deaths'])
-    df['date'] = dates
-    df['cases'] = casess
-    df['deaths'] = deathss
-    print(df)
-    if (1): sys.exit(1)
-
-#   for date in date_list: #pd.DatetimeIndex(date_list):
-    for dd, ts in enumerate(date_list):
-        date = ts.strftime('%Y-%m-%d')
-    #   print(dd,ts,type(ts),date)
-        if (dd > 0):
-            CFR.loc[date]  = ddeaths.loc[date]/(dcases.loc[date]+1e-8)
-    #   print('    CFR    ',CFR.loc[date]) 
- 
-    print('CFR for',nG,'geographies and',len(date_list),'days')
-    print(CFR)
-#   print(CFR[11])
-    file_name = 'CFR'+str(nG)+'.csv'
-    csv = open(file_name,'w')
-#   csv.write(str(nG)+'\n')
-    CFR.to_csv(csv,index=True)
-
-    print('CFR for',nG,'geographies and',len(date_list),'days written to',file_name)
+    ridge_file = 'CFR_ridge.csv'
+    with open(ridge_file,'w') as rr:
+        l1 = '{0: d}{1: d}{2: d}\n'.format(nG,w,ndate)
+        rr.write(l1)
+        l2 = ''
+        for k in range(0,ndate):
+            l2 = l2 + '{0} '.format(datetime.strftime(date_list[k],'%Y-%m-%d'))
+        #   all_dates[k] = datetime.strftime(date_list[d],'%Y-%m-%d')#date_list[d]
+        l2 = l2 + '\n'
+        rr.write(l2)
+        sratio.to_csv(rr,index=True)
+    print('CFR estimates for',nG,'geographies and',len(date_list),'dates written to',ridge_file)
 
 def fit_lnCFR(CFRfile,Floc=None):
     CFR = pd.read_csv(CFRfile,header=0,index_col=0)
@@ -907,22 +872,44 @@ def plot_CFR_contour(CFRln_file):
 def plot_CFR_ridge(CFRfile):
     from joypy import joyplot
     from matplotlib import cm
-    CFR = pd.read_csv(CFRfile,header=0,index_col=0)
-    print('finished reading',CFRfile,CFR.shape)
-    nG = len(CFR.columns)
-    print(CFR.shape)
-    print(nG,CFR.shape[1])
-    nd = CFR.shape[0]
-    print(nd)
-    print(CFR)
+
+#with open('in.txt') as f:
+#   data = []
+#   cols,rows=list(map(int, f.readline().split()))
+#   for i in range(0, rows):
+#      data.append(list(map(int, f.readline().split()[:cols])))
+
+    with open(CFRfile,'r') as rr:
+        nG,window,ndate = (map(int, rr.readline().split()))
+        print(nG, window, ndate)
+        dl = rr.readline()
+        date_list = dl.split()
+        
+    #   for k in range(0,ndate):
+    #       date_list.append(list(map(str, rr.readline().split()[:ndate])))
+        print('date_list:')
+        print(date_list)
+
+        flatCFR = pd.read_csv(rr,header=0,index_col=0)
+        print(flatCFR)
+        
+#   flatCFR = pd.read_csv(CFRfile,header=0,index_col=0)
+    print('finished reading',CFRfile,flatCFR.shape)
+#   nG = len(CFR.columns)
+#   print(CFR.shape)
+#   print(nG,CFR.shape[1])
+#   nd = CFR.shape[0]
+#   print(nd)
+#   print(CFR)
 
 #   ntail = 0
 #   if (ntail > 0):
 #       shortCFR = CFR.tail(ntail)
 #   else:
 #       shortCFR = CFR.iloc[58:]
-    shortCFR = pd.DataFrame(CFR)
+#   shortCFR = pd.DataFrame(CFR)
 
+    '''
     print('building labels')
     labels = [None]*len(shortCFR)
     prev_mon = 11
@@ -943,7 +930,7 @@ def plot_CFR_ridge(CFRfile):
             labels[i] = dd.strftime('%b')
         else:
             prev_mon = int(dlist[1])
-
+    
 
     print('building "flat" file ... very slowly')
     t0 = time.time()
@@ -989,9 +976,9 @@ def plot_CFR_ridge(CFRfile):
 #   print(flatCFR.dtypes)
     flatCFR.to_csv('flatCSV.csv',index=True)
     if (1):sys.exit(1)
-
+    '''
     print('plotting ridgeline ... even more very slowly')
-    fig,axes = joyplot(flatCFR, by='date', column='ratio', labels = labels,
+    fig,axes = joyplot(flatCFR, by='date', column='ratio', #labels = labels,
                        range_style='own', overlap = 3, x_range=[0.0,0.05],
                        grid="y", linewidth=0.25, legend=False, figsize=(6.5,8.0),
                        title='Case Fatality Ratio\n'+str(nG) + ' Largest US Counties',
@@ -1002,7 +989,7 @@ def plot_CFR_ridge(CFRfile):
     print('xlim: ',axes[0].get_xlim())
     print('ylim: ',axes[0].get_ylim())
 
-    gfile = 'CFRridgeline'+str(nG)+'.png' 
+    gfile = 'CFRridgeline.png' 
     print('saving',gfile)
     plt.savefig(gfile, dpi=300)
     print('ridgeline plot saved as',gfile)
@@ -1092,9 +1079,8 @@ print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
 #_NOT_CFR_comp(3)
-CFR_comp(3)
-
-#plot_CFR_ridge('CFR100.csv')
+#CFR_comp(nG=5, w = 21)
+plot_CFR_ridge('CFR_ridge.csv')
 
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
