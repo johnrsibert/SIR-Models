@@ -6,10 +6,10 @@
 
 
 from covid21 import config as cv
-from covid21 import Geography as GG
-from covid21 import Fit as FF
-from covid21 import GraphicsUtilities as GU
-from covid21 import CFR
+#from covid21 import Geography as GG
+#from covid21 import Fit as FF
+#from covid21 import GraphicsUtilities as GU
+#from covid21 import CFR
 
 from numpy import errstate,isneginf #,array
 import pandas as pd
@@ -20,14 +20,14 @@ import matplotlib.dates as mdates
 import matplotlib
 from matplotlib import rc
 import numpy as np
-import os
+#import os
 import sys
-import pyreadr
-from io import StringIO 
-from io import BytesIO
-import base64
-import scipy.stats as stats
-import time
+#import pyreadr
+#from io import StringIO 
+#from io import BytesIO
+#import base64
+#import scipy.stats as stats
+#import time
 from joypy import joyplot
 from matplotlib import cm
 
@@ -51,10 +51,10 @@ def CFR_comp(nG=5, w = 14):
     while dat['deaths'][k]< 1.0:
         k += 1
 #   d1 = cv.nyt_county_dat['date'].iloc[k] # first death
-#   d1 = '2020-03-01' # avoid axis label on 2020-02-29
-#   d2 = cv.nyt_county_dat['date'].iloc[-1] # last record
-    d1 = '2020-01-01'
-    d2 = '2020-04-30'
+#   d1 = '2021-01-01'
+    d1 = '2020-03-01' # avoid axis label on 2020-02-29
+    d2 = cv.nyt_county_dat['date'].iloc[-1] # last record
+#   d2 = '2021-05-01'
     date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
     print('processing',nG,'geographies and',len(date_list),'dates:')
     ndate = len(date_list)
@@ -126,28 +126,31 @@ def CFR_comp(nG=5, w = 14):
     '''
 
     ratio = (wddeaths/wdcases).fillna(0.0)
-#   print(ratio)
+#   ratio = pd.DataFrame(wddeaths.divide(wdcases),index=wddeaths.index).fillna(0.0)
+    ratio.replace([np.inf, -np.inf], None, inplace=True)
+    print('ratio:',type(ratio))
+    print(ratio)
     max_ratio = ratio.max(axis=1)
     idmax_ratio = ratio.idxmax(axis=1)
-#   print('max_ratio:')
-#   print(max_ratio)
-#   print('stacked:')
+    print('max_ratio:')
+    print(max_ratio)
+    print('stacked:')
     sratio = pd.DataFrame(columns =['date','ratio'],index=[])
     sratio['date'] = all_dates
     sratio['ratio'] = ratio.stack().values
-#   print(sratio)
+    print(sratio)
 #   if (1): sys.exit(1)
 
     ridge_file = 'CFR_ridge.csv'
     with open(ridge_file,'w') as rr:
         line = '{0: d}{1: d}{2: d}\n'.format(nG,w,ndate)
         rr.write(line)
-        line = ''
-        for k in range(0,ndate):
-            line = line + ' {0}'.format(datetime.strftime(date_list[k],'%Y-%m-%d'))
-        #   all_dates[k] = datetime.strftime(date_list[d],'%Y-%m-%d')#date_list[d]
-        line = line + '\n'
-        rr.write(line)
+    #   line = ''
+    #   for k in range(0,ndate):
+    #       line = line + ' {0}'.format(datetime.strftime(date_list[k],'%Y-%m-%d'))
+    #   #   all_dates[k] = datetime.strftime(date_list[d],'%Y-%m-%d')#date_list[d]
+    #   line = line + '\n'
+    #   rr.write(line)
 
         line = ''
         for mr in idmax_ratio:
@@ -164,19 +167,13 @@ def CFR_comp(nG=5, w = 14):
     print('CFR estimates for',nG,'geographies and',len(date_list),'dates written to',ridge_file)
 
 def plot_CFR_ridge(CFRfile):
-
-#with open('in.txt') as f:
-#   data = []
-#   cols,rows=list(map(int, f.readline().split()))
-#   for i in range(0, rows):
-#      data.append(list(map(int, f.readline().split()[:cols])))
-
     with open(CFRfile,'r') as rr:
         print('Reading',CFRfile)
         nG,window,ndate = (map(int, rr.readline().split()))
         print(nG, window, ndate)
-        l1 = rr.readline()
-        date_list = l1.split(None)
+    #   l1 = rr.readline()
+    #   date_list = pd.Series(l1.split(None))
+    #   print(date_list)
         l2 = rr.readline()
         idx_max = np.array(l2.split(sep=None), dtype=np.int64)
         l3 = rr.readline()
@@ -187,6 +184,9 @@ def plot_CFR_ridge(CFRfile):
         
     print('finished reading',CFRfile,CFR.shape)
     print(CFR)
+    date_list = pd.Series(CFR['date'].unique())
+    print('date_list')
+    print(date_list)
 
     meanCFR = CFR['ratio'].mean()
     print('mean CFR =',meanCFR)
@@ -207,40 +207,48 @@ def plot_CFR_ridge(CFRfile):
         elif (dlist[1] == '01' and prev_mon == 12):
             prev_mon = 1
             dd = datetime.strptime(d,'%Y-%m-%d')
-            labels[i] = dd.strftime('%Y')+' '+ dd.strftime('%b')+'X'
+            labels[i] = dd.strftime('%Y')+' '+ dd.strftime('%b')
         elif (dlist[2] == '01'): # day 1 of month
             prev_mon = int(dlist[1])
             dd = datetime.strptime(d,'%Y-%m-%d')
-            labels[i] = dd.strftime('%b')+'Y'
+            labels[i] = dd.strftime('%b')
         else:
                 prev_mon = int(dlist[1])
     print(labels)    
 #   if (1): sys.exit(1)
 
+#   plt.rcParams['figure.constrained_layout.use'] = True
+#              rcParams.update({"lines.linewidth": 2, ...}) 
+    matplotlib.rcParams.update({"figure.autolayout": False})
     print('plotting ridgeline ... very slowly')
     fig,axes = joyplot(CFR, by='date', column='ratio', labels = labels,
                        range_style='own', # tails = 0.2, 
+                       kind = 'kde',
              #         ylim='max',
                        overlap = 3, 
-                       x_range=[0.0,0.06],
+                       x_range=[0.0,0.061],
                        grid="y", linewidth=0.25, legend=False, figsize=(6.5,8.0),
-                       title='Case Fatality Ratio\n'+str(nG) + ' Largest US Counties',
+                       title='Case Fatality Ratio\n'+str(nG) + ' counties, ' + str(ndate) + ' days, ' + str(window) + ' day moving average',
              #         colormap=cm.autumn_r)
                        colormap=cm.Blues_r)
 
-    print(type(axes),len(axes),type(axes[0]))
+    print(type(axes),len(axes),type(axes[0]),len(rmax))
     print('xlim: ',axes[0].get_xlim())
     print('ylim: ',axes[0].get_ylim())
     for a, ax in enumerate(axes):
-        ax.plot([meanCFR,meanCFR],axes[0].get_ylim(),c='orange',linewidth=0.5)
-
-    #   ax.text(rmax[a],ax.get_ylim()[1],str(a),c='red',ha='center')
+        ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='orange',linewidth=0.5)
+    #   try:
+    #       print('rmax =',rmax[a],'for axis',a)
+    #       ax.text(rmax[a],ax.get_ylim()[1],str(a),c='red',ha='center')
+    #   except:
+    #       print('axis',a,'out of range for rmax')
     #   ax.axvline(meanCFR,c='orange',linewidth=0.5)
     #   ax.text(meanCFR,ax.get_ylim()[1],str(a),c='red',ha='left')
     #   ax.text(meanCFR,0.25*ax.get_ylim()[1],str(a),c='green',ha='right')
     #   ax.text(meanCFR,0.50*ax.get_ylim()[1],str(a),c='purple',ha='right')
     #   axes[a].text(meanCFR,1.0,str(a),c='purple',ha='right')
 
+#   plt.subplots(constrained_layout=True)
     gfile = 'CFRridgeline.png' 
     print('saving',gfile)
     plt.savefig(gfile, dpi=300)
@@ -252,9 +260,8 @@ print('------- here ------')
 print('python:',sys.version)
 print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
-print('joyplot:',joypy.__version__)
 
 #_NOT_CFR_comp(3)
-#CFR_comp(nG=30, w = 20)
+#CFR_comp(nG=138, w = 23)
 plot_CFR_ridge('CFR_ridge.csv')
 
