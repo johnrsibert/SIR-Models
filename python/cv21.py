@@ -594,71 +594,12 @@ def git_commit_push():
     os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
     os.system('git push')
 
-#   cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
-#   print(cmd)
-#   os.system(cmd)
-#   cmd = 'git -C ' + cv.Jon_path + ' push'
-#   print(cmd)
-#   os.system(cmd)
-
-
-def _NOT_CFR_comp(nG=5):
-    d1 = cv.nyt_county_dat['date'][0]
-    d2 = cv.nyt_county_dat['date'].iloc[-1]
-    date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
-    print('processing',nG,'geographies and',len(date_list),'dates:')
-    print(d1,d2)
-
-    dat = cv.nyt_county_dat 
-    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
-    NYC_mask = dat['county'] == 'New York City' 
-    dat.loc[NYC_mask,'fips'] = 36999
-
-    # CFR by geography
-    gCFR = pd.Series(index=np.arange(0,nG), dtype='float64')
-    gcases = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-    gdeaths = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-    CFR = pd.DataFrame(0.0,columns=np.arange(0,nG), index = date_list)
-
-    gg = cv.GeoIndex
-
-    for g in range(0,nG):
-        fips = gg['fips'].iloc[g]
-        print(g,':',gg['county'].iloc[g] ,fips)
-    #   print(gcases[g])
-        fips_mask = dat['fips'] == fips
-    #   fips_entries = fips_mask.value_counts()[1]
-    #   print('fips_entries:', fips_entries)
-   
-        gindex =  dat[fips_mask].index
-        print(gindex)
-        for k in gindex:
-        #   print('k:',k)
-            tmp = dat.loc[k]
-            date = tmp['date']
-            gcases.loc[date,g] = gcases.loc[date,g]+tmp['cases']
-            gdeaths.loc[date,g] = gdeaths.loc[date,g]+tmp['deaths']
-
-
-#   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            # more options can be specified also
-    
-    print(gdeaths)
-    print(gcases)
-
-    for date in pd.DatetimeIndex(date_list):
-    #   print(date,gdeaths.loc[date],gdeaths.loc[date].sum())
-        CFR.loc[date]  = gdeaths.loc[date]/(gcases.loc[date]+1e-8) + 1e-8
-    #   CFR.loc[date]  = gdeaths.loc[date].sum()/(gcases.loc[date].sum()+1e-8)
-    #   print('    CFR    ',CFR.loc[date]) 
- 
-#   print(CFR)
-    file_name = 'CFR'+str(nG)+'.csv'
-    csv = open(file_name,'w')
-#   csv.write(str(nG)+'\n')
-    CFR.to_csv(csv,index=True)
-
-    print('CFR for',nG,'geographies and',len(date_list),'written to',file_name)
+    cmd = 'git -C ' + cv.Jon_path + " commit index.md -m 'update table'"
+    print(cmd)
+    os.system(cmd)
+    cmd = 'git -C ' + cv.Jon_path + ' push'
+    print(cmd)
+    os.system(cmd)
 
 def fit_lnCFR(CFRfile,Floc=None):
     CFR = pd.read_csv(CFRfile,header=0,index_col=0)
@@ -838,8 +779,7 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 
    
  
-
-
+#CFR.plot_CFR_lognorm_fit(save=False)
 #fit_lnCFR('CFR1000.csv',Floc=0.0)
 #plot_CFR_lines('CFRstats_1000_0.0.csv')
 #plot_CFR_contour('CFRstats_1000_0.0.csv')
@@ -885,7 +825,7 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything()#do_fits=False)
+#update_everything(do_fits=False)
 #update_html()
 #git_commit_push()
 
