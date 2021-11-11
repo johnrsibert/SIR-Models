@@ -13,14 +13,122 @@ import numpy as np
 import scipy.stats as stats
 import pandas as pd
 import sys
+from datetime import date, datetime, timedelta
+from covid21 import config as cv
+from covid21 import Geography as GG
 from covid21 import GraphicsUtilities as GU
 #import scipy
 #print('scipy version:',scipy.__version__)
-'''
-https://stackoverflow.com/questions/8747761/scipy-lognormal-distribution-parameters
-'''
-def CFR_trends(CFRfile = 'CFR.csv'):
 
+def CF_xcorr(nG=5,max_lag=21):
+    dat = cv.nyt_county_dat 
+    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
+    NYC_mask = dat['county'] == 'New York City' 
+    dat.loc[NYC_mask,'fips'] = 36999
+
+    # creat vector of dates from first reported death untill ...
+    k = 0
+    while dat['deaths'][k]< 1.0:
+        k += 1
+#   d1 = cv.nyt_county_dat['date'].iloc[k] # first death
+#    d1 = '2021-01-01'
+#    d2 = '2021-02-01'
+    d1 = '2020-04-01' 
+    d2 = cv.nyt_county_dat['date'].iloc[-1] # last record
+    date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
+    print(len(date_list),date_list)
+    ddate_list = date_list[1:]
+    print(len(ddate_list),ddate_list)
+#    if (1): sys.exit(1)
+    print('processing',nG,'geographies and',len(date_list),'dates:')
+    ndate = len(ddate_list)
+    size = nG*ndate
+
+#   create stacked date vector
+    all_dates = pd.Series(['']*size)
+    k2 = -1
+    for g in range(0,nG):
+        k1 = k2 + 1
+        k2 = k1 + ndate -1
+        print(g,k1,k2)
+        for d in range(0,len(ddate_list)): #ndate):
+            k = k1 + d
+            all_dates[k] = datetime.strftime(ddate_list[d],'%Y-%m-%d')#date_list[d]
+
+    
+    print('all_dates:')
+    print(all_dates)
+#    print('Computing',size,'CFR estimates for',nG,'geographies and',ndate,'dates')
+    #if (1): sys.exit(1)
+
+    # extract cumulative cases and deaths from NYT data
+    # for first (ie largest) nG Geographies
+    cases = pd.DataFrame(None,columns=np.arange(0,nG), index = date_list)
+    deaths = pd.DataFrame(None,columns=np.arange(0,nG), index = date_list)
+    gcols = pd.Series('',index = deaths.columns)
+    gg = cv.GeoIndex
+    for g in range(0,nG):    
+#    for g in range(60,63):
+        fips = gg['fips'].iloc[g]
+        county = gg['county'].iloc[g]
+        code = gg['code'].iloc[g]
+        population = gg['population'].iloc[g]
+        moniker = GG.set_moniker(county,code)
+        sname = GG.short_name(moniker)
+        gcols[g] = sname
+        print(g,':',gg['county'].iloc[g] ,fips,sname,population)
+        fips_mask = (dat['fips'] == fips) & (dat['fips']>0)
+    #   fips_entries = fips_mask.value_counts()[1]
+   
+        gindex =  dat[fips_mask].index
+        for k in gindex:
+            tmp = dat.loc[k]
+            kdate = tmp['date']
+            if kdate in date_list:
+                cases.loc[kdate,g]  = tmp['cases']
+                deaths.loc[kdate,g] = tmp['deaths']
+                
+                if (kdate == '2021-11-03' and g == 61):
+                    print('-----------',g,tmp)
+                    if(1): sys.exit(0)
+
+    print('deaths:',deaths)
+    print('cases:',cases)
+
+
+    for d in range(0,ndate):
+#   for lag in range (1,max_lag+1):
+        for lag in range (0,2):
+
+#   print('lag =',lag,'Spearman r correletions and p-values for Triptan:')
+    #    rs = '{:>4d}'.format(lag)
+    #   a = metrics.iloc[lag:]['Triptan']
+            a = deaths.iloc[d]
+            print('a:',a)
+    #    rs = rs +  '{:>5d} '.format(len(a))
+    #    ds= '{:>10s}'.format('')
+    #   b = metrics.iloc[:-lag,[i]]
+            b = cases.iloc[d+lag]
+            print('b:',b)
+        #    print('b:',b)
+        #   rr.iloc[lag-1][vnames[i]],pp.iloc[lag-1][vnames[i]], = stats.spearmanr(a, b)
+        #   rr[vnames[i]],pp[vnames[i]] = stats.spearmanr(a, b)
+            r,p =  stats.spearmanr(a, b)
+            print('r:',r)
+            print('p:',p)
+    #    rs = rs + '  {:4.3f} '.format(r)
+    #    ds = ds + ' ({:4.3f})'.format(r)
+        
+#    print(rs)
+#    print(ds)    
+        
+
+
+
+def CFR_trends(CFRfile = 'CFR.csv'):
+    '''
+    https://stackoverflow.com/questions/8747761/scipy-lognormal-distribution-parameters
+    '''
     with open(CFRfile,'r') as rr:
         print('Reading',CFRfile)  
         line = '#'
@@ -117,8 +225,9 @@ def CFR_trends(CFRfile = 'CFR.csv'):
         
         fig, ax = plt.subplots(2,2,figsize=(11.0,6.5))
         Y = np.linspace(0.0,0.06,100)
-   #     matplotlib.rcParams.update({"figure.autolayout": False})
-        plt.rcParams["figure.autolayout"] = False
+   #    set rcParams["figure.autolayout"] (default: False) to True.
+   #    plt.rcParams["figure.autolayout"] = False
+        fig.set_tight_layout(False)
   
         colors = plt.cm.Blues_r(np.linspace(0,1,ndate))
    #     colors = plt.cm.viridis(np.linspace(0,1,ndate))
@@ -153,13 +262,13 @@ def CFR_trends(CFRfile = 'CFR.csv'):
    #     GU.mark_ends(ax2, mdate,np.log(param['scale']) ,'mu')
    #     ax[1,0].plot(mdate,param['scale'])
    
-        
+   #    usimg mark+ends (..., 'b') may result in error if an end is inf      
         GU.make_date_axis(ax[1,0])
         ax[1,0].plot(mdate,param['scale'])
-        GU.mark_ends(ax[1,0], mdate,param['scale'] ,'mu','b')
+        GU.mark_ends(ax[1,0], mdate,param['scale'] ,'mu','r')
         ax[1,0].set_ylabel('Central Tendency')
         ax[1,0].plot(mdate,param['rmax'])
-        GU.mark_ends(ax[1,0], mdate,param['rmax'] ,'mode','b')
+        GU.mark_ends(ax[1,0], mdate,param['rmax'] ,'mode','r')
         ax[1,0].set_ylim(0.0,0.06)
         #ax[1,0].plot(mdate,param['m'],linewidth=1)
         #GU.mark_ends(ax[1,0], mdate,param['m'] ,'m','r')
@@ -180,19 +289,21 @@ def CFR_trends(CFRfile = 'CFR.csv'):
         #ax[1,1].plot(mdate,param['k'],linewidth=1)
         #GU.mark_ends(ax[1,1], mdate,param['k'] ,'k','r')
         
-                                      
-        title = 'CFR properties for {0:d} counties, {1:d} time periods, \
-                 averaged over a {2:d} day moving window\n'.format(nG,ndate,window)
+        fig.show()
+                                     
+        title = 'CFR properties for {0:d} counties, {1:d} time periods, averaged over a {2:d} day moving window\n'.format(nG,ndate,window)
         #line = '{0: 7d}{1: 5d}{2: 7d}\n'.format(ndate,nG,w)
         #title = 'Title'
         print(title)
  
-        #fig.suptitle(title,size='medium')
-        plt.show()
+        fig.suptitle(title,size='medium',y=1.05)
         
         gfile = 'CFRtrend_'+str(ndate)+'_'+str(nG)+'_'+str(window)+'.png'
-        plt.savefig(gfile,dpi=300)
+        fig.savefig(gfile,dpi=300, bbox_inches='tight', pad_inches=0.25)
+    #    fig.savefig('temp.png', dpi=fig.dpi, bbox_inches='tight', pad_inches=0.5)
         print('Plot saved as',gfile)
+
 # -------------------------------
 
-CFR_trends()
+#CFR_trends()
+CF_xcorr()

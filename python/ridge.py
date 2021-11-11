@@ -85,8 +85,8 @@ def CFR_comp(nG=5, w = 14):
 
     # extract cumulative cases and deaths from NYT data
     # for first (ie largest) nG Geographies
-    cases = pd.DataFrame(columns=np.arange(0,nG), index = date_list)
-    deaths = pd.DataFrame(columns=np.arange(0,nG), index = date_list)
+    cases = pd.DataFrame(None,columns=np.arange(0,nG), index = date_list)
+    deaths = pd.DataFrame(None,columns=np.arange(0,nG), index = date_list)
     gcols = pd.Series('',index = deaths.columns)
     gg = cv.GeoIndex
     for g in range(0,nG):    
@@ -116,10 +116,11 @@ def CFR_comp(nG=5, w = 14):
 
 #   print(deaths)
 #   print(cases)
-    print(gcols)
+#   print(gcols)
+    print(len(gcols),len(gcols.unique()))
     # compute daily cases and deaths by first differences
-    dcases = pd.DataFrame(columns=np.arange(0,nG), index = ddate_list)
-    ddeaths = pd.DataFrame(columns=np.arange(0,nG), index = ddate_list)
+    dcases = pd.DataFrame(None,columns=np.arange(0,nG), index = ddate_list)
+    ddeaths = pd.DataFrame(None,columns=np.arange(0,nG), index = ddate_list)
     for g in range(0,nG):
         dcases[g]  = np.diff(cases[g])
         ddeaths[g] = np.diff(deaths[g])
@@ -148,14 +149,15 @@ def CFR_comp(nG=5, w = 14):
 #    ratio = ratio.loc[:, (ratio > 0.0).any(axis=1)] 
 
     CFR_file = 'CFR.csv'
-    ratio.columns = gcols
+#    don't do this because there are duplicate names for larger nG    
+#    ratio.columns = gcols
     print(ratio.shape)
     print('ratio:',type(ratio))
     print(ratio)
 #    if (1): sys.exit(1)
     with open(CFR_file,'w') as rr:
-    #    line = '{0: d}{1: d}{2: d}\n'.format(nG,w,ndate)
-        line = '{0: 5d}\n'.format(w)
+        rr.write('# window\n')
+        line = '{0: 8d}\n'.format(w)
         rr.write(line)
         ratio.to_csv(rr,index=True)
 
@@ -175,13 +177,14 @@ def CFR_comp(nG=5, w = 14):
     print('max_ratio:')
     print(max_ratio)
     print('stacked:')
-    sratio = pd.Series(dtype='object',index=all_dates.index) # pd.DataFrame(None,columns =['date','ratio'])
+    sratio = pd.Series(None,index=all_dates.index,dtype='object') # pd.DataFrame(None,columns =['date','ratio'])
     print(all_dates)
     sratio = ratio.stack()
     #CFR['ratio'] = ratio.stack()
     #CFR['date'] = all_dates
     #sratio.index = all_dates
     print(sratio)
+    sratio = sratio.dropna()
     #sratio['date'] = pd.Series(ddate_list).stack()
     #sratio['ratio'] = ratio.stack().values
     print(sratio)
@@ -189,8 +192,9 @@ def CFR_comp(nG=5, w = 14):
 
     ridge_file = 'CFR_ridge.csv'
     with open(ridge_file,'w') as rr:
-    #   line = '{0: d}{1: d}{2: d}\n'.format(nG,w,ndate)
-        line = '# window:\n{0: 5d}\ndate,ratio\n'.format(w)
+        rr.write('# ndate   nG window\n')
+        line = '{0: 7d}{1: 5d}{2: 7d}\n'.format(ndate,nG,w)
+    #    line = '# window:\n{0: 5d}\ndate,ratio\n'.format(w)
         rr.write(line)
     
         sratio.to_csv(rr,header=False)
@@ -292,6 +296,6 @@ print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
 #_NOT_CFR_comp(3)
-CFR_comp(nG=300, w = 23)
+CFR_comp(nG=30, w = 23)
 #plot_CFR_ridge('CFR_ridge.csv')
 
