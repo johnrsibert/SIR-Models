@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
+import math
 
 def make_date_axis(ax, first_prev_date = None):
     if (first_prev_date is None):
@@ -73,18 +74,26 @@ def mark_ends(ax,x,y,label,end='b',spacer=' '):
 #   print('len(ax.get_lines())',len(ax.get_lines()))
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
+    mark = None
 #   print('color, alpha:',c,a)
     if ( (end =='l') | (end == 'b') ):
-        mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',
-                      fontsize=8, color=c) #,alpha=a)
+        if (math.isfinite(x[0]) and math.isfinite(y[0])):
+            mark = ax.text(x[0],y[0],label+spacer,ha='right',va='center',
+                           fontsize=8, color=c) #,alpha=a)
+        else:
+            print('Unable to mark left end for',(x[0],y[0]))
 
     if ( (end =='r') | (end == 'b') ):
         i = len(x)-1
-        mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',
-                       fontsize=8, color=c) #,alpha=a)
+        if (math.isfinite(x[i]) and math.isfinite(y[i])):
+            mark = ax.text(x[i],y[i],spacer+label,ha='left',va='center',
+                           fontsize=8, color=c) #,alpha=a)
+        else:
+            print('Unable to mark right end for',(x[i],y[i]))
 
                       # Set the alpha value used for blending
-    mark.set_alpha(a) # not supported on all backends
+    if mark is not None:
+        mark.set_alpha(a) # not supported on all backends
 
 def add_superspreader_events(Date,adc,ax):
     sslag = 14
