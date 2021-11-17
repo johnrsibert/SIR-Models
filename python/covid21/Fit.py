@@ -269,9 +269,10 @@ class Fit(GG.Geography):
         ax[0].set_ylabel('Empirical CMR')
         ax[1].set_ylabel('Estimated CMR')
         ax[2].set_ylabel(r'$\mu\ (da^{-1})$')
+        firstDate = mdates.date2num(cv.FirstNYTDate)
  
         for a in range(0,len(ax)):
-            self.make_date_axis(ax[a])
+            self.make_date_axis(ax[a],firstDate)
     
         Date0 = self.get_metadata_item('Date0')
         Date0 = datetime.strptime(Date0,'%Y-%m-%d')
@@ -351,6 +352,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
     print('date range:',d1,d2)
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+    firstDate = mdates.date2num(cv.FirstNYTDate)
 
     if (len(fit_files) < 1):
         suffix = '_g'
@@ -366,7 +368,7 @@ def make_rate_plots(yvarname = 'logbeta',ext = '.RData', fit_files = [],
     #   print(i,ff)
         fit = Fit(ff)
         if (i == 0):
-            GU.make_date_axis(ax)
+            GU.make_date_axis(ax,firstDate)
             ax.set_ylabel(ylabel)
        
         pdate = []
