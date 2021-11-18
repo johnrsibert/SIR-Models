@@ -817,11 +817,11 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #FF.make_fit_table(path='obs_error')
 #FF.make_fit_table(model_name = 'rrSIR')
 
-#tfit = FF.Fit(cv.fit_path+'Los_AngelesCA.RData')
+#tfit = FF.Fit(cv.fit_path+'AlamedaCA.RData')
 #tfit.plot(save=True,logscale=True,show_doubling_time=True)
 #FF.make_rate_plots('logbeta',show_doubling_time = True,save=True)
 #FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
-#                   fit_files=['Los_AngelesCA','New_York_CityNY'])
+#                    fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 

@@ -121,6 +121,56 @@ def CF_xcorr(nG=5,max_lag=21):
         
 #    print(rs)
 #    print(ds)    
+
+'''
+https://stackoverflow.com/questions/33171413/cross-correlation-time-lag-correlation-with-pandas
+
+
+
+53
+
+As far as I can tell, there isn't a built in method that does exactly what you are asking. But if you look at the source code for the pandas Series method autocorr, you can see you've got the right idea:
+
+def autocorr(self, lag=1):
+    """
+    Lag-N autocorrelation
+
+    Parameters
+    ----------
+    lag : int, default 1
+        Number of lags to apply before performing autocorrelation.
+
+    Returns
+    -------
+    autocorr : float
+    """
+    return self.corr(self.shift(lag))
+
+So a simple timelagged cross covariance function would be
+
+def crosscorr(datax, datay, lag=0):
+    """ Lag-N cross correlation. 
+    Parameters
+    ----------
+    lag : int, default 0
+    datax, datay : pandas.Series objects of equal length
+
+    Returns
+    ----------
+    crosscorr : float
+    """
+    return datax.corr(datay.shift(lag))
+
+Then if you wanted to look at the cross correlations at each month, you could do
+
+ xcov_monthly = [crosscorr(datax, datay, lag=i) for i in range(12)]
+
+
+
+'''
+
+
+
         
 
 
