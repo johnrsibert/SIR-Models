@@ -97,7 +97,7 @@ def plot_vax():
     vax = pd.read_csv('vax.csv')   
     print(vax)
     
-    fig, ax = plt.subplots(2,1,figsize=(6.5,6.0))
+    fig, ax = plt.subplots(3,1,figsize=(6.5,9.0))
  #   firstDate = datetime.strptime(vax['date'][0],'%Y-%m-%d')
     print(vax['date'][0]) #,firstDate)
     for a in ax:
@@ -132,6 +132,32 @@ def plot_vax():
     GU.mark_ends(ax[1],mdate[1:],dfull, ' Full','r')
     ax[1].set_ylabel('Vaccinations per day')
     
+    tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
+    tgeog.read_nyt_data('county')
+    #tgeog.print_metadata()
+    #tgeog.print_data()
+    #tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,per_capita=True,show_order_date = True)
+    #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
+    #        per_capita=True,show_order_date = True,cumulative = True)
+    #print(tgeog.date)
+    #print(tgeog.cases)
+    gdf = tgeog.to_DataFrame()
+    print(gdf)
+    
+    ax[2].plot(gdf.pdate,gdf.cases,linewidth=2)
+    GU.mark_ends(ax[2],gdf.pdate,gdf.cases,'C','r')
+    ax[2].set_ylabel('Cases')
+    ax[2].set_ylim(0.0,1.1*gdf.cases.max())
+    
+    ax2 = ax[2].twinx()
+    ax2.plot(gdf.pdate,gdf.deaths,linewidth=2,c='r')
+    GU.mark_ends(ax2,gdf.pdate,gdf.deaths,'D','r')
+    ax2.set_ylabel('Deaths')
+    #ax[1].set.ylim(0,1.5e6)
+    ax2.set_ylim(0.0,0.02*ax[2].get_ylim()[1])
+    #ax2_lim = ax[2].get_ylim()
+    #print(ax2_lim)
+    #ax2.set_ylim(ax2_lim[0], 0.02*ax2_lim[1])
     fig.show()
     
     
