@@ -25,7 +25,7 @@ import matplotlib.dates as mdates
 #from matplotlib import rc
 import numpy as np
 #import os
-#import sys
+import sys
 #import pyreadr
 #from io import StringIO 
 #from io import BytesIO
@@ -197,7 +197,7 @@ def get_cdc_dat(update=False):
     udates = pd.Series(raw_data['date'].unique())
     print('udates:')
     print(udates)
-
+    
     NYC_data = pd.DataFrame(columns=['date','fips','county','code','first','full'])
     NYC_data['date'] = udates
     #NYC_data['fips'] = 36999
@@ -211,19 +211,40 @@ def get_cdc_dat(update=False):
     NYC_fips = [36005,36047,36061,36081,36085]
     
     for k,d in enumerate(udates):
-        print(k,d)
+    #    print(k,d)
         udmask = raw_data['date'] == d
         for f in NYC_fips:
             fipsmask = raw_data['fips'] == f
             gmask = udmask & fipsmask
+            '''
             try:
                 NYC_data.loc[k,'first'] += float(raw_data[gmask]['administered_dose1_recip'])
                 NYC_data.loc[k,'full'] += float(raw_data[gmask]['series_complete_yes'])
             except Exception as exception:
                 print('NYC_data assignment filed for',(d,f))
                 print('    Exception:',exception.__class__.__name__)
-                print('    True values in gmask =',gmask.value_counts()[1])
-
+                print('   ',True,'values in gmask =',gmask.value_counts()[1])
+            '''
+          
+            if gmask.value_counts()[1] <= 1:
+                NYC_data.loc[k,'first'] += float(raw_data.loc[gmask,'administered_dose1_recip'])
+                NYC_data.loc[k,'full'] += float(raw_data.loc[gmask,'series_complete_yes'])
+            #    print(raw_data.loc[gmask,['fips']])
+            else:
+                print('duplicate (date,fips) combination at',(d,f))
+                print('   ',True,'values in gmask =',gmask.value_counts()[1])
+                dupes = raw_data[gmask]
+                print('    duplicates:',dupes.index)
+                d0 = dupes.index[0]
+      
+                try:
+                    NYC_data.loc[k,'first'] += float(dupes.loc[d0,'administered_dose1_recip'])
+                    NYC_data.loc[k,'full']  += float(raw_data.loc[d0,'series_complete_yes'])
+                except Exception as exception:
+                    print('NYC_data assignment filed for',(d,f,d0))
+                    print('    Exception:',exception.__class__.__name__)
+                    print(dupes.loc[d0])
+                        
     print(NYC_data)
     
     vax=pd.DataFrame()
