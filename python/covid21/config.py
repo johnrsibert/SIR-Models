@@ -18,6 +18,8 @@ NYT_counties = NYT_home + 'us-counties.csv'
 NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
 
+CDC_home = '/home/other/CDC-data/'
+
 cv_home  = '/home/jsibert/Projects/SIR-Models/'
 Jon_path ='/home/jsibert/Projects/JonzPandemic/'
 GeoIndexPath = cv_home+'GeogIndex.csv'

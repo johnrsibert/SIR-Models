@@ -825,7 +825,7 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything(do_fits=False)
+#update_everything()#do_fits=False)
 #update_html()
 #git_commit_push()
 
@@ -838,6 +838,6 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 
 
 #update_shared_plots()
-#qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
-#GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=True, signature=True)
+#qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
+#GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)
 #update_assets()

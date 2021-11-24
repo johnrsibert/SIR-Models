@@ -54,11 +54,11 @@ def CFR_comp(nG=5, w = 14):
         k += 1
 #   d1 = cv.nyt_county_dat['date'].iloc[k] # first death
 
-    d1 = '2021-06-12'
-    d2 = '2021-06-18'
+#    d1 = '2021-06-12'
+#    d2 = '2021-06-18'
 
-#    d1 = '2020-04-01' # avoid axis label on 2020-02-29
-#    d2 = cv.nyt_county_dat['date'].iloc[-1] # last record
+    d1 = '2020-04-01' # avoid axis label on 2020-02-29
+    d2 = cv.nyt_county_dat['date'].iloc[-1] # last record
     date_list = pd.DatetimeIndex(pd.date_range(d1,d2),freq='D')
     print(len(date_list),date_list)
     ddate_list = date_list[1:]
@@ -325,7 +325,7 @@ print('matplotib:',matplotlib.__version__)
 
 #_NOT_CFR_comp(3)
 
-CFR_comp(nG=30, w = 23)
+#CFR_comp(nG=1000, w = 23)
 
 plot_CFR_ridge('CFR_ridge.csv')
 
