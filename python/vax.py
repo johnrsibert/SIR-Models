@@ -197,7 +197,71 @@ def get_cdc_dat(update=False):
     udates = pd.Series(raw_data['date'].unique())
     print('udates:')
     print(udates)
+    vax_len = len(raw_data)+len(udates)
+    print(vax_len,len(raw_data),len(udates))
     
+    vax=pd.DataFrame(index=np.arange(0,vax_len),
+                     columns = ['date','county','code','fips','first','full'])
+    vax['date'] = raw_data['date']
+    vax['county'] = raw_data['recip_county']
+    vax['code'] = raw_data['recip_state']
+    vax['fips'] = raw_data['fips']
+    vax['first'] = raw_data['administered_dose1_recip']
+    vax['full'] = raw_data['series_complete_yes']
+
+    print(vax)
+    
+    NYC_fips = [36005,36047,36061,36081,36085]
+    
+    k = len(raw_data)-1
+    #for u,d in enumerate(udates):
+    for d in udates:
+        k += 1
+    #    print(k,d)
+        vax.loc[k,'date'] = d
+        vax.loc[k,'fips'] = 36999
+        vax.loc[k,'county'] = 'New York City'
+        vax.loc[k,'code'] = 'NY'
+        vax.loc[k,'first'] = 0.0
+        vax.loc[k,'full'] = 0.0
+        
+        udmask = raw_data['date'] == d
+        for f in NYC_fips:
+            fipsmask = raw_data['fips'] == f
+            gmask = udmask & fipsmask
+                   
+            if gmask.value_counts()[1] <= 1:
+                vax.loc[k,'first'] += float(raw_data.loc[gmask,'administered_dose1_recip'])
+                vax.loc[k,'full'] += float(raw_data.loc[gmask,'series_complete_yes'])
+            #    print(raw_data.loc[gmask,['fips']])
+            else:
+                print('duplicate (date,fips) combination at',(d,f))
+                print('   ',True,'values in gmask =',gmask.value_counts()[1])
+                dupes = raw_data[gmask]
+                print('    duplicates:',dupes.index)
+                d0 = dupes.index[0]
+      
+                try:
+                    vax.loc[k,'first'] += float(dupes.loc[d0,'administered_dose1_recip'])
+                    vax.loc[k,'full']  += float(raw_data.loc[d0,'series_complete_yes'])
+                except Exception as exception:
+                    print('vax assignment filed for',(d,f,d0))
+                    print('    Exception:',exception.__class__.__name__)
+                    print(dupes.loc[d0])
+
+    
+    print(vax)
+    
+    print('sorting by date')
+    vax = vax.sort_values(by='date',ascending=True)
+    print(vax)
+    
+    
+    vax_name =  cv.CDC_home + 'vax.csv'
+    vax.to_csv(vax_name,header=True,index=False)
+    print('Augmented vax data written to',vax_name)
+    
+    '''
     NYC_data = pd.DataFrame(columns=['date','fips','county','code','first','full'])
     NYC_data['date'] = udates
     #NYC_data['fips'] = 36999
@@ -216,16 +280,7 @@ def get_cdc_dat(update=False):
         for f in NYC_fips:
             fipsmask = raw_data['fips'] == f
             gmask = udmask & fipsmask
-            '''
-            try:
-                NYC_data.loc[k,'first'] += float(raw_data[gmask]['administered_dose1_recip'])
-                NYC_data.loc[k,'full'] += float(raw_data[gmask]['series_complete_yes'])
-            except Exception as exception:
-                print('NYC_data assignment filed for',(d,f))
-                print('    Exception:',exception.__class__.__name__)
-                print('   ',True,'values in gmask =',gmask.value_counts()[1])
-            '''
-          
+                   
             if gmask.value_counts()[1] <= 1:
                 NYC_data.loc[k,'first'] += float(raw_data.loc[gmask,'administered_dose1_recip'])
                 NYC_data.loc[k,'full'] += float(raw_data.loc[gmask,'series_complete_yes'])
@@ -246,7 +301,7 @@ def get_cdc_dat(update=False):
                     print(dupes.loc[d0])
                         
     print(NYC_data)
-    
+     
     vax=pd.DataFrame()
     vax['date'] = raw_data['date']
     vax['county'] = raw_data['recip_county']
@@ -256,7 +311,8 @@ def get_cdc_dat(update=False):
     vax['full'] = raw_data['series_complete_yes']
 
     print(vax)
-      
+    '''
+     
   
     
     
