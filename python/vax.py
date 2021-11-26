@@ -98,7 +98,7 @@ def read_vax():
     vax.to_csv('vax.csv',header=True,index=False)
     print('saved vax.csv')
     
-def plot_vax():
+def NOT_plot_vax():
     vax = pd.read_csv('vax.csv')   
     print(vax)
     
@@ -313,11 +313,50 @@ def get_cdc_dat(update=False):
     print(vax)
     '''
      
+def plot_vax(name='New York City',enclosed_by='New York',code='NY'):
+
+    vax_name =  cv.CDC_home + 'vax.csv'
+    vax = pd.read_csv(vax_name,header=0,comment='#')
+    print('Vax data written from',vax_name)
+        
+    print(vax.tail())
+    
+ #   fig, ax = plt.subplots(3,1,figsize=(6.5,9.0))
+ #   firstDate = datetime.strptime(vax['date'][0],'%Y-%m-%d')
+ #   print(vax['date'][0]) #,firstDate)
+ #   for a in ax:
+ #       GU.make_date_axis(a)#,cv.FirstNYTDate)#,firstDate)
+        
+    tgeog = GG.Geography(name=name,enclosed_by=enclosed_by,code=code)
+    tgeog.read_nyt_data('county')
+    tgeog.print_metadata()
   
+    pop = tgeog.population
+    fips = tgeog.fips
+    mult = 100.0  
+    print(tgeog.moniker, fips, pop, mult)
     
+    fmask = vax['fips'] == fips   
+    mdate = pd.Series(mdates.date2num(vax['date'][fmask]))
+    print(mdate)
+    print(vax[fmask])
+    pv = mult*pd.Series(vax['first'][fmask])/pop
+    print(pv.tail())
+         
+    fig, ax = plt.subplots(1,1,figsize=(6.5,3.0))
+    #firstDate = datetime.strptime(vax['date'][0],'%Y-%m-%d')
+    print(vax['date'][0]) #,firstDate)
+    GU.make_date_axis(ax)#,cv.FirstNYTDate)#,firstDate)
+    ax.plot(mdate,pv)
+    ax.set_ylabel('Vaccinations (%)')
     
-    
+    title = tgeog.name + ', ' + tgeog.enclosed_by
+    fig.text(0.5,0.9,title,ha='center',va='bottom')
+
+    fig.show()    
     
 #read_NYC_data()
 #plot_NYC_data()
-get_cdc_dat()#True)
+#get_cdc_dat()#True)
+plot_vax(name='Alameda',enclosed_by='California',code='CA')
+#(name='Alameda',enclosed_by='California',code='CA'

@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
+import sys
 import re
 from cycler import cycler
 import scipy.stats as stats
@@ -21,6 +22,7 @@ class Geography:
         self.enclosed_by = kwargs.get('enclosed_by')
         self.code = kwargs.get('code')
         self.population = None
+        self.fips = None
         self.source = None
         if self.name is None:
             self.moniker = None
@@ -51,6 +53,7 @@ class Geography:
         print('gname:',self.name)
         print('genclosed_by:',self.enclosed_by)
         print('gcode:',self.code)
+        print('fips:',self.fips)
         print('gpopulation:',self.population)
         print('gsource:',self.source)
         print('gmoniker:',self.moniker)
@@ -107,6 +110,9 @@ class Geography:
             print('get_county_pop() failed for:')
             print(self.name, self.enclosed_by,self.code) 
             population = 1
+        
+        self.fips = int(pd.to_numeric(dat[County_rows]['fips'].values))
+        
         return(population)   
         
     def read_nyt_data(self,gtype='county'):
