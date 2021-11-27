@@ -43,6 +43,7 @@ class Geography:
         self.cases = None
         self.deaths = None
         self.pdate = None # date for plotting on x-axis
+        self.vax = None
         
     def print(self):
         print(self)
@@ -151,6 +152,11 @@ class Geography:
         self.ntime = len(self.date)
         self.source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
         
+    def read_vax_data(self):
+        vax_name =  cv.CDC_home + 'vax.csv'
+        self.vax = pd.read_csv(vax_name,header=0,comment='#')
+        print('Vax data read from',vax_name)
+        
     def write_dat_file(self):
         print(len(self.date),'records found for',self.name,self.enclosed_by)
         O = open(self.dat_file,'w')
@@ -227,6 +233,8 @@ class Geography:
 
         if (self.deaths is None):
             nax = 1
+    #    elif (self.vax is None):
+    #        nax = 3
     
     #   ax = [None]*nax
         fig, pax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
@@ -236,7 +244,7 @@ class Geography:
         else:
             ax=pax
 
-        ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+        ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio','Vaccinations (%)']
         end_marks = [r'$\Sigma$C','$\Sigma$D',''] # indicate cumulatives
         total_names = ['Cases','Deaths','']
         totals=[0]*3
@@ -269,15 +277,9 @@ class Geography:
 
         ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
                 (0.0,1.2*gdf.iloc[:,1].max()),
-                (0.0,1.2*gdf.iloc[:,2].max())]
-
-        nn = self.ntime-1
-        max_cases = cases[nn]
-        if (self.deaths is None):
-            max_deaths = 0.0
-        else:
-            max_deaths = deaths[nn]
-
+                (0.0,1.2*gdf.iloc[:,2].max()),
+                (0.0,100.0)]
+        
         ax2 = []
         for a in range(0,nax):
             GU.make_date_axis(ax[a],firstDate)
@@ -291,6 +293,7 @@ class Geography:
         Date = pd.Series(self.get_pdate())
 
         for a in range(0,nax):
+            print(a)
             if (a < 2):
                 delta = np.diff(gdf.iloc[:,a]) #cases)
                 ax[a].bar(Date[1:], delta)
@@ -318,10 +321,25 @@ class Geography:
                     GU.mark_ends(ax2[a],Date,gdf.iloc[:,a] ,end_marks[a],'r')
                     ax2[a].set_ylim(0.0,1.2*gdf.iloc[-1,a])
 
-            else:
+            elif a == 2:
                 ax[a].plot(Date,gdf.iloc[:,a]) 
                 ax[a].set_ylim(ylim[a])
-
+                
+            elif a == 3:
+                vmult = 100.0
+                fmask = self.vax['fips'] == self.fips   
+                #mdate = pd.Series(mdates.date2num(self.vax['date'][fmask]))
+                mdate = cv.cdc_vax_dat['mdate'][fmask]
+                pv = vmult*pd.Series(self.vax['first'][fmask])/self.population
+                ax[a].plot(mdate,pv)
+                GU.mark_ends(ax[a],mdate,pv,'first','r')
+                
+                pv = vmult*pd.Series(self.vax['full'][fmask])/self.population
+                ax[a].plot(mdate,pv)
+                GU.mark_ends(ax[a],mdate,pv,' full','r')
+                
+                ax[a].set_ylim(ylim[a])
+               
             if show_order_date:
                 GU.add_order_date(ax[a])
 

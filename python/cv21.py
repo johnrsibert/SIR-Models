@@ -789,14 +789,17 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #tgeog = GG.Geography(name='Hennepin',enclosed_by='Minnesota',code='MN')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
-#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
+tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
-#tgeog.read_nyt_data('county')
+tgeog.read_nyt_data('county')
+tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,per_capita=True,show_order_date = True)
+tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
+                      per_capita=True,show_order_date = False, nax = 4)
 
-#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
+#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
+#                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
 
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()

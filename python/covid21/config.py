@@ -19,6 +19,7 @@ NYT_states = NYT_home + 'us-states.csv'
 NYT_us = NYT_home + 'us.csv'
 
 CDC_home = '/home/other/CDC-data/'
+CDC_vax = CDC_home + 'vax.csv'
 
 cv_home  = '/home/jsibert/Projects/SIR-Models/'
 Jon_path ='/home/jsibert/Projects/JonzPandemic/'
@@ -55,6 +56,8 @@ nyt_county_dat = pd.read_csv(NYT_counties,header=0)
 #print(nyt_county_dat.head())
 nyt_state_dat = pd.read_csv(NYT_states,header=0)
 #print(nyt_state_dat)
+cdc_vax_dat = pd.read_csv(CDC_vax,header=0)
+#print(cdc_vax_dat.tail())
 
 eps = 1e-5
  

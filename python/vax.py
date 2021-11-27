@@ -201,7 +201,7 @@ def get_cdc_dat(update=False):
     print(vax_len,len(raw_data),len(udates))
     
     vax=pd.DataFrame(index=np.arange(0,vax_len),
-                     columns = ['date','county','code','fips','first','full'])
+                     columns = ['date','mdate','county','code','fips','first','full'])
     vax['date'] = raw_data['date']
     vax['county'] = raw_data['recip_county']
     vax['code'] = raw_data['recip_state']
@@ -250,6 +250,7 @@ def get_cdc_dat(update=False):
                     print(dupes.loc[d0])
 
     
+    vax['mdate'] = pd.Series(mdates.date2num(vax['date']))
     print(vax)
     
     print('sorting by date')
@@ -317,7 +318,7 @@ def plot_vax(name='New York City',enclosed_by='New York',code='NY'):
 
     vax_name =  cv.CDC_home + 'vax.csv'
     vax = pd.read_csv(vax_name,header=0,comment='#')
-    print('Vax data written from',vax_name)
+    print('Vax data read from',vax_name)
         
     print(vax.tail())
     
@@ -358,5 +359,4 @@ def plot_vax(name='New York City',enclosed_by='New York',code='NY'):
 #read_NYC_data()
 #plot_NYC_data()
 #get_cdc_dat()#True)
-plot_vax(name='Alameda',enclosed_by='California',code='CA')
-#(name='Alameda',enclosed_by='California',code='CA'
+#plot_vax(name='Alameda',enclosed_by='California',code='CA')
