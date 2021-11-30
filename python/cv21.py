@@ -10,6 +10,8 @@ from covid21 import Geography as GG
 from covid21 import Fit as FF
 from covid21 import GraphicsUtilities as GU
 from covid21 import CFR
+from covid21 import vax as VV
+
 
 from numpy import errstate,isneginf #,array
 import pandas as pd
@@ -265,14 +267,20 @@ def plot_dow_boxes(nG=5):
   
 def web_update():
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
+    cv.nyt_county_dat = pd.read_csv(cv.NYT_counties,header=0)
+    print('Updated NYT data')
     
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
 #               http://www.bccdc.ca/Health-Info-Site/Documents/
 #                    BCCDC_COVID19_Dashboard_Case_Details.csv
-    cmd = 'wget http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
+    cmd = 'wget -q http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
          ' -O '+cv.cv_home+BC_cases_file
     print(cmd)
     os.system(cmd)
+    print('Updated BC cases')
+    
+    VV.get_cdc_dat(True)
+    print('Updated CDC vax data')
 
 def make_dat_files():
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
@@ -288,7 +296,7 @@ def make_dat_files():
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
-             show_superspreader=False,per_capita=True)
+             show_superspreader=False,per_capita=True,nax = 3)
 
 def update_fits(njob=4):
     save_wd = os.getcwd()
@@ -337,6 +345,8 @@ def update_shared_plots():
             tmpG.read_BCHA_data('province')
         else:
             tmpG.read_nyt_data('county')
+            tmpG.read_vax_data()
+
 
 #       tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
@@ -789,14 +799,14 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #tgeog = GG.Geography(name='Hennepin',enclosed_by='Minnesota',code='MN')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
-tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
+#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
-tgeog.read_nyt_data('county')
-tgeog.read_vax_data()
+#tgeog.read_nyt_data('county')
+#tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
-tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
-                      per_capita=True,show_order_date = False, nax = 4)
+#tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
+#                      per_capita=True,show_order_date = False, nax = 4)
 
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
@@ -828,7 +838,7 @@ tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
 #FF.make_rate_plots('logmu',save=True)
 #update_assets()
 
-#update_everything()#do_fits=False)
+#update_everything(do_fits=False)
 #update_html()
 #git_commit_push()
 
@@ -839,8 +849,8 @@ tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
 #update_shared_plots()
 #CFR.plot_recent_CFR(save=True)
 
-
-#update_shared_plots()
+#make_dat_files()
+update_shared_plots()
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)
 #update_assets()

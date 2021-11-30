@@ -42,42 +42,6 @@ import numpy as np
 #   os.system(cmd)
 
 # wget https://data.cdc.gov/api/views/8xkx-amqh/rows.csv
-
-def NOT_read_vax():
-    vax_file = '~/Downloads/COVID-19_Vaccinations_in_the_United_States_County.csv'
-    print('reading',vax_file)
-    tvax = pd.read_csv(vax_file,header=0)
-    print(tvax)
-    
-   
-    pdate = pd.to_datetime(tvax['Date'],format ='%m/%d/%Y' )
-#    dat['fips'] = dat['fips'].fillna(0).astype(np.int64)
-    tvax['FIPS'].replace('UNK',np.nan,inplace = True)# = tvax['FIPS'].fillna(0).astype(np.int64)
-    tvax['FIPS'] = tvax['FIPS'].fillna(0).astype(np.int64)
-
-    #tvax['Date'] = pdate
-    #print(tvax)
-    
-   
-    print(tvax.columns)
-
-    vax=pd.DataFrame()#columns=['date','firstjab','full'])
-    
-    vax['date'] = pdate
-    vax['county'] = tvax['Recip_County']
-    vax['code'] = tvax['Recip_State']
-    vax['fips'] = tvax['FIPS']
-
-    vax['first'] = tvax['Administered_Dose1_Recip']
-    vax['full'] = tvax['Series_Complete_Yes']
-    
-    print('sorting by date')
-    vax = vax.sort_values(by='date',ascending=True)
-    print(vax)
-    
-    vax.to_csv('vax.csv',header=True,index=False)
-    print('saved vax.csv')
-    
    
 def get_cdc_dat(update=False):
     vax_file = cv.CDC_home + 'us-vax.csv'
@@ -157,6 +121,8 @@ def get_cdc_dat(update=False):
 
     
     vax['mdate'] = pd.Series(mdates.date2num(vax['date']))
+    vax['fips'] = vax['fips'].fillna(0).astype(np.int64)
+
     print(vax)
     
     print('sorting by date')
@@ -207,5 +173,5 @@ def plot_vax(name='New York City',enclosed_by='New York',code='NY'):
     
 #read_NYC_data()
 #plot_NYC_data()
-#get_cdc_dat(True)
+#get_cdc_dat()#True)
 #plot_vax(name='Alameda',enclosed_by='California',code='CA')

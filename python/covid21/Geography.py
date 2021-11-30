@@ -153,10 +153,13 @@ class Geography:
         self.source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
         
     def read_vax_data(self):
-        vax_name =  cv.CDC_home + 'vax.csv'
-        self.vax = pd.read_csv(vax_name,header=0,comment='#')
-        print('Vax data read from',vax_name)
-        
+        #vax_name =  cv.CDC_home + 'vax.csv'
+        #self.vax = pd.read_csv(vax_name,header=0,comment='#')
+        #print('Vax data read from',vax_name)
+        fips_filter = cv.cdc_vax_dat['fips'] == self.fips
+        self.vax =  cv.cdc_vax_dat[fips_filter]
+        #print(self.vax)
+              
     def write_dat_file(self):
         print(len(self.date),'records found for',self.name,self.enclosed_by)
         O = open(self.dat_file,'w')
@@ -215,7 +218,7 @@ class Geography:
                         show_superspreader = False,
                         low_prev = 0.0, mult = 10000,
                         annotation = True, signature = False, 
-                        save = True, dashboard = False, nax = 3):
+                        save = True, dashboard = False, nax = 4):
         """ 
         Plots cases and deaths vs calendar date 
 
@@ -293,7 +296,6 @@ class Geography:
         Date = pd.Series(self.get_pdate())
 
         for a in range(0,nax):
-            print(a)
             if (a < 2):
                 delta = np.diff(gdf.iloc[:,a]) #cases)
                 ax[a].bar(Date[1:], delta)
@@ -329,12 +331,12 @@ class Geography:
                 vmult = 100.0
                 fmask = self.vax['fips'] == self.fips   
                 #mdate = pd.Series(mdates.date2num(self.vax['date'][fmask]))
-                mdate = cv.cdc_vax_dat['mdate'][fmask]
-                pv = vmult*pd.Series(self.vax['first'][fmask])/self.population
+                mdate = self.vax['mdate']#[fmask]
+                pv = vmult*pd.Series(self.vax['first'])/self.population
                 ax[a].plot(mdate,pv)
                 GU.mark_ends(ax[a],mdate,pv,'first','r')
                 
-                pv = vmult*pd.Series(self.vax['full'][fmask])/self.population
+                pv = vmult*pd.Series(self.vax['full'])/self.population
                 ax[a].plot(mdate,pv)
                 GU.mark_ends(ax[a],mdate,pv,' full','r')
                 
@@ -360,9 +362,10 @@ class Geography:
         if (signature):
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
         if (low_prev > 0.0):
-            ax[0].plot((Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
-                       color='red',linewidth=1.0,linestyle=':')
-            GU.mark_ends(ax[0],(Date.iloc[0],Date.iloc[len(Date)-1]),(low_prev,low_prev),
+            ax[0].plot((Date.iloc[0],Date.iloc[-1]),(low_prev,low_prev),
+                       color='red',linewidth=1.5,linestyle=':')
+            GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                         pd.Series([low_prev,low_prev]),
                          '$P_{05}$','b')
             #            ' p05={:.2f}'.format(low_prev),'r')
 
@@ -372,7 +375,7 @@ class Geography:
         #   out_img.seek(0)  # rewind file
         #   encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
         #   return "data:image/png;base64,{}".format(encoded)
-            gfile = graphics_path+'test.png'
+            gfile = cv.graphics_path+'test.png'
             
             print('saving fig for dash:',gfile)
             plt.savefig(gfile,format='png',dpi=300)
@@ -466,7 +469,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     nG = len(gg)
 
 #   EndOfTime = dtime.date()+timedelta(days=21)
-    oldEndOfTime = cv.EndOfTime
+    #oldEndOfTime = cv.EndOfTime
     cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
 
 
@@ -574,7 +577,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
         plt.show()
 
     
-    cv.EndOfTime = oldEndOfTime = cv.EndOfTime
+    #cv.EndOfTime = oldEndOfTime = cv.EndOfTime
 
 def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
@@ -593,14 +596,14 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
 
     returns quantiles
     """
-    firstDate = mdates.date2num(cv.FirstNYTDate)
-    lastDate  = mdates.date2num(cv.EndOfTime)
-    orderDate = mdates.date2num(cv.CAOrderDate)
+    #firstDate = mdates.date2num(cv.FirstNYTDate)
+    #lastDate  = mdates.date2num(cv.EndOfTime)
+    #orderDate = mdates.date2num(cv.CAOrderDate)
 
     fig, ax = plt.subplots(1,figsize=(6.5,4.5))
     plt.rcParams['lines.linewidth'] = 1.5
 
-    save_path = cv.graphics_path
+    #save_path = cv.graphics_path
 
     nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
 
@@ -637,8 +640,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
             tmpG.read_nyt_data('county')
  
 
-        Date = pd.Series(tmpG.get_pdate())
-        df_correction = np.sqrt(window-1)
+        #Date = pd.Series(tmpG.get_pdate())
+        #df_correction = np.sqrt(window-1)
         recent['county_code'][g] = gg['county'][g] +' '+ gg['code'][g] 
     #   recent['code'][g] = gg['code'][g] 
         recent['fips'][g] = gg['fips'][g] 
