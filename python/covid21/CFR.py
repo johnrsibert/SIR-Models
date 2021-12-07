@@ -263,8 +263,8 @@ def plot_DC_scatter(nG=5, save=False):
     def plot_cmr(a, rr=[2.0]):
         for r in rr:
             rstr = str(r)
-            xr = [0.0]*2
-            yr = [0.0]*2
+            xr = pd.Series([0.0]*2)
+            yr = pd.Series([0.0]*2)
             for i in range(0,len(yr)):
                 xr[i] = a.get_xlim()[i]
                 yr[i] = xr[i]*r/100.0
