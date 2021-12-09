@@ -236,10 +236,7 @@ class Geography:
 
         if (self.deaths is None):
             nax = 1
-    #    elif (self.vax is None):
-    #        nax = 3
-    
-    #   ax = [None]*nax
+   
         fig, pax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
         ax = [None]*nax
         if (nax == 1):
@@ -281,7 +278,7 @@ class Geography:
         ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
                 (0.0,1.2*gdf.iloc[:,1].max()),
                 (0.0,1.2*gdf.iloc[:,2].max()),
-                (0.0,100.0)]
+                (0.0,101.0)]
         
         ax2 = []
         for a in range(0,nax):
@@ -328,22 +325,32 @@ class Geography:
                 ax[a].set_ylim(ylim[a])
                 
             elif a == 3:
-                vmult = 100.0
-                fmask = self.vax['fips'] == self.fips   
-                #mdate = pd.Series(mdates.date2num(self.vax['date'][fmask]))
-                mdate = self.vax['mdate']#[fmask]
-                pv = vmult*pd.Series(self.vax['first'])/self.population
-                ax[a].plot(mdate,pv)
-                GU.mark_ends(ax[a],mdate,pv,'first','r')
-                
-                pv = vmult*pd.Series(self.vax['full'])/self.population
-                ax[a].plot(mdate,pv)
-                GU.mark_ends(ax[a],mdate,pv,' full','r')
-                
                 ax[a].set_ylim(ylim[a])
+                vmult = 100.0
+                mdate = self.vax['mdate']
+                pv = vmult*pd.Series(self.vax['first'])/self.population
+                #print('number of vax estimates',len(pv),', max =',pv.max())
+                #print(pv)
+                if pv.max() > 1.0:
+                    ax[a].plot(mdate,pv)
+                    GU.mark_ends(ax[a],mdate,pv,'first','r')
+                
+                    pv = vmult*pd.Series(self.vax['full'])/self.population
+                    ax[a].plot(mdate,pv)
+                    GU.mark_ends(ax[a],mdate,pv,' full','r')
+                
+                    
                
-            if show_order_date:
-                GU.add_order_date(ax[a])
+                    if show_order_date:
+                        GU.add_order_date(ax[a])
+                else:
+                    print('number of vax estimates',len(pv),', max =',pv.max())
+                #    tx = mdate.iloc[0] + 0.5*(mdate.iloc[-1]-mdate.iloc[0])
+                    tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
+                    ty = 50.0
+                    #print(mdate)
+                    #print(tx,ty)
+                    ax[a].text(tx,ty,'Insufficient Data',ha='right',va='center',fontsize=14)
 
         if ((yscale == 'log') & (plot_dt) & (cumulative) ):
             # this is a bad idea
@@ -411,6 +418,8 @@ class Geography:
 
         plt.show()
 
+# end of class Geography:
+    
 
 def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
@@ -432,10 +441,9 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     annotations: add title and acknowledgements True
     save : save plot as file
     """
-    #FirstNYTDate = datetime.strptime('2020-01-21','%Y-%m-%d')
-    #firstDate = mdates.date2num(cv.FirstNYTDate):w
+    firstDate = mdates.date2num(cv.FirstNYTDate)
 
-    firstDate = mdates.date2num(datetime.strptime('2021-07-01','%Y-%m-%d'))
+    #firstDate = mdates.date2num(datetime.strptime('2021-07-01','%Y-%m-%d'))
     lastDate  = mdates.date2num(cv.EndOfTime)
 #   print('GG lastDate:',lastDate)
     orderDate = mdates.date2num(cv.CAOrderDate)
@@ -547,8 +555,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     dexDate = mdates.date2num(cv.DexamethasoneDate)
                     ax[a].axvline(dexDate,linewidth=5,color='lightgreen',alpha=0.1)
 
-                if show_superspreader:
-                    GU.add_superspreader_events(Date,adc,ax[a])
+                #if show_superspreader:
+                #    GU.add_superspreader_events(Date,adc,ax[a])
     
     # loop: for g in range(0,len(gg)):
 
@@ -800,3 +808,4 @@ def pretty_county(s):
     return(pretty.replace('_',' ',5))
 
 
+#plot_prevalence_stats_TS(flag='L',low_prev=0.05,save=False, signature=True)

@@ -1,12 +1,13 @@
 from covid21 import config as cv
 
-from datetime import date, datetime, timedelta
+#from datetime import date, datetime, timedelta
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
-import math
+#import math
 
 def make_date_axis(ax, first_prev_date = None):
     if (first_prev_date is None):
@@ -53,11 +54,11 @@ def plot_dtslopes(ax, xvar, yvar, threshold = 1000, dt = [1,2,4,8]):
     y0 = yvar[k0]
     sl = np.log(2.0)/dt
     xrange = ax.get_xlim()
-    yrange = [25,ax.get_ylim()[1]]
+#    yrange = [25,ax.get_ylim()[1]]
     for i in range(0,len(dt)):
         y = y0 + np.exp(sl[i]*(x0-xrange[0]))
         ax.plot([x0,xrange[1]],[y0,y],color='black',linewidth=1)
-        c = ax.get_lines()[-1].get_color()
+    #    c = ax.get_lines()[-1].get_color()
         mark_ends(ax,xrange,[y0,y],str(dt[i])+' da','r')
     return(ax)
 
@@ -132,7 +133,7 @@ def plot_error(ax,x,y,sdy,logscale=True,mult=2.0):
 
     xy = np.array([x,sdyu])
     xy = np.append(xy,np.array([np.flip(x,0),np.flip(sdyl,0)]),axis=1)
-    xp = np.transpose(xy).shape
+    #xp = np.transpose(xy).shape
     c = ax.get_lines()[-1].get_color()
     sd_region = plt.Polygon(np.transpose(xy), alpha=0.2, facecolor=c,
                             edgecolor=c,lw=0.5)

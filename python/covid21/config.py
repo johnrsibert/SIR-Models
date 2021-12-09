@@ -23,7 +23,8 @@ CDC_vax = CDC_home + 'vax.csv'
 
 cv_home  = '/home/jsibert/Projects/SIR-Models/'
 Jon_path ='/home/jsibert/Projects/JonzPandemic/'
-GeoIndexPath = cv_home+'GeogIndex.csv'
+#GeoIndexPath = cv_home+'GeogIndex.csv'
+GeoIndexPath = cv_home+'GIndex.csv'
 fit_path = cv_home + 'fits/'
 dat_path = cv_home + 'dat/'
 graphics_path = cv_home + 'Graphics/'
@@ -48,8 +49,8 @@ PfizerEUADate = datetime.strptime('2021-01-06','%Y-%m-%d')
 HalfMillionShotDate = datetime.strptime('2021-02-25','%Y-%m-%d')
 IndependenceDay = datetime.strptime('2021-07-04','%Y-%m-%d')
 
+print('Initializing data')
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
-#GeoIndex['fips'] = GeoIndex['fips'].fillna(0).astype(np.int64) 
  
 #print(GeoIndex.head())
 nyt_county_dat = pd.read_csv(NYT_counties,header=0)
@@ -58,6 +59,7 @@ nyt_state_dat = pd.read_csv(NYT_states,header=0)
 #print(nyt_state_dat)
 cdc_vax_dat = pd.read_csv(CDC_vax,header=0)
 #print(cdc_vax_dat.tail())
+print('Data complete')
 
 eps = 1e-5
  

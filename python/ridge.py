@@ -120,6 +120,7 @@ def CFR_comp(nG=5, w = 14):
 #   print(cases)
 #   print(gcols)
     print(len(gcols),len(gcols.unique()))
+
     # compute daily cases and deaths by first differences
     dcases = pd.DataFrame(None,columns=np.arange(0,nG), index = ddate_list)
     ddeaths = pd.DataFrame(None,columns=np.arange(0,nG), index = ddate_list)
@@ -323,9 +324,7 @@ print('python:',sys.version)
 print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
-#_NOT_CFR_comp(3)
-
-#CFR_comp(nG=1000, w = 23)
+CFR_comp(nG=30, w = 23)
 
 plot_CFR_ridge('CFR_ridge.csv')
 

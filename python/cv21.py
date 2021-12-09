@@ -296,7 +296,7 @@ def make_dat_files():
         tmpG.read_nyt_data('county')
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
-             show_superspreader=False,per_capita=True,nax = 3)
+             show_superspreader=False,per_capita=True,nax = 4)
 
 def update_fits(njob=4):
     save_wd = os.getcwd()
@@ -350,7 +350,7 @@ def update_shared_plots():
 
 #       tmpG.read_nyt_data('county')
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=True,per_capita=True,low_prev=quartiles[0.05])
+                             show_order_date=False,per_capita=True,low_prev=quartiles[0.05])
 
     GG.plot_prevalence_comp_TS(flag='m',low_prev=quartiles[0.05],save=True, signature=True)
 
@@ -499,8 +499,8 @@ def update_everything(do_fits = True):
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     print('Finished CFR plots')
-#   GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
-#   GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
+    GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
+    GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
     print('Finished prevealence comp plots')
 
     update_assets()
@@ -784,7 +784,88 @@ def recent_prevalence(min_pop=1000000,mult=10000):
  
     plt.show()
  
-    
+def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=True,
+                    window=7, plot_dt = False, cumulative = False,
+                    show_order_date = False, 
+                    show_superspreader = False,
+                    annotation = True, signature = False, 
+                    ymaxdefault = None,
+                    show_SE = False,
+                    low_prev = 1.0,
+#                   ymax = [None,None,None], #[0.2,0.01,0.04],
+                    save = True,nax=4):
+    """ 
+  
+    """
+    firstDate = '2020-03-01' #mdates.date2num(cv.FirstNYTDate)
+    mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
+#   dtime = datetime.fromtimestamp(mtime)
+    lastDate  = datetime.fromtimestamp(mtime)
+#   print('GG lastDate:',lastDate)
+#    orderDate = mdates.date2num(cv.CAOrderDate)
+    print('GG firstDate,lastDate:',firstDate,lastDate)
+
+
+    #dates = np.arange(firstDate,lastDate,1.0)
+    #print(dates)
+    cdate = pd.Series(np.arange(np.datetime64(firstDate),
+                  np.datetime64(lastDate), np.timedelta64(1, 'D'),
+                  dtype='datetime64[D]'))
+    print(cdate)
+    pdate = pd.Series(mdates.date2num(cdate),dtype=np.int64)
+    #print(pdate)
+    #if 1:
+    #    sys.exit(1)
+        
+    cases = pd.DataFrame(index=pdate,dtype='object')
+    cases['cdate'] = cdate
+    print(cases)
+
+    if 1:
+        sys.exit(1)
+                  
+
+ 
+    nax = 2#3
+    fig, ax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
+    plt.rcParams['lines.linewidth'] = 1.5
+
+    ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+    if (per_capita):
+        for a in range(0,2):
+            ylabel[a] = ylabel[a] +'/'+str(mult)
+    total_names = ['Cases','Deaths','']
+    save_path = cv.graphics_path
+
+    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+
+    if flag.isnumeric():
+        gg_filter = nyt_counties['population'] > float(flag)
+    else:
+        gg_filter = nyt_counties['flag'].str.contains(flag)
+    gg = nyt_counties[gg_filter]
+
+
+    if (ymaxdefault is None):
+        ymax = [0.0]*3
+    else:
+        ymax = ymaxdefault
+
+    nG = len(gg)
+
+#   EndOfTime = dtime.date()+timedelta(days=21)
+    #oldEndOfTime = cv.EndOfTime
+    cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
+
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        if (gg['code'].iloc[g] == 'BC'):
+            tmpG.read_BCHA_data('province')
+        else:
+            tmpG.read_nyt_data('county')    
+   
   
 
    
@@ -801,12 +882,15 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
 #tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
+#tgeog = GG.Geography(name='Honolulu',enclosed_by='Hawaii',code='HI')
+#tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
+#tgeog = GG.Geography(name='San Diego',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
-#                      per_capita=True,show_order_date = False, nax = 4)
+#                      per_capita=True,show_order_date = True, nax = 4)
 
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
@@ -839,18 +923,21 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #update_assets()
 
 #update_everything(do_fits=False)
+#update_assets()
 #update_html()
 #git_commit_push()
 
+#GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='500000',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
-#update_shared_plots()
+update_shared_plots()
+#CFR.plot_recent_CFR(save=True)
+#CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
 
 #make_dat_files()
-update_shared_plots()
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)
 #update_assets()
