@@ -294,6 +294,7 @@ def make_dat_files():
         tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
                          code=gg['code'].iloc[g])
         tmpG.read_nyt_data('county')
+        tmpG.read_vax_data()
         tmpG.write_dat_file()
         tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
              show_superspreader=False,per_capita=True,nax = 4)
@@ -368,9 +369,9 @@ def update_shared_plots():
 def update_assets():
     asset_files=['prevalence_comp_TS_m.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
-                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
-                 'logbeta_summary_g.png','logbeta_summary_2.png','logmu_summary_g.png',
-                 'CFR_quantiles_boxplot.png', 'days_of_week_5.png','days_of_week_1000.png']
+                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png','CFRridge_30_23.png']
+    #             'logbeta_summary_g.png','logbeta_summary_2.png','logmu_summary_g.png',
+    #             'CFR_quantiles_boxplot.png', 'days_of_week_5.png','days_of_week_1000.png']
 
 #   asset_files = ['recent_prevalence_histo_pop.png','prevalence_comp_TS_m.png',
 #                  'logbeta_summary_2.png', 'logbeta_summary_g.png',
@@ -489,15 +490,17 @@ def update_html():
     print('Finished update html table in index.md')
 
 def update_everything(do_fits = True):
-    web_update()
-    print('Finished web_update ...')
-    os.system('rm -v '+ cv.dat_path + '*.dat')
-    make_dat_files()
-    print('Finished make_dat_files()')
-    update_shared_plots()
-    print('Finished update_shared_plots()')
+#   web_update()
+#   print('Finished web_update ...')
+#   os.system('rm -v '+ cv.dat_path + '*.dat')
+#   make_dat_files()
+#   print('Finished make_dat_files()')
+#   update_shared_plots()
+#   print('Finished update_shared_plots()')
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
+    CFR.CFR_comp(nG=30, w = 23)
+    CFR.plot_CFR_ridge('CFR_ridge.csv')
     print('Finished CFR plots')
     GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
     GG.plot_prevalence_comp_histo(flag='500000',window=14,save=True, signature=True)
@@ -923,21 +926,20 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_assets()
 
 #update_everything(do_fits=False)
-#update_assets()
-#update_html()
-#git_commit_push()
+#update_shared_plots()
+update_assets()
+update_html()
+make_dat_files()
+git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='500000',save=True, signature=True)
 #GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, signature=True)
-update_shared_plots()
 #CFR.plot_recent_CFR(save=True)
 #CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
 
-#make_dat_files()
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)
-#update_assets()

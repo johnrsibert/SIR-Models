@@ -215,6 +215,7 @@ def plot_CFR_ridge(CFRfile):
        
         ndate,nG,window = (map(int, line.split()))
         print(ndate, nG, window)
+   
     #   l1 = rr.readline()
     #   date_list = pd.Series(l1.split(None))
     #   print(date_list)
@@ -287,32 +288,19 @@ def plot_CFR_ridge(CFRfile):
                        colormap=cm.Blues_r,
                        normalize = True, floc=None)
 
-    print(type(axes),len(axes),type(axes[0]))#,len(rmax))
-    print('xlim: ',axes[0].get_xlim())
-    print('ylim: ',axes[0].get_ylim())
-    for a, ax in enumerate(axes):
-        ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='orange',linewidth=2.0)
+  #  print(type(axes),len(axes),type(axes[0]))#,len(rmax))
+  #  print('xlim: ',axes[0].get_xlim())
+  #  print('ylim: ',axes[0].get_ylim())
+  #  for a, ax in enumerate(axes):
+  #      ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='orange',linewidth=2.0)
         
-    ax = axes[len(axes)-2]
-    print(ax.get_ylim())
-    ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='black',ls='--',
-                           linewidth=0.5)
-    #axes[len(axes)-1].plot([meanCFR,meanCFR],ax.get_ylim(),c='purple',linewidth=0.5)
-        
+ #   ax = axes[len(axes)-2]
+ #   print(ax.get_ylim())
+ #   ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='black',ls='--',
+  #                         linewidth=0.5)
     
-    #   try:
-    #       print('rmax =',rmax[a],'for axis',a)
-    #       ax.text(rmax[a],ax.get_ylim()[1],str(a),c='red',ha='center')
-    #   except:
-    #       print('axis',a,'out of range for rmax')
-    #   ax.axvline(meanCFR,c='orange',linewidth=0.5)
-    #   ax.text(meanCFR,ax.get_ylim()[1],str(a),c='red',ha='left')
-    #   ax.text(meanCFR,0.25*ax.get_ylim()[1],str(a),c='green',ha='right')
-    #   ax.text(meanCFR,0.50*ax.get_ylim()[1],str(a),c='purple',ha='right')
-    #   axes[a].text(meanCFR,1.0,str(a),c='purple',ha='right')
 
-#   plt.subplots(constrained_layout=True)
-    gfile = 'CFRridgeline.png' 
+    gfile = cv.graphics_path+'CFRridge_{0:d}_{1:d}.png'.format(nG,window) 
     print('saving',gfile)
     plt.savefig(gfile, dpi=300)
     print('ridgeline plot saved as',gfile)
@@ -324,7 +312,7 @@ print('python:',sys.version)
 print('pandas:',pd.__version__)
 print('matplotib:',matplotlib.__version__)
 
-CFR_comp(nG=30, w = 23)
+#CFR_comp(nG=30, w = 23)
 
 plot_CFR_ridge('CFR_ridge.csv')
 

@@ -4,6 +4,7 @@ from covid21 import config as cv
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
@@ -153,18 +154,30 @@ def add_order_date(ax,linewidth=5,alpha=0.5):
     ax.axvline(mdates.date2num(cv.IndependenceDay),color='red', 
               linewidth=linewidth,alpha=alpha)
 
-def add_data_source(fig,source='Multiple sources.'):
-#   if source is None:
-#       source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
-    fig.text(0.0,0.0,' Data source: '+ source , ha='left',va='bottom', fontsize=8)
+def add_data_source(fig,source=None):
+    if source is None:
+        source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
     mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
     dtime = datetime.fromtimestamp(mtime)
-    fig.text(1.0,0.0,'Updated '+str(dtime.date())+' ', ha='right',va='bottom', fontsize=8)
-
+    bottom_note(fig,' Data: '+ source,'Updated '+str(dtime.date())+' ',0)
+       
 def add_signature(fig,url_line):
-    by_line = 'Graphics by John Sibert'
-    fig.text(0.0,0.020,' '+by_line, ha='left',va='bottom', fontsize=8,alpha=0.25)#,color='red')
-    fig.text(1.0,0.020,url_line+' ', ha='right',va='bottom', fontsize=8,alpha=0.25)#,color='red')
+    by_line = 'Graphics: John Sibert'
+    bottom_note(fig,' '+by_line,url_line+' ',1,alpha=0.25)
+    
+def bottom_note(fig, left_note, right_note,line, fontsize=8,alpha=1.0):
+    tx = text_height(fontsize)
+    ym = fig.get_figheight()*72
+    prop = 1.25
+    ht = tx/ym*prop
+    fig.text(0.0,ht*line,left_note, ha='left', va='bottom',fontsize=fontsize,alpha=alpha)
+    fig.text(1.0,ht*line,right_note,ha='right',va='bottom',fontsize=fontsize,alpha=alpha)
+    fig.subplots_adjust(bottom=0.1)
+
+def text_height(size):
+    t = matplotlib.textpath.TextPath((0,0), 'X', size=size, prop='WingDings')
+    bb = t.get_extents()
+    return (bb.get_points()[1][1]-bb.get_points()[0][1])
 
 def prop_scale(lim,prop):
     s = lim[0] + prop*(lim[1]-lim[0])
@@ -177,5 +190,4 @@ def vline(ax, x, label=None, ylim=None, pos='center'):
     c = ax.get_lines()[-1].get_color()
     ax.text(x,ylim[1], label, ha=pos,va='bottom', linespacing=1.8,
             fontsize=8, color=c)
-
-
+    

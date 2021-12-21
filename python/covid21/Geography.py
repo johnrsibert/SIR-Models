@@ -363,11 +363,14 @@ class Geography:
                 gname = 'Region'
             title = 'Covid-19 Prevalence in '+self.name+' '+gname+', '+self.enclosed_by
             fig.text(0.5,1.0,title ,ha='center',va='top')
-            GU.add_data_source(fig,self.source)
+            if (nax < 4):
+                GU.add_data_source(fig,self.source)
+            else:
+                GU.add_data_source(fig,'New York Times and Centers for Disease Control')
 
 
         if (signature):
-            GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+            GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
         if (low_prev > 0.0):
             ax[0].plot((Date.iloc[0],Date.iloc[-1]),(low_prev,low_prev),
                        color='red',linewidth=1.5,linestyle=':')
@@ -460,7 +463,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     total_names = ['Cases','Deaths','']
     save_path = cv.graphics_path
 
-    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+#   nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+    nyt_counties = cv.GeoIndex
 
     if flag.isnumeric():
         gg_filter = nyt_counties['population'] > float(flag)
@@ -489,6 +493,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
             tmpG.read_BCHA_data('province')
         else:
             tmpG.read_nyt_data('county')
+            tmpG.read_vax_data()
  
         do_plot = [True]*3
         if (tmpG.deaths is None):
@@ -571,7 +576,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
         GU.add_data_source(fig, 'Multiple sources')
 
     if (signature):
-        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
         GU.add_data_source(fig)
 
     if save:
@@ -613,7 +618,8 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
 
     #save_path = cv.graphics_path
 
-    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+#   nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
+    nyt_counties = cv.GeoIndex
 
     if flag.isnumeric():
         gg_filter = nyt_counties['population'] > float(flag)
@@ -646,6 +652,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
             tmpG.read_BCHA_data('province')
         else:
             tmpG.read_nyt_data('county')
+            tmpG.read_vax_data()
  
 
         #Date = pd.Series(tmpG.get_pdate())
@@ -676,24 +683,29 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
 
 #   ---- loop: for g in range(0,len(gg)):
     print(recent)
-#   tcases = recent['cases'].sum()*mult
-#   print(tcases)
+    zmask = recent['cases'] > 0.0
 
-    summary = str(stats.describe(recent['cases']))
+#   select records with cases < 0
+    precent = recent[zmask]
+    print(precent)
+
+    summary = str(stats.describe(precent['cases']))
     print('recent summary:',summary)           
 
 #   bins = np.linspace(0.0,0.5,50)
     bins = np.linspace(0.0,5.0,50)
     print('bins:',bins)
     nbin = len(bins)
-    weights = np.ones_like(recent['cases']) / len(recent)
+    #weights = np.ones_like(recent['cases']) / len(recent)
+    weights = np.ones_like(precent['cases']) / len(precent)
 
-    hist,edges,patches = ax.hist(recent['cases'],bins,density=False)
+    #hist,edges,patches = ax.hist(recent['cases'],bins,density=False)
+    hist,edges,patches = ax.hist(precent['cases'],bins,density=False)
     print(hist)
 
 #   sort recent cases
-    recent = recent.sort_values(by='cases',ascending=True)
-    recent.to_csv(file+'.csv',index=False)
+    precent = precent.sort_values(by='cases',ascending=True)
+    precent.to_csv(file+'.csv',index=False)
 
 #   tfig, tax = plt.subplots(1,figsize=(6.5,4.5))
 #   tax.scatter(recent['population'],recent['cases'])
@@ -701,16 +713,16 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
 
 
     table = pd.DataFrame(columns=('rank','county_code','cases'))
-    table['county_code'] = recent['county_code']
-    table['cases'] = recent['cases']
-    table['rank'] = range(0,nG)
+    table['county_code'] = precent['county_code']
+    table['cases'] = precent['cases']
+    table['rank'] = range(0,len(precent))
     print('table')
     print(table)
 
     html_file = cv.assets_path+file+'.html' 
     with open(html_file,'w') as hh:
         hh.write('<!--- recent summary\n')
-        hh.write(summary)
+        hh.write(summary) 
         hh.write('\n--->\n')
          
         tab = pd.DataFrame(columns=table.columns,dtype='object')
@@ -735,15 +747,16 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
         print('prevalence rankings saved as',html_file)
     
 
-    pref = np.quantile(recent['cases'],q=0.05)
-    t_filter = (recent['cases'] <= pref) & (recent['cases'] >= 0.0)
-    tt = recent[t_filter]
+    pref = np.quantile(precent['cases'],q=0.05)
+    t_filter = (precent['cases'] <= pref) & (precent['cases'] >= 0.0)
+    tt = precent[t_filter]
 
     print('quantiles:')     
     qq = [0.01,0.05,0.10,0.9,0.95,0.99]
     quantiles = pd.Series(index=qq)
+
     for q in qq:
-        quantiles[q] = np.quantile(recent['cases'],q=q)
+        quantiles[q] = np.quantile(precent['cases'],q=q)
     print(quantiles)
    
 
@@ -770,7 +783,7 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
 
  
     if (signature):
-        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models/tree/master/PlotsToShare')
+        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
         GU.add_data_source(fig)
 
     if save:
