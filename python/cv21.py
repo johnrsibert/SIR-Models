@@ -917,10 +917,10 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
 #                    fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
-#update_assets()
+update_assets()
 
 #update_everything(do_fits=False)
-update_shared_plots()
+#update_shared_plots()
 #update_assets()
 #update_html()
 #make_dat_files()
