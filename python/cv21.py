@@ -283,8 +283,7 @@ def web_update():
     print('Updated CDC vax data')
 
 def make_dat_files():
-    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
-#   gg_filter = nyt_counties['flag'] == 1
+    nyt_counties = cv.GeoIndex # pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
     gg_filter = nyt_counties['flag'].str.contains('m')
     gg = nyt_counties[gg_filter]
     print(gg)
@@ -296,10 +295,13 @@ def make_dat_files():
         tmpG.read_nyt_data('county')
         tmpG.read_vax_data()
         tmpG.write_dat_file()
-        tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
-             show_superspreader=False,per_capita=True,nax = 4)
+     #  tmpG.plot_prevalence(save=True,cumulative=False, show_order_date=False,
+     #      show_superspreader=False,per_capita=True,nax = 4)
 
 def update_fits(njob=4):
+    
+    make_dat_files()    
+    
     save_wd = os.getcwd()
     print('save:',save_wd)
     print(cv.TMB_path)
@@ -320,24 +322,25 @@ def update_fits(njob=4):
     print('Finished',cmd)
     os.chdir(save_wd)
     print('current',os.getcwd())
-
-def update_shared_plots():
+    
+def make_prevalence_plots(flags = ['m']):
     quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=15,save=True, 
                                               signature=True)
     print('precalence quartiles:',type(quartiles))
     print(quartiles)
     print('q[0.05] =',quartiles[0.05])
-    update_html()
-
-    nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
-    gg_filter = nyt_counties['flag'].str.contains('s')
-#   print(gg_filter)
+    
+    nyt_counties = cv.GeoIndex
+    # get rid of blank flag fields
+    nyt_counties = nyt_counties[ nyt_counties['flag'] != ' ']
+    
+    gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
+    # 'or' the flags with the flag field
+    for f in flags:
+        gg_filter = gg_filter | nyt_counties['flag'].str.contains(f)
+        
     gg = nyt_counties[gg_filter]
-    print('gg:')
-    print(gg)
-    save_path = cv.graphics_path
-    cv.graphics_path = cv.cv_home+'PlotsToShare/'
-    plt.rc('figure', max_open_warning = 0)
+    
     for g in range(0,len(gg)):
         print(gg['county'].iloc[g])
         tmpG = GG.Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
@@ -347,45 +350,36 @@ def update_shared_plots():
         else:
             tmpG.read_nyt_data('county')
             tmpG.read_vax_data()
-
-
-#       tmpG.read_nyt_data('county')
+            
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
                              show_order_date=False,per_capita=True,low_prev=quartiles[0.05])
-
-    GG.plot_prevalence_comp_TS(flag='m',low_prev=quartiles[0.05],save=True, signature=True)
-
-#   tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-#   tmpG.read_BCHA_data()
-#   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-#                        show_order_date=False)
-
-
-    cv.graphics_path = save_path
-
-#   os.system('git commit ~/Projects/SIR-Models/PlotsToShare/\*.png -m "Update PlotsToShare"')
-#   os.system('git push')
-
+   
+def update_shared_plots():
+    
+    shared_plots = ['AlamedaCA_prevalence.png','District_of_ColumbiaDC_prevalence.png', 
+                    'FairfaxVA_prevalence.png','HonoluluHI_prevalence.png',
+                    'Los_AngelesCA_prevalence.png','MarinCA_prevalence.png', 
+                    'MendocinoCA_prevalence.png','MultnomahOR_prevalence.png',
+                    'OtsegoNY_prevalence.png','PinellasFL_prevalence.png',
+                    'PlumasCA_prevalence.png','San_DiegoCA_prevalence.png',
+                    'San_FranciscoCA_prevalence.png','Santa_ClaraCA_prevalence.png',
+                    'SonomaCA_prevalence.png','TompkinsNY_prevalence.png',
+                    'Vancouver_IslandBC_prevalence.png']
+    #'days_of_week_1000.png','days_of_week_5.png','prevalence_comp_TS_m.png', 
+    shared_path = cv.cv_home+'PlotsToShare/'
+    for file in shared_plots:
+        cmd = 'cp -pvf '+ cv.graphics_path+file+' '+ shared_path
+        os.system(cmd)
+  
 def update_assets():
     asset_files=['prevalence_comp_TS_m.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
                  'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png','CFRridge_30_23.png']
-    #             'logbeta_summary_g.png','logbeta_summary_2.png','logmu_summary_g.png',
-    #             'CFR_quantiles_boxplot.png', 'days_of_week_5.png','days_of_week_1000.png']
-
-#   asset_files = ['recent_prevalence_histo_pop.png','prevalence_comp_TS_m.png',
-#                  'logbeta_summary_2.png', 'logbeta_summary_g.png',
-#                  'days_of_week_5.png','days_of_week_1000.png', 
-#                  'CFR_all_0000.png', 'CFR_all_5.png', 'CFR_hist_all_recent.png',
-#                  'logmu_summary_g.png', 'Los_AngelesCA_prevalence.png', 
-#                  'New_York_CityNY_prevalence.png','CFR_quantiles_boxplot.png']
+   
     for file in asset_files:
         cmd = 'cp -pvf '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
-
-#   os.system('git commit ~/Projects/SIR-Models/assets/\*.png -m "Update assets"')
-#   os.system('git push')
-
+'''
 def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
 #   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
     gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
@@ -459,7 +453,7 @@ def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
             
     else:
         plt.show()
-
+'''    
 def update_html():
     index_md = cv.Jon_path+'index.md'
 #   print(index_md)
@@ -926,11 +920,11 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_assets()
 
 #update_everything(do_fits=False)
-#update_shared_plots()
-update_assets()
-update_html()
-make_dat_files()
-git_commit_push()
+update_shared_plots()
+#update_assets()
+#update_html()
+#make_dat_files()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
@@ -940,6 +934,7 @@ git_commit_push()
 #CFR.plot_recent_CFR(save=True)
 #CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
+#make_prevalence_plots(['L','m','s'])
 
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)

@@ -396,9 +396,9 @@ class Geography:
             if save:
                 gfile = cv.graphics_path+self.moniker+'_prevalence.png'
                 plt.savefig(gfile,dpi=300)
-                plt.show(block=False)
-                plt.pause(3)
-                plt.close()
+                #plt.show(block=False)
+                #plt.pause(3)
+                #plt.close()
                 print('plot saved as',gfile)
             else:
                 plt.show()
