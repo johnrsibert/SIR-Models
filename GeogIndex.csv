@@ -1,59 +1,58 @@
 county,state,fips,code,flag,population
-Los Angeles,California,6037,CA,sm,10039107
-New York City,New York,36999,NY,m,8336817
-Cook,Illinois,17031,IL,m,5150233
-Harris,Texas,48201,TX,m,4713325
-Maricopa,Arizona,4013,AZ,m,4485414
+Los Angeles,California,6037,CA,smL,10039107
+New York City,New York,36999,NY,mL,8336817
+Cook,Illinois,17031,IL,mL,5150233
+Harris,Texas,48201,TX,mL,4713325
+Maricopa,Arizona,4013,AZ,mL,4485414
 San Diego,California,6073,CA,sm,3338330
 Orange,California,6059,CA,m,3175692
-#Vancouver Coastal,British Columbia,0,BC,Ss,3151996
-Miami-Dade,Florida,12086,FL,m,2716940
+Miami-Dade,Florida,12086,FL,mL,2716940
 Dallas,Texas,48113,TX,m,2635516
 Riverside,California,6065,CA,m,2470546
-Clark,Nevada,32003,NV,m,2266715
-King,Washington,53033,WA,Cm,2252782
+Clark,Nevada,32003,NV,mL,2266715
+King,Washington,53033,WA,CmL,2252782
 San Bernardino,California,6071,CA,m,2180085
 Tarrant,Texas,48439,TX,m,2102515
 Bexar,Texas,48029,TX,m,2003554
 Broward,Florida,12011,FL,m,1952778
 Santa Clara,California,6085,CA,sm,1927852
-Wayne,Michigan,26163,MI,Cm,1749343
+Wayne,Michigan,26163,MI,CmL,1749343
 Alameda,California,6001,CA,Ssm,1671329
-Middlesex,Massachusetts,25017,MA,m,1611699
-Philadelphia,Pennsylvania,42101,PA,m,1584064
+Middlesex,Massachusetts,25017,MA,mL,1611699
+Philadelphia,Pennsylvania,42101,PA,mL,1584064
 Sacramento,California,6067,CA,m,1552058
 Palm Beach,Florida,12099,FL,m,1496770
 Suffolk,New York,36103,NY,m,1476601
 Hillsborough,Florida,12057,FL,m,1471968
 Orange,Florida,12095,FL,m,1393452
 Nassau,New York,36059,NY,Cm,1356924
-Franklin,Ohio,39049,OH,m,1316756
+Franklin,Ohio,39049,OH,mL,1316756
 Travis,Texas,48453,TX,m,1273954
-Hennepin,Minnesota,27053,MN,Cm,1265843
+Hennepin,Minnesota,27053,MN,CmL,1265843
 Oakland,Michigan,26125,MI, ,1257584
 Cuyahoga,Ohio,39035,OH, ,1235072
 Allegheny,Pennsylvania,42003,PA, ,1216045
-Salt Lake,Utah,49035,UT, ,1160437
-Contra Costa,California,6013,CA, ,1153526
-Fairfax,Virginia,51059,VA,s,1147532
-Wake,North Carolina,37183,NC, ,1111761
+Salt Lake,Utah,49035,UT, L,1160437
+Contra Costa,California,6013,CA, s,1153526
+Fairfax,Virginia,51059,VA,sL,1147532
+Wake,North Carolina,37183,NC, L,1111761
 Mecklenburg,North Carolina,37119,NC, ,1110356
-Fulton,Georgia,13121,GA, ,1063937
-Montgomery,Maryland,24031,MD, ,1050688
+Fulton,Georgia,13121,GA, L,1063937
+Montgomery,Maryland,24031,MD, L,1050688
 Pima,Arizona,4019,AZ, ,1047279
 Collin,Texas,48085,TX, ,1034730
 Fresno,California,6019,CA, ,999101
-St. Louis,Missouri,29189,MO, ,994205
+St. Louis,Missouri,29189,MO, L,994205
 Pinellas,Florida,12103,FL,s,974996
-Honolulu,Hawaii,15003,HI,HSs,974563
+Honolulu,Hawaii,15003,HI,HSsL,974563
 Westchester,New York,36119,NY, ,967506
-Marion,Indiana,18097,IN, ,964582
+Marion,Indiana,18097,IN, L,964582
 Duval,Florida,12031,FL, ,957755
-Milwaukee,Wisconsin,55079,WI, ,945726
-Fairfield,Connecticut,9001,CT, ,943332
-Shelby,Tennessee,47157,TN, ,937166
+Milwaukee,Wisconsin,55079,WI, L,945726
+Fairfield,Connecticut,9001,CT, L,943332
+Shelby,Tennessee,47157,TN, L,937166
 Gwinnett,Georgia,13135,GA, ,936250
-Bergen,New Jersey,34003,NJ, ,932202
+Bergen,New Jersey,34003,NJ, L,932202
 DuPage,Illinois,17043,IL, ,922921
 Erie,New York,36029,NY, ,918702
 Prince George's,Maryland,24033,MD, ,909327
@@ -64,7 +63,6 @@ Denton,Texas,48121,TX, ,887207
 Vancouver Island,British Columbia,0,BC,Ss,881685
 San Francisco,California,6075,CA,s,881549
 Macomb,Michigan,26099,MI, ,873972
-#Vancouver Island,British Columbia,0,BC,Ss,870297
 Hidalgo,Texas,48215,TX, ,868707
 New Haven,Connecticut,9009,CT, ,854757
 Ventura,California,6111,CA, ,846006
@@ -75,51 +73,51 @@ Baltimore,Maryland,24005,MD, ,827370
 Middlesex,New Jersey,34023,NJ, ,825062
 Snohomish,Washington,53061,WA, ,822083
 Hamilton,Ohio,39061,OH, ,817473
-Multnomah,Oregon,41051,OR,s,812855
+Multnomah,Oregon,41051,OR,sL,812855
 Fort Bend,Texas,48157,TX, ,811688
 Suffolk,Massachusetts,25025,MA, ,803907
 Essex,New Jersey,34013,NJ, ,798975
-Oklahoma,Oklahoma,40109,OK, ,797434
+Oklahoma,Oklahoma,40109,OK, L,797434
 Essex,Massachusetts,25009,MA, ,789034
 Lee,Florida,12071,FL, ,770577
-Jefferson,Kentucky,21111,KY, ,766757
-San Mateo,California,6081,CA, ,766573
+Jefferson,Kentucky,21111,KY, L,766757
+San Mateo,California,6081,CA, s,766573
 San Joaquin,California,6077,CA, ,762148
 Cobb,Georgia,13067,GA, ,760141
 DeKalb,Georgia,13089,GA, ,759297
 Monroe,New York,36055,NY, ,741770
-Denver,Colorado,8031,CO, ,727211
+Denver,Colorado,8031,CO, L,727211
 Polk,Florida,12105,FL, ,724777
 El Paso,Colorado,8041,CO, ,720403
 Norfolk,Massachusetts,25021,MA, ,706775
-District of Columbia,District of Columbia,11001,DC,Ss,705749
+District of Columbia,District of Columbia,11001,DC,SsL,705749
 Jackson,Missouri,29095,MO, ,703011
 Lake,Illinois,17097,IL, ,696535
 Davidson,Tennessee,47037,TN, ,694144
 Will,Illinois,17197,IL, ,690743
-Bernalillo,New Mexico,35001,NM, ,679121
+Bernalillo,New Mexico,35001,NM, L,679121
 Hudson,New Jersey,34017,NJ, ,672391
-Jefferson,Alabama,1073,AL, ,658573
+Jefferson,Alabama,1073,AL, L,658573
 Kent,Michigan,26081,MI, ,656955
 Arapahoe,Colorado,8005,CO, ,656590
 Tulsa,Oklahoma,40143,OK, ,651552
-Providence,Rhode Island,44007,RI, ,638931
+Providence,Rhode Island,44007,RI, L,638931
 Utah,Utah,49049,UT, ,636235
 Bucks,Pennsylvania,42017,PA, ,628270
 Monmouth,New Jersey,34025,NJ, ,618795
 Montgomery,Texas,48339,TX, ,607391
 Ocean,New Jersey,34029,NJ, ,607186
-Johnson,Kansas,20091,KS, ,602401
+Johnson,Kansas,20091,KS, L,602401
 Brevard,Florida,12009,FL, ,601942
 Washington,Oregon,41067,OR, ,601592
 Baltimore city,Maryland,24510,MD, ,593490
 Williamson,Texas,48491,TX, ,590551
 Jefferson,Colorado,8059,CO, ,582881
 Anne Arundel,Maryland,24003,MD, ,579234
-Douglas,Nebraska,31055,NE, ,571327
+Douglas,Nebraska,31055,NE, L,571327
 Delaware,Pennsylvania,42045,PA, ,566747
 Bristol,Massachusetts,25005,MA, ,565217
-New Castle,Delaware,10003,DE, ,558753
+New Castle,Delaware,10003,DE, L,558753
 Union,New Jersey,34039,NJ, ,556341
 Pasco,Florida,12101,FL, ,553947
 Volusia,Florida,12127,FL, ,553284
@@ -132,7 +130,7 @@ Guilford,North Carolina,37081,NC, ,537174
 Kane,Illinois,17089,IL, ,532403
 Montgomery,Ohio,39113,OH, ,531687
 Chester,Pennsylvania,42029,PA, ,524989
-Greenville,South Carolina,45045,SC, ,523542
+Greenville,South Carolina,45045,SC, L,523542
 Spokane,Washington,53063,WA, ,522798
 Plymouth,Massachusetts,25023,MA, ,521202
 Adams,Colorado,8001,CO, ,517421
@@ -141,10 +139,10 @@ Camden,New Jersey,34007,NJ, ,506471
 Passaic,New Jersey,34031,NJ, ,501826
 Sonoma,California,6097,CA,s,494336
 Morris,New Jersey,34027,NJ, ,491845
-Polk,Iowa,19153,IA, ,490161
+Polk,Iowa,19153,IA, L,490161
 Clark,Washington,53011,WA, ,488241
 Lake,Indiana,18089,IN, ,485493
-Ada,Idaho,16001,ID, ,481587
+Ada,Idaho,16001,ID, L,481587
 Seminole,Florida,12117,FL, ,471826
 Washoe,Nevada,32031,NV, ,471519
 Prince William,Virginia,51153,VA, ,470335
@@ -158,7 +156,7 @@ York,Pennsylvania,42133,PA, ,449058
 Solano,California,6095,CA, ,447643
 Santa Barbara,California,6083,CA, ,446499
 Burlington,New Jersey,34005,NJ, ,445349
-East Baton Rouge,Louisiana,22033,LA, ,440059
+East Baton Rouge,Louisiana,22033,LA, L,440059
 Monterey,California,6053,CA, ,434061
 Sarasota,Florida,12115,FL, ,433742
 Jefferson,Louisiana,22051,LA, ,432493
@@ -167,7 +165,7 @@ Lucas,Ohio,39095,OH, ,428348
 Cameron,Texas,48061,TX, ,423163
 Berks,Pennsylvania,42011,PA, ,421164
 Clackamas,Oregon,41005,OR, ,418187
-Hillsborough,New Hampshire,33011,NH, ,417025
+Hillsborough,New Hampshire,33011,NH, L,417025
 Richland,South Carolina,45079,SC, ,415759
 Loudoun,Virginia,51107,VA, ,413538
 Mobile,Alabama,1097,AL, ,413210
@@ -177,7 +175,7 @@ Waukesha,Wisconsin,55133,WI, ,404198
 Manatee,Florida,12081,FL, ,403253
 St. Charles,Missouri,29183,MO, ,402022
 Placer,California,6061,CA, ,398329
-Pulaski,Arkansas,5119,AR, ,391911
+Pulaski,Arkansas,5119,AR, L,391911
 Orleans,Louisiana,22071,LA, ,390144
 Orange,New York,36071,NY, ,384940
 Collier,Florida,12021,FL, ,384902
@@ -230,7 +228,7 @@ Albany,New York,36001,NY, ,305506
 Northampton,Pennsylvania,42095,PA, ,305285
 St. Louis city,Missouri,29510,MO, ,300576
 Lexington,South Carolina,45063,SC, ,298750
-Cumberland,Maine,23005,ME, ,295003
+Cumberland,Maine,23005,ME, L,295003
 Dutchess,New York,36027,NY, ,294218
 Leon,Florida,12073,FL, ,293582
 Greene,Missouri,29077,MO, ,293086
@@ -240,7 +238,7 @@ Ottawa,Michigan,26139,MI, ,291830
 Gloucester,New Jersey,34015,NJ, ,291636
 Thurston,Washington,53067,WA, ,290536
 Chatham,Georgia,13051,GA, ,289430
-Anchorage,Alaska,2020,AK, ,288000
+Anchorage,Alaska,2020,AK, L,288000
 Cleveland,Oklahoma,40027,OK, ,284014
 San Luis Obispo,California,6079,CA, ,283111
 Winnebago,Illinois,17201,IL, ,282572
@@ -289,7 +287,7 @@ Henry,Georgia,13151,GA, ,234561
 New Hanover,North Carolina,37129,NC, ,234473
 Sussex,Delaware,10005,DE, ,234225
 Smith,Texas,48423,TX, ,232751
-Hinds,Mississippi,28049,MS, ,231840
+Hinds,Mississippi,28049,MS, L,231840
 Richmond city,Virginia,51760,VA, ,230436
 Hays,Texas,48209,TX, ,230191
 Lake,Ohio,39085,OH, ,230149
@@ -343,7 +341,7 @@ Muscogee,Georgia,13215,GA, ,195769
 Tippecanoe,Indiana,18157,IN, ,195732
 Sangamon,Illinois,17167,IL, ,194672
 Hernando,Florida,12053,FL, ,193920
-Minnehaha,South Dakota,46099,SD, ,193134
+Minnehaha,South Dakota,46099,SD, L,193134
 El Dorado,California,6017,CA, ,192843
 Beaufort,South Carolina,45013,SC, ,192122
 Livingston,Michigan,26093,MI, ,191995
@@ -357,7 +355,7 @@ Sarpy,Nebraska,31153,NE, ,187196
 DeSoto,Mississippi,28033,MS, ,184945
 Ellis,Texas,48139,TX, ,184826
 Santa Rosa,Florida,12113,FL, ,184313
-Cass,North Dakota,38017,ND, ,181923
+Cass,North Dakota,38017,ND, L,181923
 Iredell,North Carolina,37097,NC, ,181806
 Vanderburgh,Indiana,18163,IN, ,181451
 Imperial,California,6025,CA, ,181215
@@ -369,7 +367,7 @@ Shasta,California,6089,CA, ,180080
 Medina,Ohio,39103,OH, ,179746
 Newport News city,Virginia,51700,VA, ,179225
 Peoria,Illinois,17143,IL, ,179179
-Kanawha,West Virginia,54039,WV, ,178124
+Kanawha,West Virginia,54039,WV, L,178124
 Ulster,New York,36111,NY, ,177573
 Washington,Utah,49053,UT, ,177556
 Shawnee,Kansas,20177,KS, ,176875
@@ -401,14 +399,14 @@ Wyandotte,Kansas,20209,KS, ,165429
 Lee,Alabama,1081,AL, ,164542
 Kent,Rhode Island,44003,RI, ,164292
 Beaver,Pennsylvania,42007,PA, ,163929
-Chittenden,Vermont,50007,VT, ,163774
+Chittenden,Vermont,50007,VT, L,163774
 Rock,Wisconsin,55105,WI, ,163354
 Charles,Maryland,24017,MD, ,163257
 Dorchester,South Carolina,45035,SC, ,162809
 Portage,Ohio,39133,OH, ,162466
 Middlesex,Connecticut,9007,CT, ,162436
 Centre,Pennsylvania,42027,PA, ,162385
-Yellowstone,Montana,30111,MT, ,161300
+Yellowstone,Montana,30111,MT, L,161300
 Stearns,Minnesota,27145,MN, ,161075
 Martin,Florida,12085,FL, ,161000
 Hampshire,Massachusetts,25015,MA, ,160830
@@ -598,7 +596,7 @@ Columbiana,Ohio,39029,OH, ,101883
 Daviess,Kentucky,21059,KY, ,101511
 Moore,North Carolina,37125,NC, ,100880
 Nevada,California,6057,CA, ,99755
-Laramie,Wyoming,56021,WY, ,99500
+Laramie,Wyoming,56021,WY, L,99500
 Garland,Arkansas,5051,AR, ,99386
 Roanoke city,Virginia,51770,VA, ,99143
 Limestone,Alabama,1083,AL, ,98915

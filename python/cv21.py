@@ -379,7 +379,7 @@ def update_assets():
     for file in asset_files:
         cmd = 'cp -pvf '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
-'''
+
 def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
 #   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
     gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
@@ -453,7 +453,7 @@ def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
             
     else:
         plt.show()
-'''    
+
 def update_html():
     index_md = cv.Jon_path+'index.md'
 #   print(index_md)
@@ -484,13 +484,15 @@ def update_html():
     print('Finished update html table in index.md')
 
 def update_everything(do_fits = True):
-#   web_update()
-#   print('Finished web_update ...')
+    web_update()
+    print('Finished web_update ...')
 #   os.system('rm -v '+ cv.dat_path + '*.dat')
 #   make_dat_files()
 #   print('Finished make_dat_files()')
-#   update_shared_plots()
-#   print('Finished update_shared_plots()')
+    make_prevalence_plots(['L','m','s'])
+    print("Finished make_prevalence_plots(['L','m','s'])")
+    update_shared_plots()
+    print('Finished update_shared_plots()')
     CFR.plot_DC_scatter(save=True)
     CFR.plot_recent_CFR(save=True)
     CFR.CFR_comp(nG=30, w = 23)
@@ -917,7 +919,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
 #                    fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
-update_assets()
+#update_assets()
 
 #update_everything(do_fits=False)
 #update_shared_plots()
