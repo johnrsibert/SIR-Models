@@ -428,12 +428,12 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     window=7, plot_dt = False, cumulative = False,
                     show_order_date = False, 
                     show_superspreader = False,
-                    annotation = True, signature = False, 
+                    annotation = True, signature = True, 
                     ymaxdefault = None,
                     show_SE = False,
                     low_prev = 1.0,
 #                   ymax = [None,None,None], #[0.2,0.01,0.04],
-                    save = True):
+                    save = True, nax = 4):
     """ 
     Plots cases and deaths vs calendar date 
 
@@ -452,11 +452,10 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     orderDate = mdates.date2num(cv.CAOrderDate)
 #   print('GG firstDate,lastDate:',firstDate,lastDate)
  
-    nax = 2#3
     fig, ax = plt.subplots(nax,1,figsize=(6.5,nax*2.25))
     plt.rcParams['lines.linewidth'] = 1.5
 
-    ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio']
+    ylabel = ['Daily Cases','Daily Deaths','Case Fatality Ratio','Vaccinations %']
     if (per_capita):
         for a in range(0,2):
             ylabel[a] = ylabel[a] +'/'+str(mult)
@@ -473,16 +472,23 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     gg = nyt_counties[gg_filter]
 
 
-    if (ymaxdefault is None):
-        ymax = [0.0]*3
-    else:
-        ymax = ymaxdefault
+#   if (ymaxdefault is None):
+#       ymax = [0.0]*3
+#   else:
+#       ymax = ymaxdefault
 
     nG = len(gg)
 
 #   EndOfTime = dtime.date()+timedelta(days=21)
     #oldEndOfTime = cv.EndOfTime
     cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
+
+    ylim = [(0.0,20.0),
+            (0.0,0.6),
+            (0.0,0.15),
+            (0.0,101.0)]
+    print(ylim)
+
 
 
     for g in range(0,nG):
@@ -495,7 +501,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
             tmpG.read_nyt_data('county')
             tmpG.read_vax_data()
  
-        do_plot = [True]*3
+        do_plot = [True]*4
         if (tmpG.deaths is None):
             cfr = None
             deaths = None
@@ -514,9 +520,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
         gdf['cases'] = cases
         gdf['deaths'] = deaths
         gdf['cfr'] = cfr
-    #   print(gdf)
 
-        for a in range(0,nax):
+        for a in range(0,3):
             if (any(pd.isna(gdf.iloc[:,a]))):
                 do_plot[a] = False
         
@@ -538,27 +543,29 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     if show_SE:
                         serr = pd.Series(delta).rolling(window=window).std()/df_correction
                         GU.plot_error(ax[a],Date[1:],yvar,serr,logscale=True,mult=2)
-                    GU.mark_ends(ax[a],Date[1:],yvar,' '+short_name(tmpG.moniker),'r')
-                    if (ymaxdefault is None):
-                    #   ymax[a] = max(ymax[a],1.2*yvar.max())
-                        ymax[a] = max(ymax[a],2*yvar.iloc[-1])
-               #    if (a == 0):
-               #        ax[a].axhline(y=low_prev,color='green',linewidth=5,alpha=0.1)
+                #   GU.mark_ends(ax[a],Date[1:],yvar,' '+short_name(tmpG.moniker),'r')
+#                   if (ymaxdefault is None):
+#                   #   ymax[a] = max(ymax[a],1.2*yvar.max())
+#                       ymax[a] = max(ymax[a],2*yvar.iloc[-1])
 
+                elif a == 2:
+                    ax[a].plot(Date,gdf.iloc[:,a]) 
+                #   ax[a].set_ylim(ylim[a])
 
-                else:
-                    yvar = pd.Series(gdf.iloc[:,a]).rolling(window=window).mean()
-                    ax[a].plot(Date,yvar)
-                    if show_SE:
-                        serr = pd.Series(gdf.iloc[:,a]).rolling(window=window).std()/df_correction
-                        GU.plot_error(ax[a],Date,yvar,serr,logscale=True,mult=2)
-                    GU.mark_ends(ax[a],Date,yvar,' '+short_name(tmpG.moniker),'r')
-                    if (ymaxdefault is None):
-                    #   ymax[a] = max(ymax[a],1.2*yvar.max())
-                        ymax[a] = max(ymax[a],2*yvar.iloc[-1])
+                elif a == 3:
+                    vmult = 100.0
+                    mdate = tmpG.vax['mdate']
+                    pv = vmult*pd.Series(tmpG.vax['first'])/tmpG.population
+                    #print('number of vax estimates',len(pv),', max =',pv.max())
+                    #print(pv)
+                    if pv.max() > 1.0:
+                        ax[a].plot(mdate,pv)
+                    #   GU.mark_ends(ax[a],mdate,pv,' '+short_name(tmpG.moniker),'r')
+                
+                    #   pv = vmult*pd.Series(self.vax['full'])/self.population
+                    #   ax[a].plot(mdate,pv)
+                    #   GU.mark_ends(ax[a],mdate,pv,' full','r')
 
-                    dexDate = mdates.date2num(cv.DexamethasoneDate)
-                    ax[a].axvline(dexDate,linewidth=5,color='lightgreen',alpha=0.1)
 
                 #if show_superspreader:
                 #    GU.add_superspreader_events(Date,adc,ax[a])
@@ -566,18 +573,17 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     # loop: for g in range(0,len(gg)):
 
     for a in range(0,nax):
-        ax[a].set_ylim((0.0,ymax[a]))
+        ax[a].set_ylim(ylim[a]) #ymax[a]))
     
-    ax[0].axhline(y=low_prev,color='green',linewidth=5,alpha=0.5)
+#   ax[0].axhline(y=low_prev,color='green',linewidth=5,alpha=0.5)
 
     if (annotation):
         title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
         fig.text(0.5,1.0,title ,ha='center',va='top')
-        GU.add_data_source(fig, 'Multiple sources')
+        GU.add_data_source(fig, 'New York Times and Centers for Disease Control')
 
     if (signature):
-        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
-        GU.add_data_source(fig)
+        GU.add_signature(fig,'johnrsibert@gmail.com')
 
     if save:
         gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+'.png'
