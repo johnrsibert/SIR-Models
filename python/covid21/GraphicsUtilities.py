@@ -19,10 +19,13 @@ def make_date_axis(ax, first_prev_date = None):
     lastDate  = mdates.date2num(cv.EndOfTime)
 #   print('GU firstDate,lastDate:',firstDate,lastDate)
     ax.set_xlim([firstDate,lastDate])
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+    ax.xaxis.set_major_formatter(
+       mdates.ConciseDateFormatter(ax.xaxis.get_major_locator()))
+#   ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 #   ax.xaxis.set_major_locator(mdates.YearLocator())
-    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
-    ax.xaxis.set_minor_locator(mdates.DayLocator(interval = 7))
+#   ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+#   ax.xaxis.set_minor_locator(mdates.DayLocator(interval = 7))
+
 
 def none_reported(ax,what):
     lim = ax.get_xlim()

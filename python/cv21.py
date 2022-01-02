@@ -3,15 +3,12 @@
 """
 @author: jsibert
 """
-
-
 from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import Fit as FF
 from covid21 import GraphicsUtilities as GU
 from covid21 import CFR
 from covid21 import vax as VV
-
 
 from numpy import errstate,isneginf #,array
 import pandas as pd
@@ -377,8 +374,7 @@ def update_shared_plots():
 def update_assets():
     asset_files=['prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
-                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png','CFRridge_30_23.png'.
-]
+                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png','CFRridge_30_23.png']
    
     for file in asset_files:
         cmd = 'cp -pvf '+cv.graphics_path+file+' '+cv.assets_path
@@ -891,7 +887,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog.print_metadata()
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
-                      #per_capita=True,show_order_date = False, nax = 4,low_prev=1.0)
+#                      per_capita=True,show_order_date = False, nax = 4,low_prev=1.0)
 
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
@@ -924,11 +920,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_assets()
 
 #update_everything(do_fits=False)
-#update_shared_plots()
-#update_assets()
-#update_html()
-#make_dat_files()
-#git_commit_push()
+git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
@@ -939,6 +931,8 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
 #make_prevalence_plots(['L','m','s'])
+#CFR.CFR_comp(nG=30, w = 23)
+#CFR.plot_CFR_ridge('CFR_ridge.csv')
 
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)

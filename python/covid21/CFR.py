@@ -694,8 +694,10 @@ def plot_CFR_ridge(CFRfile):
  #   ax = axes[len(axes)-2]
  #   print(ax.get_ylim())
  #   ax.plot([meanCFR,meanCFR],ax.get_ylim(),c='black',ls='--',
-  #                         linewidth=0.5)
-    
+ #                         linewidth=0.5)
+    GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
+    GU.add_data_source(fig)
+       
 
     gfile = cv.graphics_path+'CFRridge_{0:d}_{1:d}.png'.format(nG,window) 
     print('saving',gfile)
