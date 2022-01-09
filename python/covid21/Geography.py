@@ -482,10 +482,12 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
 #   EndOfTime = dtime.date()+timedelta(days=21)
     #oldEndOfTime = cv.EndOfTime
     cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
+    firstDate = cv.FirstNYTDate 
 
     ylim = [(0.0,20.0),
             (0.0,0.6),
-            (0.0,0.15),
+         #  (0.0,0.15),
+            (0.0,0.05),
             (0.0,101.0)]
     print(ylim)
 

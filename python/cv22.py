@@ -374,85 +374,12 @@ def update_shared_plots():
 def update_assets():
     asset_files=['prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
-                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png','CFRridge_30_23.png']
+                 'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
+                 'CFRridge_30_23.png']
    
     for file in asset_files:
         cmd = 'cp -pvf '+cv.graphics_path+file+' '+cv.assets_path
         os.system(cmd)
-
-#def plot_multi_prev(Gfile='top30.csv',mult = 10000,save=False):
-##   gg = pd.read_csv(cv.cv_home+'top30.csv',header=0,comment='#')
-#    gg = pd.read_csv(cv.cv_home+Gfile,header=0,comment='#')
-#    #                encoding = "ISO-8859-3")
-#    print(gg.columns)
-##   print(gg)
-#
-#    key_cols = ('key','name','code')
-#    key = pd.DataFrame(columns=key_cols)
-#
-#    fig, ax = plt.subplots(2,figsize=(6.5,9.0))
-#    firstDate = mdates.date2num(cv.FirstNYTDate)
-#    orderDate = mdates.date2num(cv.CAOrderDate)
-#    lastDate  = mdates.date2num(cv.EndOfTime)
-#    ax[0].set_ylim(0.0,100.0)
-#    ax[1].set_ylim(0.0, 10.0)
-#    for a in range(0,len(ax)):
-#        ax[a].set_xlim([firstDate,lastDate])
-#        ax[a].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-#        ax[a].xaxis.set_major_locator(mdates.MonthLocator())
-#        ax[a].xaxis.set_minor_locator(mdates.DayLocator())
-##   Newsome's shelter in place order
-#        ax[a].plot((orderDate,orderDate),
-#            (0, ax[a].get_ylim()[1]),color='0.5',
-#            linewidth=3,alpha=0.5)
-#
-#
-#    ax[0].set_ylabel('New Cases'+' per '+str(mult))
-#    ax[1].set_ylabel('New Deaths'+' per '+str(mult))
-#
-#    nG = len(gg)
-#    for g in range(0,nG):
-#        print(gg['name'][g])
-#        tmpG = Geography(name=gg['name'][g], enclosed_by=gg['enclosed_by'][g],
-#                         code=gg['code'][g])
-#        tmpG.read_nyt_data('county')
-#
-#        delta_cases = mult*(np.diff(tmpG.cases))/tmpG.population
-#        delta_deaths = mult*(np.diff(tmpG.deaths))/tmpG.population
-#        Date = tmpG.get_pdate()
-#        ax[0].plot(Date[1:], delta_cases, linewidth=1)#,alpha=0.75)
-#        ax[1].plot(Date[1:], delta_deaths, linewidth=1)#,alpha=0.75)
-#
-#        sn = short_name(tmpG.moniker)
-#    #   print(tmpG.name,tmpG.moniker,sn)
-#        kr = pd.Series((sn,tmpG.name,tmpG.code),index=key_cols)
-#        key = key.append(kr,ignore_index=True)
-#
-#    #   if (plot_dt):
-#    #       GU.mark_ends(ax,Date,delta_cases,sn,'r')
-#    #   else:
-#    #   if (~plot_dt):
-#    #       GU.mark_ends(ax,Date,cases,sn,'r')
-#
-#
-##   print(key)
-#    if save:
-#        gfile = cv.graphics_path+'counties_per_capita'+str(nG)+'.png'
-#        plt.savefig(gfile) #,dpi=300)
-#        plt.show(False)
-#        print('plot saved as',gfile)
-#
-#    #   kfile = cv.graphics_path+'short_name_key.csv'
-#    #   key.sort_values(by='key',ascending=True,inplace=True)
-#    #   print(key)
-#    #   key.to_csv(kfile,index=False)
-#    #   print('key names saved as',kfile)
-#
-#        plt.pause(5)
-#        plt.close()
-#            
-#    else:
-#        plt.show()
 
 def update_html():
     index_md = cv.Jon_path+'index.md'
@@ -481,7 +408,7 @@ def update_html():
     cmd = 'cp -fv '+tmp + ' ' +index_md
 #   print(cmd)
     os.system(cmd)
-    print('Finished update html table in index.md')
+#   print('Finished update html table in index.md')
 
 def update_everything(do_fits = True):
     web_update()
@@ -501,6 +428,9 @@ def update_everything(do_fits = True):
 
     update_assets()
     print('Finished update asset directory')
+
+    update_html()
+    print('Finished update html table in index.md')
 
     if (do_fits):
         update_fits()
@@ -876,17 +806,17 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog = GG.Geography(name='Hennepin',enclosed_by='Minnesota',code='MN')
 #tgeog = GG.Geography(name='Los Angeles',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='New York City',enclosed_by='New York',code='NY')
-#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
 #tgeog = GG.Geography(name='Honolulu',enclosed_by='Hawaii',code='HI')
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
 #tgeog = GG.Geography(name='San Diego',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Hamilton',enclosed_by='Ohio',code='OH')
+#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=True, signature=True,show_superspreader=False,
+#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = False, nax = 4,low_prev=1.0)
 
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
@@ -920,7 +850,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_assets()
 
 #update_everything(do_fits=False)
-git_commit_push()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
