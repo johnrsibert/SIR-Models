@@ -332,6 +332,7 @@ def make_prevalence_plots(flags = ['m']):
     print('q[0.05] =',quartiles[0.05])
 
     GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True)
+    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True)
     print('Finished prevealence comp plots')
     
     gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
@@ -372,7 +373,7 @@ def update_shared_plots():
         os.system(cmd)
   
 def update_assets():
-    asset_files=['prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
+    asset_files=['prevalence_comp_TS_B','prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
                  'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
                  'CFRridge_30_23.png']
@@ -847,11 +848,16 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #FF.make_rate_plots('logbeta',show_doubling_time = True, save=True,
 #                    fit_files=['Los_AngelesCA','New_York_CityNY'])
 #FF.make_rate_plots('logmu',save=True)
+
+#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False)
+#update_shared_plots()
 #update_assets()
 
 #update_everything(do_fits=False)
+#update_html()
 #git_commit_push()
 
+#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)

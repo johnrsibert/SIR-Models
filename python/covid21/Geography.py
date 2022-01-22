@@ -472,26 +472,20 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     gg = nyt_counties[gg_filter]
 
 
-#   if (ymaxdefault is None):
-#       ymax = [0.0]*3
-#   else:
-#       ymax = ymaxdefault
-
     nG = len(gg)
 
-#   EndOfTime = dtime.date()+timedelta(days=21)
-    #oldEndOfTime = cv.EndOfTime
     cv.EndOfTime = cv.dtime.date()+timedelta(days=7)
     firstDate = cv.FirstNYTDate 
-
+    
     ylim = [(0.0,20.0),
             (0.0,0.6),
-         #  (0.0,0.15),
-            (0.0,0.05),
+            (0.0,0.04),
             (0.0,101.0)]
-    print(ylim)
-
-
+  
+    if flag == 'B':
+        ylim[0] = (0.0,30.0)
+        ylim[1] = (0.0,0.2)
+        ylim[2] = (0.0,0.02)
 
     for g in range(0,nG):
         print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
@@ -552,6 +546,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
 
                 elif a == 2:
                     ax[a].plot(Date,gdf.iloc[:,a]) 
+                    if flag == 'B':
+                        GU.mark_ends(ax[a],Date,gdf.iloc[:,a],' '+short_name(tmpG.moniker),'r')
                 #   ax[a].set_ylim(ylim[a])
 
                 elif a == 3:
@@ -562,7 +558,8 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     #print(pv)
                     if pv.max() > 1.0:
                         ax[a].plot(mdate,pv)
-                    #   GU.mark_ends(ax[a],mdate,pv,' '+short_name(tmpG.moniker),'r')
+                        if flag == 'B':
+                            GU.mark_ends(ax[a],mdate,pv,' '+short_name(tmpG.moniker),'r')
                 
                     #   pv = vmult*pd.Series(self.vax['full'])/self.population
                     #   ax[a].plot(mdate,pv)
@@ -580,7 +577,10 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
 #   ax[0].axhline(y=low_prev,color='green',linewidth=5,alpha=0.5)
 
     if (annotation):
-        title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
+        if flag == 'B':
+            title = 'Covid-19 Prevalence Comparison, SF Bay Area'
+        else:
+            title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
         fig.text(0.5,1.0,title ,ha='center',va='top')
         GU.add_data_source(fig, 'New York Times and Centers for Disease Control')
 

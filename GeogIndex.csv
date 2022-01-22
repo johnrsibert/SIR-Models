@@ -15,9 +15,9 @@ San Bernardino,California,6071,CA,m,2180085
 Tarrant,Texas,48439,TX,m,2102515
 Bexar,Texas,48029,TX,m,2003554
 Broward,Florida,12011,FL,m,1952778
-Santa Clara,California,6085,CA,sm,1927852
+Santa Clara,California,6085,CA,Bsm,1927852
 Wayne,Michigan,26163,MI,CmL,1749343
-Alameda,California,6001,CA,Ssm,1671329
+Alameda,California,6001,CA,BSsm,1671329
 Middlesex,Massachusetts,25017,MA,mL,1611699
 Philadelphia,Pennsylvania,42101,PA,mL,1584064
 Sacramento,California,6067,CA,m,1552058
@@ -33,7 +33,7 @@ Oakland,Michigan,26125,MI, ,1257584
 Cuyahoga,Ohio,39035,OH, ,1235072
 Allegheny,Pennsylvania,42003,PA, ,1216045
 Salt Lake,Utah,49035,UT, L,1160437
-Contra Costa,California,6013,CA, s,1153526
+Contra Costa,California,6013,CA,Bs,1153526
 Fairfax,Virginia,51059,VA,sL,1147532
 Wake,North Carolina,37183,NC, L,1111761
 Mecklenburg,North Carolina,37119,NC, ,1110356
@@ -61,7 +61,7 @@ Kern,California,6029,CA, ,900202
 Hartford,Connecticut,9003,CT, ,891720
 Denton,Texas,48121,TX, ,887207
 Vancouver Island,British Columbia,0,BC,Ss,881685
-San Francisco,California,6075,CA,s,881549
+San Francisco,California,6075,CA,Bs,881549
 Macomb,Michigan,26099,MI, ,873972
 Hidalgo,Texas,48215,TX, ,868707
 New Haven,Connecticut,9009,CT, ,854757
@@ -81,7 +81,7 @@ Oklahoma,Oklahoma,40109,OK, L,797434
 Essex,Massachusetts,25009,MA, ,789034
 Lee,Florida,12071,FL, ,770577
 Jefferson,Kentucky,21111,KY, L,766757
-San Mateo,California,6081,CA, s,766573
+San Mateo,California,6081,CA,Bs,766573
 San Joaquin,California,6077,CA, ,762148
 Cobb,Georgia,13067,GA, ,760141
 DeKalb,Georgia,13089,GA, ,759297
@@ -137,7 +137,7 @@ Adams,Colorado,8001,CO, ,517421
 Sedgwick,Kansas,20173,KS, ,516042
 Camden,New Jersey,34007,NJ, ,506471
 Passaic,New Jersey,34031,NJ, ,501826
-Sonoma,California,6097,CA,s,494336
+Sonoma,California,6097,CA,Bs,494336
 Morris,New Jersey,34027,NJ, ,491845
 Polk,Iowa,19153,IA, L,490161
 Clark,Washington,53011,WA, ,488241
@@ -153,7 +153,7 @@ Pinal,Arizona,4021,AZ, ,462789
 Onondaga,New York,36067,NY, ,460528
 Virginia Beach city,Virginia,51810,VA, ,449974
 York,Pennsylvania,42133,PA, ,449058
-Solano,California,6095,CA, ,447643
+Solano,California,6095,CA,B,447643
 Santa Barbara,California,6083,CA, ,446499
 Burlington,New Jersey,34005,NJ, ,445349
 East Baton Rouge,Louisiana,22033,LA, L,440059
@@ -264,7 +264,7 @@ St. Tammany,Louisiana,22103,LA, ,260419
 Weber,Utah,49057,UT, ,260213
 St. Clair,Illinois,17163,IL, ,259686
 Frederick,Maryland,24021,MD, ,259547
-Marin,California,6041,CA,s,258826
+Marin,California,6041,CA,Bs,258826
 Cherokee,Georgia,13057,GA, ,258773
 McLennan,Texas,48309,TX, ,256623
 Harford,Maryland,24025,MD, ,255441
@@ -464,7 +464,7 @@ Sussex,New Jersey,34037,NJ, ,140488
 Wright,Minnesota,27171,MN, ,138377
 Florence,South Carolina,45041,SC, ,138293
 Taylor,Texas,48441,TX, ,138034
-Napa,California,6055,CA, ,137744
+Napa,California,6055,CA,B,137744
 Randall,Texas,48381,TX, ,137713
 Spotsylvania,Virginia,51177,VA, ,136215
 Grayson,Texas,48181,TX, ,136212
