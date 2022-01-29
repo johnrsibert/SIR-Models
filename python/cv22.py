@@ -373,7 +373,7 @@ def update_shared_plots():
         os.system(cmd)
   
 def update_assets():
-    asset_files=['prevalence_comp_TS_B','prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
+    asset_files=['prevalence_comp_TS_B.png','prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
                  'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
                  'CFRridge_30_23.png']
