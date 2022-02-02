@@ -412,8 +412,9 @@ def update_html():
 #   print('Finished update html table in index.md')
 
 def update_everything(do_fits = True):
-    web_update()
-    print('Finished web_update ...')
+#   web_update()
+#   print('Finished web_update ...')
+
 #   os.system('rm -v '+ cv.dat_path + '*.dat')
 #   make_dat_files()
 #   print('Finished make_dat_files()')
@@ -852,7 +853,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False)
 
 #make_prevalence_plots(['L','m','s'])
-make_prevalence_plots(['s'])
+#make_prevalence_plots(['s'])
 #update_shared_plots()
 #CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
