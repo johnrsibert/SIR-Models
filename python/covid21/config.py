@@ -67,6 +67,7 @@ eps = 1e-5
 # reading TMB standard error objects
 pyreadr_kludge = False
 
-plt.style.use('file:///home/jsibert/.config/matplotlib/john.mplstyle')
+plt.style.use('file:///home/jsibert/.config/matplotlib/matplotlibrc/jrs.mplstyle')
+#plt.style.use('jrs')
 #print('finished config.py')
 

@@ -371,7 +371,7 @@ class Geography:
 
         if (signature):
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
-        if (low_prev > 0.0):
+        if low_prev > 0.0 and low_prev < ax[0].get_ylim()[1]:
             ax[0].plot((Date.iloc[0],Date.iloc[-1]),(low_prev,low_prev),
                        color='red',linewidth=1.5,linestyle=':')
             GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
@@ -396,9 +396,9 @@ class Geography:
             if save:
                 gfile = cv.graphics_path+self.moniker+'_prevalence.png'
                 plt.savefig(gfile,dpi=300)
-                #plt.show(block=False)
-                #plt.pause(3)
-                #plt.close()
+                plt.show(block=False)
+                plt.pause(2)
+                plt.close()
                 print('plot saved as',gfile)
             else:
                 plt.show()
