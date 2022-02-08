@@ -331,8 +331,8 @@ def make_prevalence_plots(flags = ['m']):
     print(quartiles)
     print('q[0.05] =',quartiles[0.05])
 
-    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True)
-    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True)
+    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,low_prev=quartiles[0.05])
+    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,low_prev=quartiles[0.05])
     print('Finished prevealence comp plots')
     
     gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
@@ -411,13 +411,13 @@ def update_html():
     os.system(cmd)
 #   print('Finished update html table in index.md')
 
-def update_everything(do_fits = True):
-#   web_update()
-#   print('Finished web_update ...')
+def update_everything(do_fits = True, do_web = True):
+    if do_web:
+        web_update()
+        print('Finished web_update ...')
+    else:
+        print('Omitting web_update ...')
 
-#   os.system('rm -v '+ cv.dat_path + '*.dat')
-#   make_dat_files()
-#   print('Finished make_dat_files()')
     make_prevalence_plots(['L','m','s'])
     print("Finished make_prevalence_plots(['L','m','s'])")
     update_shared_plots()
@@ -435,6 +435,10 @@ def update_everything(do_fits = True):
     print('Finished update html table in index.md')
 
     if (do_fits):
+        os.system('rm -v '+ cv.dat_path + '*.dat')
+        make_dat_files()
+        print('Finished make_dat_files()')
+
         update_fits()
         print('Finished update_fits()')
         FF.make_fit_plots()
@@ -795,7 +799,8 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
             tmpG.read_nyt_data('county')    
    
   
-
+#######################################################################
+#######################################################################
    
  
 #CFR.plot_CFR_lognorm_fit(save=False)
@@ -819,7 +824,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog.print_metadata()
 #tgeog.print_data()
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
-#                      per_capita=True,show_order_date = False, nax = 4,low_prev=1.0)
+#                      per_capita=True,show_order_date = False, nax = 4,low_prev=4.06)
 
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
@@ -853,7 +858,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False)
 
 #make_prevalence_plots(['L','m','s'])
-#make_prevalence_plots(['s'])
+#make_prevalence_plots(['B'])
 #update_shared_plots()
 #CFR.plot_DC_scatter(save=True)
 #CFR.plot_recent_CFR(save=True)
@@ -865,7 +870,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_html()
 #git_commit_push()
 
-#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False)
+#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
@@ -879,4 +884,6 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 
 #qq=GG.plot_prevalence_comp_histo(flag='500000',window=15,save=False, signature=True)
+#print('type(qq),qq:')
+#print(type(qq),qq)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)

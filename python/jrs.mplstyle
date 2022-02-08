@@ -45,7 +45,7 @@ savefig.facecolor: white
 figure.subplot.left: 0.08
 figure.subplot.right: 0.95
 figure.subplot.bottom: 0.08
-figure.subplot.top 0.95
+figure.subplot.top: 0.95
 figure.facecolor: white
 
 #igure.constrained_layout.use: True
