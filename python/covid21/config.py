@@ -49,7 +49,7 @@ PfizerEUADate = datetime.strptime('2021-01-06','%Y-%m-%d')
 HalfMillionShotDate = datetime.strptime('2021-02-25','%Y-%m-%d')
 IndependenceDay = datetime.strptime('2021-07-04','%Y-%m-%d')
 
-#print('Initializing data')
+print('Initializing data')
 GeoIndex = pd.read_csv(GeoIndexPath,header=0,comment='#')
  
 #print(GeoIndex.head())
@@ -59,7 +59,7 @@ nyt_state_dat = pd.read_csv(NYT_states,header=0)
 #print(nyt_state_dat)
 cdc_vax_dat = pd.read_csv(CDC_vax,header=0)
 #print(cdc_vax_dat.tail())
-#print('Data complete')
+print('Data complete')
 
 eps = 1e-5
  
@@ -69,5 +69,5 @@ pyreadr_kludge = False
 
 plt.style.use('file:///home/jsibert/.config/matplotlib/matplotlibrc/jrs.mplstyle')
 #plt.style.use('jrs')
-#print('finished config.py')
+print('finished config.py')
 

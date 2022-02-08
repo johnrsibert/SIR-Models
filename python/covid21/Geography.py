@@ -376,8 +376,10 @@ class Geography:
                        color='red',linewidth=1.5,linestyle=':')
             GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
                          pd.Series([low_prev,low_prev]),
-                         '$P_{05}$','b')
-            #            ' p05={:.2f}'.format(low_prev),'r')
+                         '$P_{05}$','r')
+            GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                         pd.Series([low_prev,low_prev]),
+                         '{:.1f}'.format(low_prev),'l')
 
         if (dashboard):
         #   out_img = BytesIO()
@@ -431,7 +433,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     annotation = True, signature = True, 
                     ymaxdefault = None,
                     show_SE = False,
-                    low_prev = 1.0,
+                    low_prev = 0.0,
 #                   ymax = [None,None,None], #[0.2,0.01,0.04],
                     save = True, nax = 4):
     """ 
@@ -564,24 +566,32 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     #   pv = vmult*pd.Series(self.vax['full'])/self.population
                     #   ax[a].plot(mdate,pv)
                     #   GU.mark_ends(ax[a],mdate,pv,' full','r')
+            # if (do_plot[a]):
+        #for a in range(0,nax):
 
 
-                #if show_superspreader:
-                #    GU.add_superspreader_events(Date,adc,ax[a])
     
     # loop: for g in range(0,len(gg)):
 
     for a in range(0,nax):
         ax[a].set_ylim(ylim[a]) #ymax[a]))
     
-#   ax[0].axhline(y=low_prev,color='green',linewidth=5,alpha=0.5)
+    if low_prev > 0.0 and low_prev < ax[0].get_ylim()[1]:
+        ax[0].plot((Date.iloc[0],Date.iloc[-1]),(low_prev,low_prev),
+                   color='red',linewidth=1.5,linestyle=':')
+        GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                     pd.Series([low_prev,low_prev]),
+                     '$P_{05}$','r')
+        GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                     pd.Series([low_prev,low_prev]),
+                     '{:.1f}'.format(low_prev),'l')
 
     if (annotation):
         if flag == 'B':
             title = 'Covid-19 Prevalence Comparison, SF Bay Area'
         else:
             title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
-        fig.text(0.5,1.0,title ,ha='center',va='top')
+        fig.text(0.5,0.5,title ,ha='center',va='top')
         GU.add_data_source(fig, 'New York Times and Centers for Disease Control')
 
     if (signature):
