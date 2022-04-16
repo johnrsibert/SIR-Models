@@ -216,7 +216,7 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
-                        low_prev = 0.0, mult = 10000,
+                        low_prev = 0.0, qq=None,mult = 10000,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 4):
         """ 
@@ -275,7 +275,13 @@ class Geography:
         gdf['deaths'] = deaths
         gdf['cfr'] = cfr
 
+        '''
         ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
+                (0.0,1.2*gdf.iloc[:,1].max()),
+                (0.0,1.2*gdf.iloc[:,2].max()),
+                (0.0,101.0)]
+        '''
+        ylim = [(0.0,0.2*gdf.iloc[:,0].max()),
                 (0.0,1.2*gdf.iloc[:,1].max()),
                 (0.0,1.2*gdf.iloc[:,2].max()),
                 (0.0,101.0)]
@@ -306,7 +312,10 @@ class Geography:
                 if show_superspreader:
                     GU.add_superspreader_events(Date,adc,ax[a])
 
-                ylim[a] = (cv.eps,1.2*adc.max())
+                if a == 0:
+                    ylim[a] = (cv.eps,0.2*adc.max())
+                else:
+                    ylim[a] = (cv.eps,1.2*adc.max())
             #   print(ylim[a])
                 ax[a].set_ylim(ylim[a])
                 tx = GU.prop_scale(ax[a].get_xlim(), 0.5)
@@ -376,10 +385,29 @@ class Geography:
                        color='red',linewidth=1.5,linestyle=':')
             GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
                          pd.Series([low_prev,low_prev]),
-                         '$P_{05}$','r')
+                         '$P_{0.1}$','r')
             GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
                          pd.Series([low_prev,low_prev]),
-                         '{:.1f}'.format(low_prev),'l')
+                         '{:.2f}'.format(low_prev),'l')
+
+        if qq is not None:
+           nq = qq.shape[0]
+           for a in range(0,nax):
+               v = qq.columns[a]
+               print(a,v)
+           #   print(qq[v])
+               for iq in range(0,nq):
+                   q = qq[v].iloc[iq]
+                   print('    ',iq,q,qq.index[iq])
+
+                   ax[a].plot((Date.iloc[0],Date.iloc[-1]),(q,q),
+                       color='green',linewidth=1.5,linestyle=':')
+                   GU.mark_ends(ax[a],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                        pd.Series([q,q]), '$P_{:.1f}$'.format(qq.index[iq]),'r')
+                   GU.mark_ends(ax[a],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                         pd.Series([q,q]), '{:.2f}'.format(q),'l')
+
+
 
         if (dashboard):
         #   out_img = BytesIO()
@@ -763,6 +791,14 @@ def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts
         hh.write('\n<br>\nUpdated '+str(dtime.date())+'\n<br>\n')
         hh.write('<!---END TABLE--->\n')
         print('prevalence rankings saved as',html_file)
+
+    html_file2 ='all_prev.html' 
+    with open(html_file2,'w') as h2:
+        tt = tabulate(table,headers=['Rank','Region','Prevalence'],tablefmt='html',
+                      numalign="right", floatfmt=".3f",
+                      stralign='left', showindex=False).replace(' nan',' ...')
+        h2.write(tt)
+        print('all prevalence rankings saved as',html_file2)
     
 
     pref = np.quantile(precent['cases'],q=0.05)
@@ -839,4 +875,120 @@ def pretty_county(s):
     return(pretty.replace('_',' ',5))
 
 
-#plot_prevalence_stats_TS(flag='L',low_prev=0.05,save=False, signature=True)
+
+def qcomp(flag=None,per_capita=True, mult = 10000, delta_ts=True, window=7):
+    #dtime = datetime.fromtimestamp(mtime)
+    #EndOfTime = dtime.date()+timedelta(days=21)
+    #firstDate = mdates.date2num(cv.FirstNYTDate)
+    #lastDate = mdates.date2num(EndOfTime)
+    #print(firstDate, cv.FirstNYTDate)
+    #print(lastDate, EndOfTime)
+   
+    if flag.isnumeric():
+        print('   numeric')
+        gg_filter = cv.GeoIndex['population'] > float(flag)
+        gg = cv.GeoIndex[gg_filter]
+        nG = len(gg)
+    #   file = 'recent_prevalence_histo_pop'
+        note = '{0} Regions with population greater than {1:,}'.format(nG,int(flag))
+    else:
+        print('   character')
+        print(cv.GeoIndex['flag'])
+        gg_filter = cv.GeoIndex['flag'].str.contains(flag)
+        gg = cv.GeoIndex[gg_filter]
+        nG = len(gg) # ??
+    #   file = 'recent_prevalence_histo_'+flag
+        note = '{0} Counties'.format(nG)
+    print(note)
+    
+    recent = pd.DataFrame(index=range(0,nG),
+                          columns=('county_code','fips','population','sname','cases','deaths','cfr','vax'))
+    print('nG =',nG,'flag =',flag,'recent:')
+    #print(recent)
+
+    for g in range(0,nG):
+        print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g],gg['population'].iloc[g])
+        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
+                         code=gg['code'].iloc[g])
+        if (gg['code'].iloc[g] == 'BC'):
+            tmpG.read_BCHA_data('province')
+        else:
+            tmpG.read_nyt_data('county')
+            tmpG.read_vax_data()
+            
+        tmpG.get_pdate()
+      
+
+        #Date = pd.Series(tmpG.get_pdate())
+        #df_correction = np.sqrt(window-1)
+        recent['county_code'][g] = gg['county'][g] +' '+ gg['code'][g] 
+    #   recent['code'][g] = gg['code'][g] 
+        recent['fips'][g] = gg['fips'][g] 
+        recent['population'][g] = tmpG.population
+        recent['sname'][g] = short_name(tmpG.moniker)
+
+        dcases = pd.Series(np.diff(tmpG.cases)) # first differences
+#        print(dcases)
+        if tmpG.deaths is not None:
+            ddeaths = pd.Series(np.diff(tmpG.deaths)) # first differences
+        else:
+            ddeaths = pd.Series(0.0,index=ddeaths.index)
+        #if g == 0:
+        #    print(tmpG.enclosed_by,list(pd.Series(tmpG.pdate).tail(10)))
+        #if tmpG.enclosed_by == 'Florida':
+        #    print(tmpG.to_DataFrame().tail(window))
+        #    
+        #    #sys.exit(1)
+        
+#        window_delta = delta.tail(window)
+#        pd_filter = (window_delta > 0.0)
+#        window_delta = window_delta[pd_filter]
+#        recent['cases'][g] = mult*window_delta.sum()/window/tmpG.population
+        
+        #print(tmpG.deaths)
+        tcases = pd.Series(tmpG.cases)
+        if tmpG.deaths is not None:
+            tdeaths = pd.Series(tmpG.deaths)
+        else:
+            tdeaths = pd.Series(0.0,index=tcases.index)        #print(tmpG.vax)
+        #tmpG.vax = pd.Series(tmpG.vax)
+        #print(tmpG.vax.tail(window))
+        
+        den = window*tmpG.population/10000.0
+        recent['cases'][g] = dcases.tail(window).sum()/den
+        if tmpG.deaths is not None:
+   #     print('deaths')
+            recent['deaths'][g] = ddeaths.tail(window).sum()/den
+   #     print('cfr')
+            recent['cfr'][g] = pd.Series(tmpG.deaths).tail(window).sum()/pd.Series(tmpG.cases).tail(window).sum()
+        if tmpG.vax is not None:   #     print('vax')
+            recent['vax'][g] = tmpG.vax['full'].tail(window).mean()/tmpG.population
+        
+
+    recent.to_csv('recent.csv',index=False)
+    '''
+    fig, ax = plt.subplots(2,figsize=(6.5,6.5)) 
+    ax[0].scatter(recent['vax'],recent['cases'])
+    ax[0].set_ylabel('Cases per 10k')
+    ax[0].set_xlabel('% Vaccinated')
+    
+    ax[1].scatter(recent['vax'],recent['deaths'])
+    ax[1].set_xlabel('% Vaccinated')
+    ax[1].set_ylabel('Deaths per 10k')
+    plt.show()
+    '''
+    
+    vnames = ['cases','deaths','cfr','vax']
+    qq = [0.01,0.05,0.1,0.2,0.8,0.9,0.95,0.99]
+    quantiles = pd.DataFrame(index=qq, columns=vnames)
+    #print(quantiles)
+
+    for v in vnames:
+        for q in qq:
+        #    print(v,q,np.quantile(recent[v],q=q))
+            quantiles[v][q] = np.quantile(recent[v],q=q)
+
+    quantiles['vax'].fillna(0.999,inplace=True)
+    quantiles['vax'] = 100.0*quantiles['vax'] 
+    #print(quantiles)
+    return quantiles
