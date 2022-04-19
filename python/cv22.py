@@ -882,8 +882,8 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-update_everything(do_fits=False,do_web=False)
-#git_commit_push()
+#update_everything(do_fits=False)#,do_web=False)
+git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
