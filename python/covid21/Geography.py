@@ -216,7 +216,7 @@ class Geography:
                         window=[7], plot_dt = False, cumulative = False,
                         show_order_date = False,
                         show_superspreader = False,
-                        low_prev = 0.0, qq=None,mult = 10000,
+                        qq = None, pp = None, mult = 10000,
                         annotation = True, signature = False, 
                         save = True, dashboard = False, nax = 4):
         """ 
@@ -380,6 +380,7 @@ class Geography:
 
         if (signature):
             GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
+        '''
         if low_prev > 0.0 and low_prev < ax[0].get_ylim()[1]:
             ax[0].plot((Date.iloc[0],Date.iloc[-1]),(low_prev,low_prev),
                        color='red',linewidth=1.5,linestyle=':')
@@ -389,13 +390,20 @@ class Geography:
             GU.mark_ends(ax[0],pd.Series([Date.iloc[0],Date.iloc[-1]]),
                          pd.Series([low_prev,low_prev]),
                          '{:.2f}'.format(low_prev),'l')
-
-        if qq is not None:
+        '''   
+        if qq is not None and pp is not None:
            nq = qq.shape[0]
            for a in range(0,nax):
-               v = qq.columns[a]
-               print(a,v)
-           #   print(qq[v])
+               p = pp[a]
+               q = qq.loc[p][a]
+               ax[a].plot((Date.iloc[0],Date.iloc[-1]),(q,q),
+                       color='green',linewidth=1.5,linestyle=':')
+               GU.mark_ends(ax[a],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                       pd.Series([q,q]), '$P_{:.1f}$'.format(p),'r')
+               GU.mark_ends(ax[a],pd.Series([Date.iloc[0],Date.iloc[-1]]),
+                        pd.Series([q,q]), '{:.2f}'.format(q),'l')
+
+           '''
                for iq in range(0,nq):
                    q = qq[v].iloc[iq]
                    print('    ',iq,q,qq.index[iq])
@@ -406,6 +414,7 @@ class Geography:
                         pd.Series([q,q]), '$P_{:.1f}$'.format(qq.index[iq]),'r')
                    GU.mark_ends(ax[a],pd.Series([Date.iloc[0],Date.iloc[-1]]),
                          pd.Series([q,q]), '{:.2f}'.format(q),'l')
+            '''
 
 
 

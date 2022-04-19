@@ -325,7 +325,7 @@ def make_prevalence_plots(flags = ['m']):
     nyt_counties = cv.GeoIndex
     # get rid of blank flag fields
     nyt_counties = nyt_counties[ nyt_counties['flag'] != ' ']
-    
+
     quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, 
                                               signature=True)
     print('precalence quartiles:',type(quartiles))
@@ -334,7 +334,10 @@ def make_prevalence_plots(flags = ['m']):
 
     GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,low_prev=quartiles[0.05],window=7)
     GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,low_prev=quartiles[0.05],window=7)
-    print('Finished prevealence comp plots')
+    print('Finished prevealence comp_TS plots')
+
+    qq = GG.qcomp(flag='500000',window=7)
+    print(qq)
     
     gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
     # 'or' the flags with the flag field
@@ -353,8 +356,11 @@ def make_prevalence_plots(flags = ['m']):
             tmpG.read_nyt_data('county')
             tmpG.read_vax_data()
             
+    #   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
+    #                        show_order_date=False,per_capita=True,low_prev=quartiles[0.05],window=[7])
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                             show_order_date=False,per_capita=True,low_prev=quartiles[0.05],window=[7])
+                     show_order_date=False,per_capita=True, window=[7],
+                     qq = qq, pp = [0.2,0.2,0.2,0.8])
    
 def update_shared_plots():
     
@@ -825,6 +831,9 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
+#tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
+#                     show_order_date=False,per_capita=True, pp = [0.2,0.2,0.2,0.8],window=[7],
+#                    qq = qq)
 #tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
 #                      per_capita=True,show_order_date = False, nax = 4,low_prev=4.06)
 
@@ -873,7 +882,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-#update_everything(do_fits=False)#,do_web=False)
+update_everything(do_fits=False,do_web=False)
 #git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
@@ -894,19 +903,19 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #print(type(qq),qq)
 #GG.plot_prevalence_comp_TS(flag='m',low_prev=qq[0.05],save=False, signature=True)
 
-qq = GG.qcomp(flag='1000000',window=7)
-print(qq)
-print(qq.shape)
-print(qq['cases'][0.1])
+#qq = GG.qcomp(flag='1000000',window=7)
+#print(qq)
+#print(qq.shape)
+#print(qq['cases'][0.1])
 
-tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
-tgeog.read_nyt_data('county')
-tgeog.read_vax_data()
+#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
+#tgeog.read_nyt_data('county')
+#tgeog.read_vax_data()
 
 #quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, signature=True)
 
-tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
-                     show_order_date=False,per_capita=True,low_prev=0.41,window=[7],
-                     qq = qq)
+#tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
+                     #show_order_date=False,per_capita=True, window=[7],
+                     #qq = qq, pp = [0.2,0.2,0.2,0.8])
 
 
