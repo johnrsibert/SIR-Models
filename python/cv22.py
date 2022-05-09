@@ -271,7 +271,7 @@ def web_update():
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
 #               http://www.bccdc.ca/Health-Info-Site/Documents/
 #                    BCCDC_COVID19_Dashboard_Case_Details.csv
-    cmd = 'wget -q http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
+    cmd = 'wget --verbose http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
          ' -O '+cv.cv_home+BC_cases_file
     print(cmd)
     os.system(cmd)
@@ -326,19 +326,21 @@ def make_prevalence_plots(flags = ['m']):
     # get rid of blank flag fields
     nyt_counties = nyt_counties[ nyt_counties['flag'] != ' ']
 
-    quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, 
-                                              signature=True)
-    print('precalence quartiles:',type(quartiles))
-    print(quartiles)
-    print('q[0.05] =',quartiles[0.05])
-
-    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,low_prev=quartiles[0.05],window=7)
-    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,low_prev=quartiles[0.05],window=7)
-    print('Finished prevealence comp_TS plots')
+#   quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, 
+#                                             signature=True)
+#   print('prevalence quartiles:',type(quartiles))
+#   print(quartiles)
+#   print('q[0.05] =',quartiles[0.05])
 
     qq = GG.qcomp(flag='500000',window=7)
+    print('prevalence quartiles:',type(qq))
     print(qq)
     
+
+    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,window=7,qq = qq, pp = [0.2,0.2,0.2,0.8])
+    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,window=7,qq = qq, pp = [0.2,0.2,0.2,0.8])
+    print('Finished prevealence comp_TS plots')
+
     gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
     # 'or' the flags with the flag field
     for f in flags:
@@ -380,7 +382,7 @@ def update_shared_plots():
         os.system(cmd)
   
 def update_assets():
-    asset_files=['prevalence_comp_TS_B.png','prevalence_comp_TS_L.png','recent_prevalence_histo_pop.png',
+    asset_files=['prevalence_comp_TS_B.png','prevalence_comp_TS_L.png',#'recent_prevalence_histo_pop.png',
                  'New_York_CityNY_prevalence.png','Los_AngelesCA_prevalence.png',
                  'CFR_all_5.png','CFR_all_0000.png','CFR_hist_all_recent.png',
                  'CFRridge_30_23.png']
@@ -438,8 +440,8 @@ def update_everything(do_fits = True, do_web = True):
     update_assets()
     print('Finished update asset directory')
 
-    update_html()
-    print('Finished update html table in index.md')
+#   update_html()
+#   print('Finished update html table in index.md')
 
     if (do_fits):
         os.system('rm -v '+ cv.dat_path + '*.dat')
@@ -882,7 +884,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-#update_everything(do_fits=False)#,do_web=False)
+#update_everything(do_fits=False,do_web=True)
 git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
@@ -911,11 +913,20 @@ git_commit_push()
 #tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 #tgeog.read_nyt_data('county')
 #tgeog.read_vax_data()
-
-#quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, signature=True)
-
+#qq = GG.qcomp(flag='950000',window=7)
 #tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
-                     #show_order_date=False,per_capita=True, window=[7],
-                     #qq = qq, pp = [0.2,0.2,0.2,0.8])
+#                     show_order_date=False,per_capita=True, window=[7],
+#                     qq = qq, pp = [0.2,0.2,0.2,0.8])
+#
+#GG.plot_prevalence_comp_TS(flag='B',save=False, signature=True,window=7,
+#                              qq = qq, pp = [0.2,0.2,0.2,0.8])
 
-
+#GG.plot_prevalence_comp_histo(flag='950000',window=15,save=False, signature=True, qq = qq, p = 0.2)
+#BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
+#               http://www.bccdc.ca/Health-Info-Site/Documents/
+#                    BCCDC_COVID19_Dashboard_Case_Details.csv
+#cmd = 'wget --verbose http://www.bccdc.ca/Health-Info-Site/Documents/' + BC_cases_file +\
+         #' -O /home/jsibert/Desktop/'+BC_cases_file
+#print(cmd)
+#os.system(cmd)
+ 

@@ -66,6 +66,11 @@ def plot_dtslopes(ax, xvar, yvar, threshold = 1000, dt = [1,2,4,8]):
         mark_ends(ax,xrange,[y0,y],str(dt[i])+' da','r')
     return(ax)
 
+def hq_line(ax,x,qy,y,c='red'):
+    ax.plot((x.iloc[0],x.iloc[-1]),(y,y), color=c,linewidth=1.5,linestyle=':')
+    mark_ends(ax,x,pd.Series([y,y]),'$P_{:3.1f}$'.format(qy),'r') 
+    mark_ends(ax,x,pd.Series([y,y]),'{:.2f}'.format(y),'l')
+
 def mark_peak(ax,x,y,label):
     c = ax.get_lines()[-1].get_color()
     a = ax.get_lines()[-1].get_alpha()
