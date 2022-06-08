@@ -156,8 +156,9 @@ class Geography:
         #vax_name =  cv.CDC_home + 'vax.csv'
         #self.vax = pd.read_csv(vax_name,header=0,comment='#')
         #print('Vax data read from',vax_name)
-        fips_filter = cv.cdc_vax_dat['fips'] == self.fips
-        self.vax =  cv.cdc_vax_dat[fips_filter]
+    #   fips_filter = cv.cdc_vax_dat['fips'] == self.fips
+    #   self.vax =  cv.cdc_vax_dat[fips_filter]
+        self.vax = None
         #print(self.vax)
               
     def write_dat_file(self):
@@ -333,7 +334,8 @@ class Geography:
                 ax[a].plot(Date,gdf.iloc[:,a]) 
                 ax[a].set_ylim(ylim[a])
                 
-            elif a == 3:
+            #elif a == 3:
+            elif a == 3 and self.vax is not None:
                 ax[a].set_ylim(ylim[a])
                 vmult = 100.0
                 mdate = self.vax['mdate']
@@ -354,8 +356,8 @@ class Geography:
                         GU.add_order_date(ax[a])
                 else:
                     print('number of vax estimates',len(pv),', max =',pv.max())
-                #    tx = mdate.iloc[0] + 0.5*(mdate.iloc[-1]-mdate.iloc[0])
-                    tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
+                    tx = self.mdate.iloc[0] + 0.5*(self.mdate.iloc[-1]-self.mdate.iloc[0])
+                #   tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
                     ty = 50.0
                     #print(mdate)
                     #print(tx,ty)
@@ -559,7 +561,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                         GU.mark_ends(ax[a],Date,gdf.iloc[:,a],' '+short_name(tmpG.moniker),'r')
                 #   ax[a].set_ylim(ylim[a])
 
-                elif a == 3:
+                elif a == 3 and tmpG.vax is not None:
                     vmult = 100.0
                     mdate = tmpG.vax['mdate']
                     pv = vmult*pd.Series(tmpG.vax['first'])/tmpG.population
@@ -594,12 +596,21 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
     if (signature):
         GU.add_signature(fig,'johnrsibert@gmail.com')
 
+#   draw quantiles
     if qq is not None and pp is not None:
        nq = qq.shape[0]
        for a in range(0,nax):
-           p = pp[a]
-           q = qq.loc[p][a]
-           GU.hq_line(ax[a],Date,p,q,c='green')
+           if a == 3 and tmpG.vax is  None:
+           #   tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
+               tx = ax[a].get_ylim()[0]+0.5*(ax[a].get_ylim()[1]-ax[a].get_ylim()[0])
+               ty = 50.0
+               print('Insufficient Data',tmpG.vax,tx,ty)
+               ax[a].text(tx,ty,'Insufficient Data',ha='right',va='center',
+                          fontsize=14)
+           else:
+               p = pp[a]
+               q = qq.loc[p][a]
+               GU.hq_line(ax[a],Date,p,q,c='green')
  
     if save:
         gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+'.png'

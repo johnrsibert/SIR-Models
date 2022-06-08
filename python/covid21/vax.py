@@ -17,24 +17,72 @@ from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import GraphicsUtilities as GU
 
+import sys
 
 
 
 def get_cdc_dat(update=False):
-    vax_file = cv.CDC_home + 'us-vax.csv'
-    print('vax_file = ', vax_file)
+#    vax_file = cv.CDC_home + 'us-vax.csv'
+#    print('vax_file = ', vax_file)
 
     if update:
         api_end_point = 'https://data.cdc.gov/resource/8xkx-amqh.json'
-        query = api_end_point+'?$limit=2000000'
-
+   #    query = api_end_point+'?$limit=2000000'
+   #    query = api_end_point+'?$limit=10000'
+   #   select= 'date', 'recip_county', 'recip_state', 'fips', 'administered_dose1_recip', 'series_complete_yes',
+      
+        query = api_end_point+'?$limit=10000'+',$select=date'#, recip_county'
         print('query =', query)
+        
         raw_data = pd.read_json(query, dtype=True)
+        print(raw_data)
+        print(raw_data.columns)
+        '''
+        raw_data = raw_data.drop(columns=['mmwr_week', 'completeness_pct', #'administered_dose1_recip',
+            'administered_dose1_pop_pct', 'administered_dose1_recip_5plus',
+            'administered_dose1_recip_5pluspop_pct',
+            'administered_dose1_recip_12plus',
+            'administered_dose1_recip_12pluspop_pct',
+            'administered_dose1_recip_18plus',
+            'administered_dose1_recip_18pluspop_pct',
+            'administered_dose1_recip_65plus',
+            'administered_dose1_recip_65pluspop_pct', #'series_complete_yes',
+            'series_complete_pop_pct', 'series_complete_5plus',
+            'series_complete_5pluspop_pct', 'series_complete_5to17',
+            'series_complete_5to17pop_pct', 'series_complete_12plus',
+            'series_complete_12pluspop_pct', 'series_complete_18plus',
+            'series_complete_18pluspop_pct', 'series_complete_65plus',
+            'series_complete_65pluspop_pct', 'booster_doses',
+            'booster_doses_vax_pct', 'booster_doses_12plus',
+            'booster_doses_12plus_vax_pct', 'booster_doses_18plus',
+            'booster_doses_18plus_vax_pct', 'booster_doses_50plus',
+            'booster_doses_50plus_vax_pct', 'booster_doses_65plus',
+            'booster_doses_65plus_vax_pct', 'svi_ctgy',
+            'series_complete_pop_pct_svi', 'series_complete_5pluspop_pct_svi',
+            'series_complete_5to17pop_pct_svi', 'series_complete_12pluspop_pct_svi',
+            'series_complete_18pluspop_pct_svi',
+            'series_complete_65pluspop_pct_svi', 'metro_status',
+            'series_complete_pop_pct_ur_equity',
+            'series_complete_5pluspop_pct_ur_equity',
+            'series_complete_5to17pop_pct_ur_equity',
+            'series_complete_12pluspop_pct_ur_equity',
+            'series_complete_18pluspop_pct_ur_equity',
+            'series_complete_65pluspop_pct_ur_equity', 'booster_doses_vax_pct_svi',
+            'booster_doses_12plusvax_pct_svi', 'booster_doses_18plusvax_pct_svi',
+            'booster_doses_65plusvax_pct_svi', 'booster_doses_vax_pct_ur_equity',
+            'booster_doses_12plusvax_pct_ur_equity',
+            'booster_doses_18plusvax_pct_ur_equity',
+            'booster_doses_65plusvax_pct_ur_equity', 'census2019',
+            'census2019_5pluspop', 'census2019_5to17pop', 'census2019_12pluspop',
+            'census2019_18pluspop', 'census2019_65pluspop'])
+        print(raw_data.columns)
 
-        raw_data.fillna(0.0, inplace=True)
+        raw_data = raw_data.fillna(0.0)#, inplace=True)
 
         raw_data.to_csv(vax_file, header=True, index=False)
         print('saved raw CDC data to', vax_file)
+        '''
+        if (1): sys.exit(1)
 
     raw_data = pd.read_csv(vax_file, header=0)
     raw_data['fips'].replace('UNK', np.nan, inplace=True)
@@ -48,9 +96,7 @@ def get_cdc_dat(update=False):
 
 #   vax.astype({'date':'str', 'county':'str', 'code': 'str', 'mdate': 'float64',
 #               'fips': 'int64',  'first': 'int64', 'full': 'int64'}).dtypes
-#   {'col1': 'int32'}
-#   print('init vax:')
-#   print(vax)
+
     vax['date'] = raw_data['date']
     vax['county'] = raw_data['recip_county']
     vax['code'] = raw_data['recip_state']

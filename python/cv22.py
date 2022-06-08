@@ -263,10 +263,25 @@ def plot_dow_boxes(nG=5):
     plt.savefig(gfile,dpi=300)
     plt.show()
   
-def web_update():
+def web_update(years=['2020', '2021', '2022']):
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
-    cv.nyt_county_dat = pd.read_csv(cv.NYT_counties,header=0)
-    print('Updated NYT data')
+#    cv.nyt_county_dat = pd.read_csv(cv.NYT_counties,header=0)
+    cv.nyt_county_dat.iloc[0:0]
+    for y in years:
+        file = cv.NYT_home + '/us-counties-' + y + '.csv'
+        print(file)
+        ydat = pd.read_csv(file,header=0)
+        print(ydat.shape)
+        print(ydat)
+        cv.nyt_county_dat = pd.concat([cv.nyt_county_dat,ydat],ignore_index=True)
+        
+        
+    print('Updated NYT data for years',years)
+    print(cv.nyt_county_dat)
+    cv.nyt_county_dat.to_csv('junk.csv',header=True,index=False)
+    
+    print()
+    if 1: sys.exit(1)
     
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
 #               http://www.bccdc.ca/Health-Info-Site/Documents/
@@ -276,9 +291,12 @@ def web_update():
     print(cmd)
     os.system(cmd)
     print('Updated BC cases')
+    print()
     
-    VV.get_cdc_dat(True)
-    print('Updated CDC vax data')
+#   print('Updating CDC vax data')
+#   VV.get_cdc_dat(True)
+#   print('Updated  CDC vax data')
+    print()
 
 def make_dat_files():
     nyt_counties = cv.GeoIndex # pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
@@ -852,7 +870,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
 #                     per_capita=True,show_order_date=False)
 
-
+VV.get_cdc_dat(update=True)
 #web_update()
 #make_dat_files()
 #update_fits()
@@ -885,7 +903,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #update_assets()
 
 #update_everything(do_fits=False,do_web=True)
-git_commit_push()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
