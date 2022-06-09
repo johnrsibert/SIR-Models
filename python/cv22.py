@@ -267,18 +267,31 @@ def web_update(years=['2020', '2021', '2022']):
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
 #    cv.nyt_county_dat = pd.read_csv(cv.NYT_counties,header=0)
     cv.nyt_county_dat.iloc[0:0]
-    for y in years:
-        file = cv.NYT_home + '/us-counties-' + y + '.csv'
-        print(file)
+
+    file = cv.NYT_home + '/us-counties-' + years[0] + '.csv'    
+    cv.nyt_county_dat = pd.read_csv(file,header=0)
+    columns = cv.nyt_county_dat.columns
+    cv.nyt_county_dat.columns = [''] * len(cv.nyt_county_dat.columns)
+    print(file)
+    print(cv.nyt_county_dat)
+#    for y in years:
+#    for k, y in enumerate(years):
+#    for g in range(0,len(gg)):
+    for k in range(1,len(years)):
+        file = cv.NYT_home + '/us-counties-' + years[k] + '.csv'
+        print(k,file)
         ydat = pd.read_csv(file,header=0)
-        print(ydat.shape)
+    #    print(ydat)
+    #    df.columns = [''] * len(df.columns)
+        ydat.columns = [''] * len(ydat.columns)
+    #    ydat = ydat.drop(0)
         print(ydat)
-        cv.nyt_county_dat = pd.concat([cv.nyt_county_dat,ydat],ignore_index=True)
-        
-        
+        cv.nyt_county_dat = pd.concat([cv.nyt_county_dat,ydat],ignore_index=True) 
+    
+    cv.nyt_county_dat.columns=columns
     print('Updated NYT data for years',years)
     print(cv.nyt_county_dat)
-    cv.nyt_county_dat.to_csv('junk.csv',header=True,index=False)
+    cv.nyt_county_dat.to_csv(cv.NYT_home+'big.csv',header=True,index=False)
     
     print()
     if 1: sys.exit(1)
@@ -870,7 +883,7 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
 #                     per_capita=True,show_order_date=False)
 
-VV.get_cdc_dat(update=True)
+#VV.get_cdc_dat(update=True)
 #web_update()
 #make_dat_files()
 #update_fits()
@@ -902,7 +915,7 @@ VV.get_cdc_dat(update=True)
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-#update_everything(do_fits=False,do_web=True)
+update_everything(do_fits=False,do_web=True)
 #git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
