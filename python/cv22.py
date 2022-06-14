@@ -3,6 +3,8 @@
 """
 @author: jsibert
 """
+import ipdb
+ipdb
 
 from covid21 import Geography as GG
 from covid21 import Fit as FF
@@ -265,7 +267,6 @@ def plot_dow_boxes(nG=5):
   
 def web_update(years=['2020', '2021', '2022']):
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
-#    cv.nyt_county_dat = pd.read_csv(cv.NYT_counties,header=0)
     cv.nyt_county_dat.iloc[0:0]
 
     file = cv.NYT_home + '/us-counties-' + years[0] + '.csv'    
@@ -273,28 +274,23 @@ def web_update(years=['2020', '2021', '2022']):
     columns = cv.nyt_county_dat.columns
     cv.nyt_county_dat.columns = [''] * len(cv.nyt_county_dat.columns)
     print(file)
-    print(cv.nyt_county_dat)
-#    for y in years:
-#    for k, y in enumerate(years):
-#    for g in range(0,len(gg)):
+#    print(cv.nyt_county_dat)
+
     for k in range(1,len(years)):
         file = cv.NYT_home + '/us-counties-' + years[k] + '.csv'
         print(k,file)
         ydat = pd.read_csv(file,header=0)
-    #    print(ydat)
-    #    df.columns = [''] * len(df.columns)
         ydat.columns = [''] * len(ydat.columns)
-    #    ydat = ydat.drop(0)
-        print(ydat)
+#        print(ydat)
         cv.nyt_county_dat = pd.concat([cv.nyt_county_dat,ydat],ignore_index=True) 
     
     cv.nyt_county_dat.columns=columns
     print('Updated NYT data for years',years)
     print(cv.nyt_county_dat)
-    cv.nyt_county_dat.to_csv(cv.NYT_home+'big.csv',header=True,index=False)
+    cv.nyt_county_dat.to_csv(cv.NYT_counties,header=True,index=False)
     
-    print()
-    if 1: sys.exit(1)
+#   print()
+#   if 1: sys.exit(1)
     
     BC_cases_file = 'BCCDC_COVID19_Dashboard_Case_Details.csv'
 #               http://www.bccdc.ca/Health-Info-Site/Documents/
@@ -306,9 +302,9 @@ def web_update(years=['2020', '2021', '2022']):
     print('Updated BC cases')
     print()
     
-#   print('Updating CDC vax data')
-#   VV.get_cdc_dat(True)
-#   print('Updated  CDC vax data')
+    print('Updating CDC vax data')
+    VV.get_cdc_dat(True)
+    print('Updated  CDC vax data')
     print()
 
 def make_dat_files():
@@ -368,8 +364,10 @@ def make_prevalence_plots(flags = ['m']):
     print(qq)
     
 
-    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,window=7,qq = qq, pp = [0.2,0.2,0.2,0.8])
-    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,window=7,qq = qq, pp = [0.2,0.2,0.2,0.8])
+    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,window=7,nax=3,
+                               qq = qq, pp = [0.2,0.2,0.2,0.8])
+    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,window=7,qq = qq, nax=3,
+                               pp = [0.2,0.2,0.2,0.8])
     print('Finished prevealence comp_TS plots')
 
     gg_filter = pd.Series(index=nyt_counties.index,dtype=bool)
@@ -389,10 +387,8 @@ def make_prevalence_plots(flags = ['m']):
             tmpG.read_nyt_data('county')
             tmpG.read_vax_data()
             
-    #   tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-    #                        show_order_date=False,per_capita=True,low_prev=quartiles[0.05],window=[7])
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                     show_order_date=False,per_capita=True, window=[7],
+                     show_order_date=False,per_capita=True, window=[7], nax = 3,
                      qq = qq, pp = [0.2,0.2,0.2,0.8])
    
 def update_shared_plots():
@@ -864,19 +860,14 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog.read_vax_data()
 #tgeog.print_metadata()
 #tgeog.print_data()
-#tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
-#                     show_order_date=False,per_capita=True, pp = [0.2,0.2,0.2,0.8],window=[7],
-#                    qq = qq)
-#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
-#                      per_capita=True,show_order_date = False, nax = 4,low_prev=4.06)
-
-#quartiles = GG.plot_prevalence_comp_histo(flag='500000',window=7,save=True, 
-                                          #   signature=True)
-#tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
-                      #show_order_date=False,per_capita=True,low_prev=quartiles[0.10],window=[7])
-
-#tgeog.plot_prevalence(save=False, signature=True,show_superspreader=False,
-#                      per_capita=True,show_order_date = True,yscale='log')#,cumulative = True)
+'''
+tgeog.read_nyt_data('county')
+tgeog.read_vax_data()
+qq = GG.qcomp(flag='1500000',window=7)
+tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
+                     show_order_date=False,per_capita=True, window=[7],
+                     qq = qq, pp = [0.2,0.2,0.2,0.8],nax=4)
+'''
 
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
@@ -915,10 +906,10 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-update_everything(do_fits=False,do_web=True)
-#git_commit_push()
+#update_everything(do_fits=False,do_web=True)
+git_commit_push()
 
-#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,low_prev=4.06)
+#GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
 #GG.plot_prevalence_comp_TS(flag='H',save=True, signature=True)
 #GG.plot_prevalence_comp_TS(flag='m',save=True, signature=True)
@@ -941,13 +932,7 @@ update_everything(do_fits=False,do_web=True)
 #print(qq.shape)
 #print(qq['cases'][0.1])
 
-#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
-#tgeog.read_nyt_data('county')
-#tgeog.read_vax_data()
-#qq = GG.qcomp(flag='950000',window=7)
-#tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
-#                     show_order_date=False,per_capita=True, window=[7],
-#                     qq = qq, pp = [0.2,0.2,0.2,0.8])
+
 #
 #GG.plot_prevalence_comp_TS(flag='B',save=False, signature=True,window=7,
 #                              qq = qq, pp = [0.2,0.2,0.2,0.8])

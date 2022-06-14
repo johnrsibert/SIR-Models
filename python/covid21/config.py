@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 #import numpy as np
 import matplotlib.pyplot as plt
+#import matplotlib as mpl
+#mpl.rcParams['agg.path.chunksize'] = 10000
 import os
 
 NYT_home = '/home/other/nytimes-covid-19-data/'

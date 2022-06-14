@@ -16,27 +16,29 @@ import matplotlib.dates as mdates
 from covid21 import config as cv
 from covid21 import Geography as GG
 from covid21 import GraphicsUtilities as GU
+from sodapy import Socrata
+from datetime import datetime
 
 import sys
 
 
 
 def get_cdc_dat(update=False):
-#    vax_file = cv.CDC_home + 'us-vax.csv'
-#    print('vax_file = ', vax_file)
+    vax_file = cv.CDC_home + 'us-vax.csv'
+    print('raw_data file = ', vax_file)
 
     if update:
+        '''
         api_end_point = 'https://data.cdc.gov/resource/8xkx-amqh.json'
-   #    query = api_end_point+'?$limit=2000000'
-   #    query = api_end_point+'?$limit=10000'
-   #   select= 'date', 'recip_county', 'recip_state', 'fips', 'administered_dose1_recip', 'series_complete_yes',
-      
         query = api_end_point+'?$limit=10000'+',$select=date'#, recip_county'
         print('query =', query)
         
         raw_data = pd.read_json(query, dtype=True)
         print(raw_data)
         print(raw_data.columns)
+        '''
+        
+        
         '''
         raw_data = raw_data.drop(columns=['mmwr_week', 'completeness_pct', #'administered_dose1_recip',
             'administered_dose1_pop_pct', 'administered_dose1_recip_5plus',
@@ -79,16 +81,27 @@ def get_cdc_dat(update=False):
 
         raw_data = raw_data.fillna(0.0)#, inplace=True)
 
-        raw_data.to_csv(vax_file, header=True, index=False)
-        print('saved raw CDC data to', vax_file)
         '''
-        if (1): sys.exit(1)
+        APP_TOKEN = 'UwVHDRzhzc7MrtatC9AsYDcz7'
+        cols='date,recip_county,recip_state,fips,administered_dose1_recip,series_complete_yes'
+        client = Socrata('data.cdc.gov', APP_TOKEN)
+
+        resource = "8xkx-amqh"
+        print('getting resource:',resource)
+        raw_data  = client.get(resource, limit=2000000, select=cols)
+        pd.json_normalize(raw_data).to_csv(vax_file, header=True, index=False)
+        print('saved raw CDC data to', vax_file)
+    #    if (1): sys.exit(1)
 
     raw_data = pd.read_csv(vax_file, header=0)
+    print(raw_data)
+    raw_data = raw_data.fillna(0.0)#, inplace=True)
+
     raw_data['fips'].replace('UNK', np.nan, inplace=True)
     raw_data['fips'] = raw_data['fips'].fillna(0).astype(np.int64)
 
     udates = pd.Series(raw_data['date'].unique())
+    print(udates)
     vax_len = len(raw_data)+len(udates)
 
     vax = pd.DataFrame(0, index=np.arange(0, vax_len),
@@ -97,19 +110,51 @@ def get_cdc_dat(update=False):
 #   vax.astype({'date':'str', 'county':'str', 'code': 'str', 'mdate': 'float64',
 #               'fips': 'int64',  'first': 'int64', 'full': 'int64'}).dtypes
 
-    vax['date'] = raw_data['date']
+#    vax['date'] = raw_data['date']
+    print('reformating date field in raw_data')
+  
+    for k in range(len(raw_data)):
+        d = raw_data['date'][k]
+#        print(k,d)
+#        dd = datetime.date(datetime.strptime(raw_data['date'],'%Y-%m-%dT00:00:00.000'))
+        try:
+            raw_data.loc[k,'date'] =  datetime.date(datetime.strptime(d,'%Y-%m-%dT00:00:00.000'))
+        except:
+            print('datetime error at', k,d)
+    
+    print('    complete')        
+    '''
+    try:
+        raw_data['date'].apply(lambda: d, datetime.date(datetime.strptime(d,'%Y-%m-%dT00:00:00.000')))
+    except Exception as ex:
+        print('datetime issue:')
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+    '''    
+    
+    print('assembling vax data')    
+    vax['date'] = raw_data['date']        
     vax['county'] = raw_data['recip_county']
     vax['code'] = raw_data['recip_state']
     vax['fips'] = raw_data['fips']
     vax['first'] = raw_data['administered_dose1_recip']
     vax['full'] = raw_data['series_complete_yes']
+#   print(vax)
+    vax.dropna(inplace=True)
+#   print('after drop:')
+    print(vax)
 
     NYC_fips = [36005, 36047, 36061, 36081, 36085]
 
-    k = len(raw_data)-1
-    for d in udates:
-        k += 1
+#    k = len(raw_data)-1
+#    for d in udates:
+    for k, d0 in enumerate(udates):
+    #    k += 1
+        d = datetime.date(datetime.strptime(d0,'%Y-%m-%dT00:00:00.000'))
+#       print('k=',k,d0,d)
         vax.loc[k, 'date'] = d
+       
         vax.loc[k, 'fips'] = 36999
         vax.loc[k, 'county'] = 'New York City'
         vax.loc[k, 'code'] = 'NY'
@@ -125,19 +170,20 @@ def get_cdc_dat(update=False):
     #   for f in NYC_fips:
 
 #   for d in udates:
+    print('    udate loop complete')        
 
     vax['mdate'] = pd.Series(mdates.date2num(vax['date']))
     vax['fips'] = vax['fips'].fillna(0).astype(np.int64)
 
 #   vax = vax.astype({'date':'str',  'county':'str',  'code': 'str',  'mdate': 'float64',
 #               'fips': 'int64',   'first': 'int64',  'full': 'int64'}).dtypes
+#   print(vax)
+    print('sorting by date and fips')
+    vax = vax.sort_values(by=['date','fips'], ascending=True)
 
-    print('sorting by date')
-    vax = vax.sort_values(by='date', ascending=True)
-
-    vax_name = cv.CDC_home + 'vax.csv'
+    vax_name = cv.CDC_vax
     vax.to_csv(vax_name, header=True, index=False)
-    print('Augmented vax data written to', vax_name)
+    print('Augmented and sorted CDC vax data written to', vax_name)
 
 
 def plot_vax(name='New York City', enclosed_by='New York', code='NY'):

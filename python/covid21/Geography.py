@@ -1,3 +1,6 @@
+import ipdb
+ipdb
+
 from covid21 import config as cv
 from covid21 import GraphicsUtilities as GU
 
@@ -153,12 +156,12 @@ class Geography:
         self.source = 'New York Times, https://github.com/nytimes/covid-19-data.git.'
         
     def read_vax_data(self):
-        #vax_name =  cv.CDC_home + 'vax.csv'
-        #self.vax = pd.read_csv(vax_name,header=0,comment='#')
+        vax_name =  cv.CDC_home + 'vax.csv'
+        self.vax = pd.read_csv(vax_name,header=0,comment='#')
         #print('Vax data read from',vax_name)
     #   fips_filter = cv.cdc_vax_dat['fips'] == self.fips
     #   self.vax =  cv.cdc_vax_dat[fips_filter]
-        self.vax = None
+    #   self.vax = None
         #print(self.vax)
               
     def write_dat_file(self):
@@ -335,25 +338,32 @@ class Geography:
                 ax[a].set_ylim(ylim[a])
                 
             #elif a == 3:
-            elif a == 3 and self.vax is not None:
+            elif a == 3: # and self.vax is not None:
                 ax[a].set_ylim(ylim[a])
                 vmult = 100.0
                 mdate = self.vax['mdate']
                 pv = vmult*pd.Series(self.vax['first'])/self.population
-                #print('number of vax estimates',len(pv),', max =',pv.max())
-                #print(pv)
+                print('a =',a,'number of vax estimates',len(pv),', max =',pv.max())
+                print(pv)
+                ax[a].plot(mdate,pv)
+
+                pv = vmult*pd.Series(self.vax['full'])/self.population
+                print('a =',a,'number of vax estimates',len(pv),', max =',pv.max())
+                print(pv)
+                ax[a].plot(mdate,pv)
+                '''
                 if pv.max() > 1.0:
-                    ax[a].plot(mdate,pv)
                     GU.mark_ends(ax[a],mdate,pv,'first','r')
                 
                     pv = vmult*pd.Series(self.vax['full'])/self.population
                     ax[a].plot(mdate,pv)
                     GU.mark_ends(ax[a],mdate,pv,' full','r')
-                
+                '''  
                     
                
-                    if show_order_date:
-                        GU.add_order_date(ax[a])
+                #   if show_order_date:
+                #       GU.add_order_date(ax[a])
+                '''
                 else:
                     print('number of vax estimates',len(pv),', max =',pv.max())
                     tx = self.mdate.iloc[0] + 0.5*(self.mdate.iloc[-1]-self.mdate.iloc[0])
@@ -362,7 +372,7 @@ class Geography:
                     #print(mdate)
                     #print(tx,ty)
                     ax[a].text(tx,ty,'Insufficient Data',ha='right',va='center',fontsize=14)
-
+                '''
         if ((yscale == 'log') & (plot_dt) & (cumulative) ):
             # this is a bad idea
             ax[0] = GU.plot_dtslopes(ax[0],Date,gdf.iloc[:,0])
@@ -406,6 +416,7 @@ class Geography:
         else:
             if save:
                 gfile = cv.graphics_path+self.moniker+'_prevalence.png'
+                print('attempting to save plot as',gfile)
                 plt.savefig(gfile,dpi=300)
                 plt.show(block=False)
                 plt.pause(2)
@@ -444,7 +455,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     show_SE = False,
                     qq = None, pp = None, 
 #                   ymax = [None,None,None], #[0.2,0.01,0.04],
-                    save = True, nax = 4):
+                    save = True, nax = 3):
     """ 
     Plots cases and deaths vs calendar date 
 
@@ -561,7 +572,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                         GU.mark_ends(ax[a],Date,gdf.iloc[:,a],' '+short_name(tmpG.moniker),'r')
                 #   ax[a].set_ylim(ylim[a])
 
-                elif a == 3 and tmpG.vax is not None:
+                elif a == 3: # and tmpG.vax is not None:
                     vmult = 100.0
                     mdate = tmpG.vax['mdate']
                     pv = vmult*pd.Series(tmpG.vax['first'])/tmpG.population
@@ -590,7 +601,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
             title = 'Covid-19 Prevalence Comparison, SF Bay Area'
         else:
             title = 'Covid-19 Prevalence Comparison ('+str(nG)+' Places)'
-        fig.text(0.5,0.5,title ,ha='center',va='top')
+        fig.text(0.5,1.0,title ,ha='center',va='top')
         GU.add_data_source(fig, 'New York Times and Centers for Disease Control')
 
     if (signature):
@@ -598,7 +609,11 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
 
 #   draw quantiles
     if qq is not None and pp is not None:
-       nq = qq.shape[0]
+       q = qq.shape[0]
+       p = pp[a]
+       q = qq.loc[p][a]
+       GU.hq_line(ax[a],Date,p,q,c='green')
+       '''
        for a in range(0,nax):
            if a == 3 and tmpG.vax is  None:
            #   tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
@@ -611,6 +626,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                p = pp[a]
                q = qq.loc[p][a]
                GU.hq_line(ax[a],Date,p,q,c='green')
+       '''
  
     if save:
         gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+'.png'
