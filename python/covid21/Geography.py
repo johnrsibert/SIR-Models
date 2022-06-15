@@ -157,12 +157,8 @@ class Geography:
         
     def read_vax_data(self):
         vax_name =  cv.CDC_home + 'vax.csv'
-        self.vax = pd.read_csv(vax_name,header=0,comment='#')
-        #print('Vax data read from',vax_name)
-    #   fips_filter = cv.cdc_vax_dat['fips'] == self.fips
-    #   self.vax =  cv.cdc_vax_dat[fips_filter]
-    #   self.vax = None
-        #print(self.vax)
+        fips_filter = cv.cdc_vax_dat['fips'] == self.fips
+        self.vax =  cv.cdc_vax_dat[fips_filter]
               
     def write_dat_file(self):
         print(len(self.date),'records found for',self.name,self.enclosed_by)
