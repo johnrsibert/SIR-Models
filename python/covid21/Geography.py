@@ -451,7 +451,7 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
                     show_SE = False,
                     qq = None, pp = None, 
 #                   ymax = [None,None,None], #[0.2,0.01,0.04],
-                    save = True, nax = 3):
+                    save = True, nax = 4):
     """ 
     Plots cases and deaths vs calendar date 
 

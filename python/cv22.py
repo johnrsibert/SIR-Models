@@ -364,9 +364,9 @@ def make_prevalence_plots(flags = ['m']):
     print(qq)
     
 
-    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,window=7,nax=3,
+    GG.plot_prevalence_comp_TS(flag='L',save=True, signature=True,window=7,
                                qq = qq, pp = [0.2,0.2,0.2,0.8])
-    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,window=7,qq = qq, nax=3,
+    GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,window=7,qq = qq, 
                                pp = [0.2,0.2,0.2,0.8])
     print('Finished prevealence comp_TS plots')
 
@@ -388,7 +388,7 @@ def make_prevalence_plots(flags = ['m']):
             tmpG.read_vax_data()
             
         tmpG.plot_prevalence(save=True,signature=True,cumulative=False,
-                     show_order_date=False,per_capita=True, window=[7], nax = 3,
+                     show_order_date=False,per_capita=True, window=[7], 
                      qq = qq, pp = [0.2,0.2,0.2,0.8])
    
 def update_shared_plots():
@@ -855,18 +855,17 @@ def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=T
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
 #tgeog = GG.Geography(name='San Diego',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Hamilton',enclosed_by='Ohio',code='OH')
-#tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
-#tgeog.read_nyt_data('county')
-#tgeog.read_vax_data()
-#tgeog.print_metadata()
-#tgeog.print_data()
 '''
+tgeog = GG.Geography(name='Alameda',enclosed_by='California',code='CA')
 tgeog.read_nyt_data('county')
 tgeog.read_vax_data()
+#tgeog.print_metadata()
+#tgeog.print_data()
+
 qq = GG.qcomp(flag='1500000',window=7)
 tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
                      show_order_date=False,per_capita=True, window=[7],
-                     qq = qq, pp = [0.2,0.2,0.2,0.8],nax=4)
+                     qq = qq, pp = [0.2,0.2,0.2,0.8],False=4)
 '''
 
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
@@ -906,7 +905,7 @@ tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-#update_everything(do_fits=False,do_web=True)
+#update_everything(do_fits=False,do_web=False)
 git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
