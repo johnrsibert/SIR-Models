@@ -605,24 +605,11 @@ def plot_prevalence_comp_TS(flag=None,per_capita=True, mult = 10000, delta_ts=Tr
 
 #   draw quantiles
     if qq is not None and pp is not None:
-       q = qq.shape[0]
-       p = pp[a]
-       q = qq.loc[p][a]
-       GU.hq_line(ax[a],Date,p,q,c='green')
-       '''
        for a in range(0,nax):
-           if a == 3 and tmpG.vax is  None:
-           #   tx = 0.5*(mdate.iloc[-1]+mdate.iloc[0])
-               tx = ax[a].get_ylim()[0]+0.5*(ax[a].get_ylim()[1]-ax[a].get_ylim()[0])
-               ty = 50.0
-               print('Insufficient Data',tmpG.vax,tx,ty)
-               ax[a].text(tx,ty,'Insufficient Data',ha='right',va='center',
-                          fontsize=14)
-           else:
-               p = pp[a]
-               q = qq.loc[p][a]
-               GU.hq_line(ax[a],Date,p,q,c='green')
-       '''
+           p = pp[a]
+           q = qq.loc[p][a]
+           print('a =',a,', p =',p)
+           GU.hq_line(ax[a],Date,p,q,c='green')
  
     if save:
         gfile = cv.graphics_path+'prevalence_comp_TS_'+flag+'.png'

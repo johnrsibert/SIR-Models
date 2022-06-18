@@ -681,7 +681,7 @@ def plot_CFR_contour(CFRln_file):
 
     plt.show()
 
-
+'''
 def recent_prevalence(min_pop=1000000,mult=10000):
     dat = pd.read_csv(cv.NYT_counties,header=0)
     dat['fips'] = dat['fips'].fillna(0).astype(np.int64) 
@@ -751,6 +751,7 @@ def recent_prevalence(min_pop=1000000,mult=10000):
 #          vline(ax,mean,note,pos='left')
  
     plt.show()
+'''
  
 def plot_prevalence_stats_TS(flag=None,per_capita=True, mult = 10000, delta_ts=True,
                     window=7, plot_dt = False, cumulative = False,
@@ -866,8 +867,11 @@ qq = GG.qcomp(flag='1500000',window=7)
 tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
                      show_order_date=False,per_capita=True, window=[7],
                      qq = qq, pp = [0.2,0.2,0.2,0.8],False=4)
-'''
 
+qq = GG.qcomp(flag='1500000',window=7)
+GG.plot_prevalence_comp_TS(flag='B',save=False, signature=False,qq=qq,
+                               pp = [0.2,0.2,0.2,0.8])
+'''
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
 #tmpG.read_BCHA_data()
 #tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
@@ -905,8 +909,8 @@ tgeog.plot_prevalence(save=False,signature=True,cumulative=False,
 #CFR.plot_CFR_ridge('CFR_ridge.csv')
 #update_assets()
 
-#update_everything(do_fits=False,do_web=False)
-git_commit_push()
+#update_everything(do_fits=False,do_web=True)
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
@@ -944,4 +948,5 @@ git_commit_push()
          #' -O /home/jsibert/Desktop/'+BC_cases_file
 #print(cmd)
 #os.system(cmd)
+#update_html()
  
