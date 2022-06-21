@@ -866,13 +866,7 @@ def pretty_county(s):
 
 
 def qcomp(flag=None,per_capita=True, mult = 10000, delta_ts=True, window=7):
-    #dtime = datetime.fromtimestamp(mtime)
-    #EndOfTime = dtime.date()+timedelta(days=21)
-    #firstDate = mdates.date2num(cv.FirstNYTDate)
-    #lastDate = mdates.date2num(EndOfTime)
-    #print(firstDate, cv.FirstNYTDate)
-    #print(lastDate, EndOfTime)
-   
+
     if flag.isnumeric():
         print('   numeric')
         gg_filter = cv.GeoIndex['population'] > float(flag)
@@ -893,7 +887,6 @@ def qcomp(flag=None,per_capita=True, mult = 10000, delta_ts=True, window=7):
     recent = pd.DataFrame(index=range(0,nG),
                           columns=('county_code','fips','population','sname','cases','deaths','cfr','vax'))
     print('nG =',nG,'flag =',flag,'recent:')
-    #print(recent)
 
     for g in range(0,nG):
         print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g],gg['population'].iloc[g])
@@ -908,47 +901,26 @@ def qcomp(flag=None,per_capita=True, mult = 10000, delta_ts=True, window=7):
         tmpG.get_pdate()
       
 
-        #Date = pd.Series(tmpG.get_pdate())
-        #df_correction = np.sqrt(window-1)
         recent['county_code'][g] = gg['county'][g] +' '+ gg['code'][g] 
-    #   recent['code'][g] = gg['code'][g] 
         recent['fips'][g] = gg['fips'][g] 
         recent['population'][g] = tmpG.population
         recent['sname'][g] = short_name(tmpG.moniker)
 
         dcases = pd.Series(np.diff(tmpG.cases)) # first differences
-#        print(dcases)
         if tmpG.deaths is not None:
             ddeaths = pd.Series(np.diff(tmpG.deaths)) # first differences
         else:
             ddeaths = pd.Series(0.0,index=ddeaths.index)
-        #if g == 0:
-        #    print(tmpG.enclosed_by,list(pd.Series(tmpG.pdate).tail(10)))
-        #if tmpG.enclosed_by == 'Florida':
-        #    print(tmpG.to_DataFrame().tail(window))
-        #    
-        #    #sys.exit(1)
-        
-#        window_delta = delta.tail(window)
-#        pd_filter = (window_delta > 0.0)
-#        window_delta = window_delta[pd_filter]
-#        recent['cases'][g] = mult*window_delta.sum()/window/tmpG.population
-        
-        #print(tmpG.deaths)
         tcases = pd.Series(tmpG.cases)
         if tmpG.deaths is not None:
             tdeaths = pd.Series(tmpG.deaths)
         else:
             tdeaths = pd.Series(0.0,index=tcases.index)        #print(tmpG.vax)
-        #tmpG.vax = pd.Series(tmpG.vax)
-        #print(tmpG.vax.tail(window))
         
         den = window*tmpG.population/10000.0
         recent['cases'][g] = dcases.tail(window).sum()/den
         if tmpG.deaths is not None:
-   #     print('deaths')
             recent['deaths'][g] = ddeaths.tail(window).sum()/den
-   #     print('cfr')
             recent['cfr'][g] = pd.Series(tmpG.deaths).tail(window).sum()/pd.Series(tmpG.cases).tail(window).sum()
         if tmpG.vax is not None:   #     print('vax')
             recent['vax'][g] = tmpG.vax['full'].tail(window).mean()/tmpG.population
@@ -959,14 +931,42 @@ def qcomp(flag=None,per_capita=True, mult = 10000, delta_ts=True, window=7):
     vnames = ['cases','deaths','cfr','vax']
     qq = [0.01,0.05,0.1,0.2,0.8,0.9,0.95,0.99]
     quantiles = pd.DataFrame(index=qq, columns=vnames)
-    #print(quantiles)
 
     for v in vnames:
         for q in qq:
-        #    print(v,q,np.quantile(recent[v],q=q))
             quantiles[v][q] = np.quantile(recent[v],q=q)
 
+        if v == 'cases':
+            fig, ax = plt.subplots(1,figsize=(6.5,4.5))
+            plt.rcParams['lines.linewidth'] = 1.5
+            bins = np.linspace(0.0,5.0,50)
+            hb = 0.5*(bins[1]-bins[0])
+            nbin = len(bins)
+            weights = np.ones_like(recent[v]) / len(recent)
+
+            hist,edges,patches = ax.hist(recent[v],bins,density=False)
+            ax.set_ylim(0.0,1.2*max(hist))
+            ylim = ax.get_ylim()
+            pmax = max(hist)
+            for ip, p in enumerate(qq):
+                if ip < len(qq)-1:
+                    cp = np.quantile(recent[v],q=p)+hb
+                    ax.plot((cp,cp),(0.0,pmax),linewidth=5, alpha=0.25, color='green')  
+                    ax.text(cp,pmax,'{:.2f}'.format(p),ha='center',va='bottom',
+                            fontsize=6, color='green')
+
+            ax.set_xlabel('Mean '+str(window)+' Day Prevalence'+' per '+str(mult))
+            ax.set_ylabel('Number of Areas')
+            plt.figtext(.5,0.95,'Recent Prevalence Frequency', fontsize=18, ha='center')
+            plt.figtext(.5,0.9,note,fontsize=10,ha='center')
+
+            file = 'recent_prevalence_histo_pop'
+            gfile = cv.graphics_path+file+'.png'
+            #gfile = file+'.png'
+            plt.savefig(gfile,dpi=300)
+            print('plot saved as',gfile)
+            plt.show()
+ 
     quantiles['vax'].fillna(0.999,inplace=True)
     quantiles['vax'] = 100.0*quantiles['vax'] 
-    #print(quantiles)
     return quantiles
