@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from covid21 import GraphicsUtilities as GU
 from covid21 import config as cv
 import ipdb
@@ -25,7 +25,7 @@ class Geography:
     Canada. Could be easily extended to whole states or larger geogrphies.
     """
 
-    #   def __init__(self,name,enclosed_by,code):
+    #   def __init__(self,name,enclosed_by,code):    def __init__(self, **kwargs):
     def __init__(self, **kwargs):
         self.gtype = None
         self.name = kwargs.get('name')
@@ -637,7 +637,6 @@ def plot_prevalence_comp_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tru
     else:
         plt.show()
 
-
     #cv.EndOfTime = oldEndOfTime = cv.EndOfTime
 '''
 def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts=True,
@@ -884,7 +883,8 @@ def pretty_county(s):
     return(pretty.replace('_', ' ', 5))
 
 
-def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7, save=True):
+def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
+          annotation=True, signature=True, save=True):
     '''
     Computes quantiles of cases, deaths, CFR and vaccinations.
 
@@ -904,6 +904,10 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7, save=True)
     window : integer, optional
         Number of days defining most recent.
         The default is 7, meaning the last 7 days of the time series.
+    annotation : bool, optional
+        Add title and acknowledgements to plot. The default is True.
+    signature : bool, optional
+        Add personal signature to plot. The default is False.
 
     Parameters
     ----------
@@ -922,10 +926,6 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7, save=True)
     cumulative : TYPE, optional
         DESCRIPTION. The default is False.
     show_order_date : TYPE, optional
-        DESCRIPTION. The default is False.
-    annotation : TYPE, optional
-        DESCRIPTION. The default is True.
-    signature : TYPE, optional
         DESCRIPTION. The default is False.
     ymaxdefault : TYPE, optional
         DESCRIPTION. The default is None.
@@ -1040,15 +1040,24 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7, save=True)
                     cp = np.quantile(recent[v], q=p)+hb
                     ax.plot((cp, cp), (0.0, pmax), linewidth=5,
                             alpha=0.25, color='green')
-                    ax.text(cp, pmax, '{:.2f}'.format(p), ha='center', va='bottom',
+                #    ax.text(cp, pmax, '{:.2f}'.format(p), ha='center', va='bottom',
+                    ax.text(cp, pmax, '{:.0f}%'.format(100.0*p), ha='center', va='bottom',
                             fontsize=6, color='green')
 
             ax.set_xlabel('Mean '+str(window) +
                           ' Day Prevalence'+' per '+str(mult))
             ax.set_ylabel('Number of Areas')
-            plt.figtext(.5, 0.95, 'Recent Prevalence Frequency',
+            plt.figtext(.5, 0.95, 'Recent COVID-19 Prevalence Frequency',
                         fontsize=18, ha='center')
             plt.figtext(.5, 0.9, note, fontsize=10, ha='center')
+
+    if (annotation):
+        GU.add_data_source(
+            fig, 'New York Times and Centers for Disease Control')
+
+    if (signature):
+        GU.add_signature(fig, 'https://github.com/johnrsibert/SIR-Models')
+        GU.add_data_source(fig)
 
     if save:
         file = 'recent_prevalence_histo_pop'
