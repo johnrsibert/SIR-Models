@@ -351,15 +351,15 @@ class Geography:
                 vmult = 100.0
                 mdate = self.vax['mdate']
                 pv = vmult*pd.Series(self.vax['first'])/self.population
-                print('a =', a, 'number of vax estimates',
-                      len(pv), ', max =', pv.max())
-                print(pv)
+            #   print('a =', a, 'number of vax estimates',
+            #         len(pv), ', max =', pv.max())
+            #   print(pv)
                 ax[a].plot(mdate, pv)
 
                 pv = vmult*pd.Series(self.vax['full'])/self.population
-                print('a =', a, 'number of vax estimates',
-                      len(pv), ', max =', pv.max())
-                print(pv)
+            #   print('a =', a, 'number of vax estimates',
+            #         len(pv), ', max =', pv.max())
+            #   print(pv)
                 ax[a].plot(mdate, pv)
                 '''
                 if pv.max() > 1.0:
@@ -909,40 +909,6 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
     signature : bool, optional
         Add personal signature to plot. The default is False.
 
-    Parameters
-    ----------
-    flag : TYPE, optional
-        DESCRIPTION. The default is None.
-    per_capita : TYPE, optional
-        DESCRIPTION. The default is True.
-    mult : TYPE, optional
-        DESCRIPTION. The default is 10000.
-    delta_ts : TYPE, optional
-        DESCRIPTION. The default is True.
-    window : TYPE, optional
-        DESCRIPTION. The default is 7.
-    plot_dt : TYPE, optional
-        DESCRIPTION. The default is False.
-    cumulative : TYPE, optional
-        DESCRIPTION. The default is False.
-    show_order_date : TYPE, optional
-        DESCRIPTION. The default is False.
-    ymaxdefault : TYPE, optional
-        DESCRIPTION. The default is None.
-    show_SE : TYPE, optional
-        DESCRIPTION. The default is False.
-    #                   ymax : TYPE, optional
-        DESCRIPTION. The default is [None,None,None].
-    #[0.2,0.01,0.04] : TYPE
-        DESCRIPTION.
-    qq : TYPE, optional
-        DESCRIPTION. The default is None.
-    p : TYPE, optional
-        DESCRIPTION. The default is None.
-    save : TYPE, optional
-        DESCRIPTION. The default is True.
-
-
 
     Returns
     -------
@@ -1026,7 +992,7 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
         if v == 'cases':
             fig, ax = plt.subplots(1, figsize=(6.5, 4.5))
             plt.rcParams['lines.linewidth'] = 1.5
-            bins = np.linspace(0.0, 5.0, 50)
+            bins = np.linspace(0.0, 10.0, 50)
             hb = 0.5*(bins[1]-bins[0])
             nbin = len(bins)
             weights = np.ones_like(recent[v]) / len(recent)
@@ -1077,6 +1043,20 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
     write_prevalence_html(recent, file)
 
     return quantiles
+
+'''
+import datetime
+import os
+
+def set_file_last_modified(file_path, dt):
+    dt_epoch = dt.timestamp()
+    os.utime(file_path, (dt_epoch, dt_epoch))
+
+# ...
+
+now = datetime.datetime.now()
+set_file_last_modified(r'C:\my\file\path.pdf', now)
+'''
 
 
 def write_prevalence_html(precent, file, nreg=20):
