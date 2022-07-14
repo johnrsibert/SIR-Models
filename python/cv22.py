@@ -918,9 +918,9 @@ GG.plot_prevalence_comp_TS(flag='B',save=False, signature=False,qq=qq,
                                pp = [0.2,0.2,0.2,0.8])
 '''
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
-# tmpG.read_BCHA_data()
-# tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
-#                     per_capita=True,show_order_date=False)
+#tmpG.read_BCHA_data()
+#tmpG.plot_prevalence(save=False,signature=True,cumulative=False,
+                     #per_capita=True,show_order_date=False)
 
 # VV.get_cdc_dat(update=True)
 # web_update()

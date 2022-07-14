@@ -284,16 +284,16 @@ class Geography:
         gdf['deaths'] = deaths
         gdf['cfr'] = cfr
 
-        '''
-        ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
-                (0.0,1.2*gdf.iloc[:,1].max()),
-                (0.0,1.2*gdf.iloc[:,2].max()),
-                (0.0,101.0)]
-        '''
-        ylim = [(0.0, 0.2*gdf.iloc[:, 0].max()),
-                (0.0, 1.2*gdf.iloc[:, 1].max()),
-                (0.0, 1.2*gdf.iloc[:, 2].max()),
-                (0.0, 101.0)]
+        if nax == 1: 
+            ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
+                    (0.0,1.2*gdf.iloc[:,1].max()),
+                    (0.0,1.2*gdf.iloc[:,2].max()),
+                    (0.0,101.0)]
+        else:
+            ylim = [(0.0, 0.2*gdf.iloc[:, 0].max()),
+                    (0.0, 1.2*gdf.iloc[:, 1].max()),
+                    (0.0, 1.2*gdf.iloc[:, 2].max()),
+                    (0.0, 101.0)]
 
         ax2 = []
         for a in range(0, nax):
@@ -638,225 +638,6 @@ def plot_prevalence_comp_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tru
         plt.show()
 
     #cv.EndOfTime = oldEndOfTime = cv.EndOfTime
-'''
-def plot_prevalence_comp_histo(flag=None,per_capita=True, mult = 10000, delta_ts=True,
-                    window=7, plot_dt = False, cumulative = False,
-                    show_order_date = False,
-                    annotation = True, signature = False,
-                    ymaxdefault = None,
-                    show_SE = False,
-#                   ymax = [None,None,None], #[0.2,0.01,0.04],
-                    qq = None, p = None,
-    """
-    Plots frequency distribtuion of recent a case prevalence
-
-    window: agerage window for recent prevalence
-    annotations: add title and acknowledgements True
-    save : save plot as file
-
-#   returns quantiles
-    """
-    #firstDate = mdates.date2num(cv.FirstNYTDate)
-    #lastDate  = mdates.date2num(cv.EndOfTime)
-    #orderDate = mdates.date2num(cv.CAOrderDate)
-
-    fig, ax = plt.subplots(1,figsize=(6.5,4.5))
-    plt.rcParams['lines.linewidth'] = 1.5
-
-    #save_path = cv.graphics_path
-
-#   nyt_counties = pd.read_csv(cv.GeoIndexPath,header=0,comment='#')
-    nyt_counties = cv.GeoIndex
-
-    if flag.isnumeric():
-        gg_filter = nyt_counties['population'] > float(flag)
-        gg = nyt_counties[gg_filter]
-        nG = len(gg)
-        file = 'recent_prevalence_histo_pop'
-        note = '{0} Regions with population greater than {1:,}'.format(nG,int(flag))
-    else:
-        gg_filter = nyt_counties['flag'].str.contains(flag)
-        gg = nyt_counties[gg_filter]
-        file = 'recent_prevalence_histo_'+flag
-        note = '{0} Counties'.format(nG)
-
-
-
-    if (ymaxdefault is None):
-        ymax = [0.0]*3
-    else:
-        ymax = ymaxdefault
-
-    recent = pd.DataFrame(index=range(0,nG),
-                          columns=('county_code','fips','cases','population','sname'))
-    print('nG =',nG,'flag =',flag,'recent',recent)
-
-    for g in range(0,nG):
-        print(g,gg['county'].iloc[g],gg['code'].iloc[g],gg['fips'].iloc[g])
-        tmpG = Geography(name=gg['county'].iloc[g], enclosed_by=gg['state'].iloc[g],
-                         code=gg['code'].iloc[g])
-        if (gg['code'].iloc[g] == 'BC'):
-            tmpG.read_BCHA_data('province')
-        else:
-            tmpG.read_nyt_data('county')
-            tmpG.read_vax_data()
-
-
-        #Date = pd.Series(tmpG.get_pdate())
-        #df_correction = np.sqrt(window-1)
-        recent['county_code'][g] = gg['county'][g] +' '+ gg['code'][g]
-    #   recent['code'][g] = gg['code'][g]
-        recent['fips'][g] = gg['fips'][g]
-        recent['population'][g] = tmpG.population
-        recent['sname'][g] = short_name(tmpG.moniker)
-
-        delta = pd.Series(np.diff(tmpG.cases)) # first differences
-        window_delta = delta.tail(window)
-        pd_filter = (window_delta > 0.0)
-        window_delta = window_delta[pd_filter]
-        recent['cases'][g] = mult*window_delta.sum()/window/tmpG.population
-
-    #   window_len = window #len(window_delta)
-    #
-    #   if window_len > 0:
-    #       recent['cases'][g] = mult*window_delta.sum()/window_len/tmpG.population
-    #   recent['cases'][g] = mult*delta.tail(window).mean()/tmpG.population
-    #   if (recent['cases'][g] < 0.0):
-    #       print('negative cases:')
-    #       print(g,tmpG.moniker)
-    #       print(delta.tail(window))
-    #       print(pd.DataFrame(tmpG.cases).tail(window))
-    #       print('  ')
-
-#   ---- loop: for g in range(0,len(gg)):
-    print(recent)
-    zmask = recent['cases'] > 0.0
-
-#   select records with cases < 0
-    precent = recent[zmask]
-    print(precent)
-
-    summary = str(stats.describe(precent['cases']))
-    print('recent summary:',summary)
-
-#   bins = np.linspace(0.0,0.5,50)
-    bins = np.linspace(0.0,5.0,50)
-    print('bins:',bins)
-    nbin = len(bins)
-    #weights = np.ones_like(recent['cases']) / len(recent)
-    weights = np.ones_like(precent['cases']) / len(precent)
-
-    #hist,edges,patches = ax.hist(recent['cases'],bins,density=False)
-    hist,edges,patches = ax.hist(precent['cases'],bins,density=False)
-    print(hist)
-
-#   sort recent cases
-    precent = precent.sort_values(by='cases',ascending=True)
-    precent.to_csv(file+'.csv',index=False)
-
-#   tfig, tax = plt.subplots(1,figsize=(6.5,4.5))
-#   tax.scatter(recent['population'],recent['cases'])
-#   plt.show()
-
-
-    table = pd.DataFrame(columns=('rank','county_code','cases'))
-    table['county_code'] = precent['county_code']
-    table['cases'] = precent['cases']
-    table['rank'] = range(0,len(precent))
-    print('table')
-    print(table)
-
-    html_file = cv.assets_path+file+'.html'
-    with open(html_file,'w') as hh:
-        hh.write('<!--- recent summary\n')
-        hh.write(summary)
-        hh.write('\n--->\n')
-
-        tab = pd.DataFrame(columns=table.columns,dtype='object')
-        nreg=20
-        tab = tab.append(table.head(nreg),ignore_index=True)
-        # insertion of '...' intoduces nan into cases column
-        tab = tab.append(pd.Series(['...']*3,index=table.columns),ignore_index=True)
-        tab = tab.append(table.tail(nreg),ignore_index=True)
-
-        tab['cases'] = pd.to_numeric(tab['cases'],errors='coerce')
-        hh.write('<!---START TABLE--->\n')
-        # make tabulation string and then replace nan with ...
-        tt = tabulate(tab,headers=['Rank','Region','Prevalence'],tablefmt='html',
-                      numalign="right", floatfmt=".3f",
-                      stralign='left', showindex=False).replace(' nan',' ...')
-        hh.write(tt)
-        mtime = os.path.getmtime(cv.NYT_home+'us-counties.csv')
-        dtime = datetime.fromtimestamp(mtime)
-
-        hh.write('\n<br>\nUpdated '+str(dtime.date())+'\n<br>\n')
-        hh.write('<!---END TABLE--->\n')
-        print('prevalence rankings saved as',html_file)
-
-    html_file2 ='all_prev.html'
-    with open(html_file2,'w') as h2:
-        tt = tabulate(table,headers=['Rank','Region','Prevalence'],tablefmt='html',
-                      numalign="right", floatfmt=".3f",
-                      stralign='left', showindex=False).replace(' nan',' ...')
-        h2.write(tt)
-        print('all prevalence rankings saved as',html_file2)
-
-
-#   pref = np.quantile(precent['cases'],q=0.05)
-    t_filter = (precent['cases'] <= pref) & (precent['cases'] >= 0.0)
-    tt = precent[t_filter]
-
-#   print('quantiles:')
-#   qq = [0.01,0.05,0.10,0.9,0.95,0.99]
-#   quantiles = pd.Series(index=qq)
-
-#   for q in qq:
-#       quantiles[q] = np.quantile(precent['cases'],q=q)
-#   print(quantiles)
-
-
-    for k in tt.index:
-        print(k,tt['sname'][k],tt['cases'][k])#,tt['sname'][k])
-        GU.vline(ax,tt['cases'][k],tt['sname'][k],pos='left')
-
-
-#   GU.vline(ax,pref,'q=0.1',pos='right')
-
-    if qq is not None and p is not None:
-        pref = qq.loc[p][0]
-        ax.axvline(pref,linewidth=3,color='green',alpha=0.5)
-    ax.set_xlabel('Mean '+str(window)+' Day Prevalence'+' per '+str(mult))
-    ax.set_ylabel('Number of Areas')
-    tx = ax.get_xlim()[1]
-    ylim = ax.get_ylim()
-    ty = ylim[0]+0.90*(ylim[1]-ylim[0])
-#   if flag.isnumeric():
-#   else:
-
-    print(note)
-    ax.text(tx,ty,note,ha='right',va='center',fontsize=10)
-
-    plt.title('Recent Prevalence Frequency')
-#   plt.title('Most Recent '+str(window)+' Day Prevalence')
-
-
-    if (signature):
-        GU.add_signature(fig,'https://github.com/johnrsibert/SIR-Models')
-        GU.add_data_source(fig)
-
-    if save:
-        gfile = cv.graphics_path+file+'.png'
-        plt.savefig(gfile,dpi=300)
-        plt.show(block=False)
-        plt.pause(3)
-        plt.close()
-        print('plot saved as',gfile)
-    else:
-        plt.show()
-
-#   return(quantiles)
-'''
-
 
 def short_name(s):
     """
@@ -978,6 +759,8 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
             recent['vax'][g] = tmpG.vax['full'].tail(
                 window).mean()/tmpG.population
 
+    gtzero_filter = recent['cases'] > 0.0001
+    recent = recent[gtzero_filter]
     recent = recent.sort_values(by='cases', ascending=True)
     recent.to_csv('recent.csv', index=False)
 
@@ -1023,7 +806,7 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
 
     if (signature):
         GU.add_signature(fig, 'https://github.com/johnrsibert/SIR-Models')
-        GU.add_data_source(fig)
+    #   GU.add_data_source(fig)
 
     if save:
         file = 'recent_prevalence_histo_pop'
