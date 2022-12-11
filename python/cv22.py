@@ -901,20 +901,21 @@ def plot_prevalence_stats_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tr
 #tgeog = GG.Geography(name='Pinellas',enclosed_by='Florida',code='FL')
 #tgeog = GG.Geography(name='San Diego',enclosed_by='California',code='CA')
 #tgeog = GG.Geography(name='Hamilton',enclosed_by='Ohio',code='OH')
+
 '''
-tgeog = GG.Geography(name='Alameda', enclosed_by='California', code='CA')
+#tgeog = GG.Geography(name='Alameda', enclosed_by='California', code='CA')
+tgeog = GG.Geography(name='San Joaquin', enclosed_by='California', code='CA')
 tgeog.read_nyt_data('county')
 tgeog.read_vax_data()
-# tgeog.print_metadata()
+tgeog.print_metadata()
 # tgeog.print_data()
-
 qq = GG.qcomp(flag='1500000', window=7)
 tgeog.plot_prevalence(save=True, signature=True, cumulative=False,
                       show_order_date=False, per_capita=True, window=[7],
                       qq=qq, pp=[0.2, 0.2, 0.2, 0.8], nax=4)
 
 qq = GG.qcomp(flag='1500000',window=7)
-GG.plot_prevalence_comp_TS(flag='B',save=False, signature=False,qq=qq,
+GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,qq=qq,
                                pp = [0.2,0.2,0.2,0.8])
 '''
 #tmpG = GG.Geography(name='Vancouver Island',enclosed_by='British Columbia',code='BC')
@@ -954,7 +955,7 @@ GG.plot_prevalence_comp_TS(flag='B',save=False, signature=False,qq=qq,
 # CFR.plot_CFR_ridge('CFR_ridge.csv')
 
 #update_everything(do_fits=False,do_web=True)
-git_commit_push()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
