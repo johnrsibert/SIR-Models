@@ -514,8 +514,8 @@ def plot_prevalence_comp_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tru
             (0.0, 101.0)]
 
     if flag == 'B':
-        ylim[0] = (0.0, 30.0)
-        ylim[1] = (0.0, 0.2)
+        ylim[0] = (0.0, 10.0)
+        ylim[1] = (0.0, 0.05)
         ylim[2] = (0.0, 0.02)
 
     for g in range(0, nG):

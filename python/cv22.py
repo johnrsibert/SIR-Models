@@ -903,8 +903,8 @@ def plot_prevalence_stats_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tr
 #tgeog = GG.Geography(name='Hamilton',enclosed_by='Ohio',code='OH')
 
 '''
-#tgeog = GG.Geography(name='Alameda', enclosed_by='California', code='CA')
-tgeog = GG.Geography(name='San Joaquin', enclosed_by='California', code='CA')
+tgeog = GG.Geography(name='Alameda', enclosed_by='California', code='CA')
+#tgeog = GG.Geography(name='San Joaquin', enclosed_by='California', code='CA')
 tgeog.read_nyt_data('county')
 tgeog.read_vax_data()
 tgeog.print_metadata()
@@ -955,7 +955,7 @@ GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,qq=qq,
 # CFR.plot_CFR_ridge('CFR_ridge.csv')
 
 #update_everything(do_fits=False,do_web=True)
-#git_commit_push()
+git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)
