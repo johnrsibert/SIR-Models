@@ -297,7 +297,7 @@ def plot_dow_boxes(nG=5):
     plt.show()
 
 
-def web_update(years=['2020', '2021', '2022']):
+def web_update(years=['2020', '2021', '2022', '2023']):
     os.system('git -C /home/other/nytimes-covid-19-data pull -v')
     cv.nyt_county_dat.iloc[0:0]
 
@@ -955,7 +955,7 @@ GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,qq=qq,
 # CFR.plot_CFR_ridge('CFR_ridge.csv')
 
 #update_everything(do_fits=False,do_web=True)
-git_commit_push()
+#git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
 #GG.plot_prevalence_comp_TS(flag='L',save=True, signature=False)

@@ -52,7 +52,7 @@ class Geography:
         self.date = None
         self.cases = None
         self.deaths = None
-        self.pdate = None  # date for plotting on x-axis
+        self.pdate = None
         self.vax = None
 
     def print(self):
@@ -284,11 +284,11 @@ class Geography:
         gdf['deaths'] = deaths
         gdf['cfr'] = cfr
 
-        if nax == 1: 
-            ylim = [(0.0,1.2*gdf.iloc[:,0].max()),
-                    (0.0,1.2*gdf.iloc[:,1].max()),
-                    (0.0,1.2*gdf.iloc[:,2].max()),
-                    (0.0,101.0)]
+        if nax == 1:
+            ylim = [(0.0, 1.2*gdf.iloc[:, 0].max()),
+                    (0.0, 1.2*gdf.iloc[:, 1].max()),
+                    (0.0, 1.2*gdf.iloc[:, 2].max()),
+                    (0.0, 101.0)]
         else:
             ylim = [(0.0, 0.2*gdf.iloc[:, 0].max()),
                     (0.0, 1.2*gdf.iloc[:, 1].max()),
@@ -639,6 +639,7 @@ def plot_prevalence_comp_TS(flag=None, per_capita=True, mult=10000, delta_ts=Tru
 
     #cv.EndOfTime = oldEndOfTime = cv.EndOfTime
 
+
 def short_name(s):
     """
     Create 4 byte abbreviation for getography names
@@ -826,6 +827,7 @@ def qcomp(flag, per_capita=True, mult=10000, delta_ts=True, window=7,
     write_prevalence_html(recent, file)
 
     return quantiles
+
 
 '''
 import datetime
