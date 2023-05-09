@@ -954,7 +954,7 @@ GG.plot_prevalence_comp_TS(flag='B',save=True, signature=True,qq=qq,
 #CFR.CFR_comp(nG=30, w = 23)
 # CFR.plot_CFR_ridge('CFR_ridge.csv')
 
-#update_everything(do_fits=False,do_web=True)
+update_everything() #do_fits=False,do_web=True)
 #git_commit_push()
 
 #GG.plot_prevalence_comp_TS(flag='B',save=True, signature=False,nax=3)
